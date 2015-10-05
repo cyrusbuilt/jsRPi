@@ -25,3 +25,16 @@ build/Release
 # Dependency directory
 # https://www.npmjs.org/doc/misc/npm-faq.html#should-i-check-my-node_modules-folder-into-git
 node_modules
+
+# Node for Visual Studio user files.
+*.suo
+.ntvs_analysis.dat
+
+# Node for Visual Studio object output directory.
+obj/
+
+# Node for Visual Studio settings directory.
+.settings/
+
+# ignore build output
+dist/*.js

@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: lib/BitSet.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: lib/BitSet.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+//
+//  BitSet.js
+//
+//  Author:
+//       Chris Brunner &lt;cyrusbuilt at gmail dot com>
+//
+//  Copyright (c) 2015 CyrusBuilt
+//
+//  This program is free software; you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation; either version 2 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+//
+
+/**
+ * Module dependencies.
+ */
+var util = require('util');
+var IllegalArgumentException = require("./IllegalArgumentException.js");
+var ArgumentNullException = require("./ArgumentNullException.js");
+var StringBuilder = require("string-builder");
+var Assert = require('assert');
+
+/**
+ * The number of address bits per word.
+ * @const {Number}
+ * @package
+ */
+var ADDRESS_BITS_PER_WORD = 6;
+
+/**
+ * The number of bits per word.
+ * @const {Number}
+ * @package
+ */
+var BITS_PER_WORD = 1 &lt;&lt; ADDRESS_BITS_PER_WORD;
+
+/**
+ * Given the specified bit index, returns the word index containing it.
+ * @param  {Number} bitIndex The bit index.
+ * @return {Number}          The word index containing the specified bit index.
+ */
+var wordIndex = function(bitIndex) {
+  return (bitIndex >> ADDRESS_BITS_PER_WORD);
+};
+
+/**
+ * Checks to see if the specified "from" index and "to" index are a valid range
+ * of bit indices and throws an exception if not.
+ * @param  {Number} fromIndex The starting index.
+ * @param  {Number} toIndex   The ending index.
+ * @throws {ArgumentNullException} if fromIndex is null or toIndex is null.
+ * @throws {IllegalArgumentException} if either parameter is not a number.
+ * @throws {RangeError} if either parameter is less than zero.
+ */
+var checkRange = function(fromIndex, toIndex) {
+  if (util.isNullOrUndefined(fromIndex)) {
+    throw new ArgumentNullException("fromIndex cannot be null.");
+  }
+
+  if (util.isNullOrUndefined(toIndex)) {
+    throw new ArgumentNullException("toIndex cannot be null.");
+  }
+
+  if (typeof fromIndex !== 'number') {
+    throw new IllegalArgumentException("fromIndex MUST be a number.");
+  }
+
+  if (typeof toIndex !== 'number') {
+    throw new IllegalArgumentException("toIndex MUST be a number.");
+  }
+
+  if (fromIndex &lt; 0) {
+    throw new RangeError("fromIndex cannot be less than zero.");
+  }
+
+  if (toIndex &lt; 0) {
+    throw new RangeError("toIndex cannot be less than zero.");
+  }
+
+  if (fromIndex > toIndex) {
+    throw new RangeError("fromIndex cannot be greater than toIndex.");
+  }
+};
+
+/**
+ * Gets the number of trailing zeros in the specified number.
+ * @param  {Number} n The number value to inspect.
+ * @return {Number}   The number of trailing zeros.
+ * @throws {IllegalArgumentException} if 'n' parameter is not a number.
+ */
+var numberOfTrailingZeros = function(n) {
+  if (util.isNullOrUndefined(n)) {
+    return 0;
+  }
+
+  if (typeof n !== 'number') {
+    throw new IllegalArgumentException("param 'n' must be a number.");
+  }
+
+  var mask = 1;
+  var result = 64;
+  for (var i = 0; i &lt; 64; i++, mask &lt;&lt;= 1) {
+    if ((n &amp; mask) !== 0) {
+      result = i;
+      break;
+    }
+  }
+  return result;
+};
+
+/* jshint latedef: false */
+/**
+ * Gets a new BitSet from the specified word array.
+ * @param  {Array} words An array of bits to convert into a BitSet.
+ * @return {BitSet}      A new BitSet containing the specified bits.
+ */
+var fromWordArray = function(words) {
+  if (!util.isArray(words)) {
+    return null;
+  }
+  return new BitSet(words);
+};
+
+/**
+ * An implementation of a vector of bits that grows as needed. Each component of
+ * the bit set has a Boolean value. The bits of a BitSet are indexed by
+ * non-negative integers. Individual indexed bits can be examined, set, or
+ * cleared. One BitSet may be used to modify the contents of another through
+ * logical AND, logical inclusive OR, and logical exclusive OR operations. By
+ * default, all bits in the set initially have the value of false. Every BitSet
+ * has a current size, which is the number of bits of space currently in use by
+ * the BitSet. Note that the size is related to the implementation of a BitSet,
+ * so it may change with implementation. The length of a BitSet relates to the
+ * logical length of a BitSet and is defined independently of implementation.
+ * Unless otherwise noted, passing a null parameter to any of the methods in a
+ * BitSet will result in a ArgumentNullException.
+ * @param {Number|Array} bits The initial size of the BitSet - or - an array
+ * (words) to compose this instance from.
+ * @throws {IllegalArgumentException} if 'bits' param is not a valid type (must
+ * be a number or array of bits).
+ * @throws {RangeError} if 'bits' is a number but is less than zero.
+ * @constructor
+ */
+function BitSet(bits) {
+  var BIT_INDEX_MASK = BITS_PER_WORD - 1;
+  var LONG_MASK = 0x3f;
+
+  var that = this;
+  var _bits = [];
+  var _wordsInUse = 0;
+  var _sizeIsSticky = false;
+  var self = this;
+
+  this.name = "BitSet";
+
+  /**
+   * Every public method must preserve invariants. This method checks to see if
+   * this is true using assertions. Assertion errors are thrown if any of the
+   * assertions fail.
+   * @private
+   */
+  var checkInvariants = function() {
+    Assert.ok((_wordsInUse === 0) || (_bits[_wordsInUse - 1] !== 0));
+    Assert.ok((_wordsInUse >= 0) &amp;&amp; (_wordsInUse &lt;= _bits.length));
+    Assert.ok((_wordsInUse === _bits.length) || (_bits[_wordsInUse] === 0));
+  };
+
+  // Main constructor logic.
+  if (util.isNullOrUndefined(bits)) {
+    _bits = new Array(BITS_PER_WORD);
+  }
+  else {
+    if (typeof bits === 'number') {
+      if (bits &lt; 0) {
+        throw new RangeError("'bits' param must not be negative.");
+      }
+      _bits = new Array(wordIndex(bits - 1) + 1);
+      _sizeIsSticky = true;
+    }
+    else if (util.isArray(bits)) {
+      _bits = bits;
+      _wordsInUse = _bits.length;
+      checkInvariants();
+    }
+    else {
+      throw new IllegalArgumentException("param 'bits' must be a number or an array of bits.");
+    }
+  }
+
+  /**
+   * Gets a value indicating whether is BitSet is empty.
+   * @return {Boolean} true if empty; Otherwise, false.
+   */
+  this.isEmpty = function() {
+    return (_wordsInUse === 0);
+  };
+
+  /**
+   * Gets the "logical size" of this bit set: the index of the highest set bit
+   * in the BitSet plus one.
+   * @return {Number} The logical size of this BitSet or zero if this instance
+   * contains no bits.
+   */
+  this.length = function() {
+    if (_wordsInUse === 0) {
+      return 0;
+    }
+
+    if ((_bits === null) || (_bits.length === 0)) {
+      _wordsInUse = 0;
+      return _wordsInUse;
+    }
+
+    var positions = numberOfTrailingZeros(_bits[_wordsInUse - 1]);
+    return (BITS_PER_WORD * (_wordsInUse - 1) + (BITS_PER_WORD - positions));
+  };
+
+  /**
+   * Gets the number of bits of space actually in use by this BitSet to
+   * represent bit values. The maximum element in the set is the size minus the
+   * first element.
+   * @return {Number} The number of bits currently in this BitSet.
+   */
+  this.size = function() {
+    return (_bits.length * BITS_PER_WORD);
+  };
+
+  /**
+   * Sets the internal word count field to the logical size in words of the
+   * BitSet. WARNING: This method assumes that the number of words actually in
+   * use is less than or equal to the current value of the words in use field!!!
+   * @private
+   */
+  var recalcualteWordsInUse = function() {
+    var i = 0;
+    for (i = _wordsInUse - 1; i >= 0; i--) {
+      if (_bits[i] !== 0) {
+        break;
+      }
+    }
+    _wordsInUse = i + 1;
+  };
+
+  /**
+   * Ensures that this BitSet can hold enough words.
+   * @param  {Number} lastElt The minimum acceptable number of words.
+   * @private
+   */
+  var ensureCapacity = function(lastElt) {
+    var nd = [];
+    if (lastElt >= _bits.length) {
+      nd = new Array(lastElt + 1);
+      nd = (_bits || []).concat();
+      _bits = nd;
+      _sizeIsSticky = false;
+    }
+  };
+
+  /**
+   * Ensures that the BitSet can accomodate a given word index, temporarily
+   * violating the invariants. The caller must restore the invariants before
+   * returning to the user, possibly using recalcualteWordsInUse().
+   * @param  {Number} wordIndex The index to be accomodated.
+   * @private
+   */
+  var expandTo = function(wordIndex) {
+    var required = (wordIndex + 1);
+    if (_wordsInUse &lt; required) {
+      ensureCapacity(required);
+      _wordsInUse = required;
+    }
+  };
+
+  /**
+   * Attempts to reduce internal storage used for the bits in this BitSet.
+   * Calling this method may, but is not required to, affect the value returned
+   * by a subsequent call to the size() property.
+   * @private
+   */
+  var trimToSize = function() {
+    if (_wordsInUse !== _bits.length) {
+      var copy = (_bits || []).concat().slice(0, _wordsInUse);
+      _bits = copy;
+      checkInvariants();
+    }
+  };
+
+  /**
+   * Gets the number of words in use.
+   * @return {Number} The number of words in use.
+   */
+  this.getWordsInUse = function() {
+    return _wordsInUse;
+  };
+
+  /**
+   * Gets the internal bit array.
+   * @return {Array} The internal bit array.
+   */
+  this.getBits = function() {
+    return _bits;
+  };
+
+  /**
+   * Returns the number of bits set to true in this BitSet.
+   * @return {Number} The number of bits set.
+   */
+  this.cardinality = function() {
+    var card = 0;
+    var a = 0;
+    var b = 0;
+    for (var i = _bits.length - 1; i >= 0; i--) {
+      a = _bits[i];
+      // Take care of common cases.
+      if (a === 0) {
+        continue;
+      }
+
+      if (a === -1) {
+        card += 64;
+        continue;
+      }
+
+      // Successively collapse alternating bit groups into a sum.
+      a = ((a >> 1) &amp; 0x5555555555555555) + (a &amp; 0x5555555555555555);
+      a = ((a >> 2) &amp; 0x3333333333333333) + (a &amp; 0x3333333333333333);
+      b = ((a >> 32) + a);
+      b = ((b >> 4) &amp; 0x0f0f0f0f) + (b &amp; 0x0f0f0f0f);
+      b = ((b >> 8) &amp; 0x00ff00ff) + (b &amp; 0x00ff00ff);
+      card += ((b >> 16) &amp; 0x0000ffff) + (b &amp; 0x0000ffff);
+    }
+    return card;
+  };
+
+  /**
+   * Performs a logical AND of this target BitSet with the argument BitSet. This
+   * BitSet is modified so that each bit in it has the value ture if (and only
+   * if) it both initially had the value true and the corresponding bit in the
+   * specified BitSet also had the value true.
+   * @param  {BitSet} bs A BitSet. Throws ArgumentNullException if null.
+   * @throws {ArgumentNullException} if bs is null.
+   * @throws {IllegalArgumentException} if bs is not a BitSet.
+   */
+  this.and = function(bs) {
+    if (util.isNullOrUndefined(bs)) {
+      throw new ArgumentNullException("param 'bs' cannot be null");
+    }
+
+    if (this === bs) {
+      return;
+    }
+
+    if (!(bs instanceof 'BitSet')) {
+      throw new IllegalArgumentException("param 'bs' must be a BitSet.");
+    }
+
+    while (_wordsInUse > bs.getWordsInUse()) {
+      _bits[--_wordsInUse] = 0;
+    }
+
+    for (var i = 0; i &lt; _wordsInUse; i++) {
+      _bits[i] &amp;= bs.getBits()[i];
+    }
+
+    recalcualteWordsInUse();
+    checkInvariants();
+  };
+
+  /**
+   * Clears all of the bits in this BitSet whose corresponding bit is set in the
+   * specified BitSet.
+   * @param  {BitSet} bs The BitSet with which to mask this instance.
+   * @throws {ArgumentNullException} if bs is null.
+   * @throws {IllegalArgumentException} if bs is not a BitSet.
+   */
+  this.andNot = function(bs) {
+    if (util.isNullOrUndefined(bs)) {
+      throw new ArgumentNullException("param 'bs' cannot be null");
+    }
+
+    if (!(bs instanceof 'BitSet')) {
+      throw new IllegalArgumentException("param 'bs' must be a BitSet.");
+    }
+
+    var i = Math.min(_bits.length, bs.getBits().length);
+    while (--i >= 0) {
+      _bits[i] &amp;= ~bs.getBits()[i];
+    }
+
+    recalcualteWordsInUse();
+    checkInvariants();
+  };
+
+  /**
+   * Performs a logical OR of this BitSet with the specified BitSet. This BitSet
+   * is modified so that a bit in it has the value true if (and only if) it
+   * either already had the value ture or the corresponding bit in the specified
+   * BitSet has the value true.
+   * @param  {BitSet} bs A BitSet.
+   * @throws {ArgumentNullException} if bs is null.
+   * @throws {IllegalArgumentException} if bs is not a BitSet.
+   */
+  this.or = function(bs) {
+    if (util.isNullOrUndefined(bs)) {
+      throw new ArgumentNullException("param 'bs' cannot be null");
+    }
+
+    if (this === bs) {
+      return;
+    }
+
+    if (!(bs instanceof 'BitSet')) {
+      throw new IllegalArgumentException("param 'bs' must be a BitSet.");
+    }
+
+    var wordsInCommon = Math.min(_wordsInUse, bs.getWordsInUse());
+    if (_wordsInUse &lt; bs.getWordsInUse()) {
+      ensureCapacity(bs.getWordsInUse());
+      _wordsInUse = bs.getWordsInUse();
+    }
+
+    for (var i = 0; i &lt; wordsInCommon; i++) {
+      _bits[i] |= bs.getBits()[i];
+    }
+
+    if (wordsInCommon &lt; bs.getWordsInUse()) {
+      _bits = (_bits || []).concat().slice(0, _wordsInUse - wordsInCommon);
+    }
+
+    checkInvariants();
+  };
+
+  /**
+   * Performs a logical XOR of this BitSet with the specified BitSet. This
+   * BitSet is modified so that bit in it has the value true if (and only if)
+   * one of the following statements holds true:
+   * - The bit initially has the value true, and the corresponding bit in the
+   * specified BitSet has the value false.
+   * - The bit initially has the value false, and the corresponding bit in the
+   * specified BitSet has the value true.
+   * @param  {BitSet} bs A BitSet.
+   * @throws {ArgumentNullException} if bs is null.
+   * @throws {IllegalArgumentException} if bs is not a BitSet.
+   */
+  this.xOr = function(bs) {
+    if (util.isNullOrUndefined(bs)) {
+      throw new ArgumentNullException("param 'bs' cannot be null");
+    }
+
+    if (!(bs instanceof 'BitSet')) {
+      throw new IllegalArgumentException("param 'bs' must be a BitSet.");
+    }
+
+    // Calculate how many words which have in common with the other bit set.
+    var wordsInCommon = Math.min(_wordsInUse, bs.getWordsInUse());
+    if (_wordsInUse &lt; bs.getWordsInUse()) {
+      ensureCapacity(bs.getWordsInUse());
+      _wordsInUse = bs.getWordsInUse();
+    }
+
+    // Perform logical XOR on words in common.
+    for (var i = 0; i &lt; wordsInCommon; i++) {
+      _bits[i] ^= bs.getBits()[i];
+    }
+
+    // Copy any remaining words.
+    if (wordsInCommon &lt; bs.getWordsInUse()) {
+      _bits = (_bits || []).concat().slice(0, bs.getWordsInUse() - wordsInCommon);
+    }
+
+    recalcualteWordsInUse();
+    checkInvariants();
+  };
+
+  /**
+   * Sets the bit at the specified position (index) to false, or clears the
+   * entire BitSet if no value given.
+   * @param  {Number} pos The index of the bit to be cleared. If null or less
+   * than one, clears the entire BitSet.
+   * @throws {RangeError} if pos is greater than the last index.
+   */
+  this.clear = function(pos) {
+    if ((util.isNullOrUndefined(pos)) || (pos &lt; 1)) {
+      for (var i = 0; i &lt; _bits.length; i++) {
+        _bits[i] = 0;
+      }
+      _wordsInUse = 0;
+    }
+    else {
+      if (pos > _bits.length - 1) {
+        throw new RangeError("param 'pos' cannot be greater than the last index.");
+      }
+
+      var offset  = wordIndex(pos);
+      if (offset >= _wordsInUse) {
+        return;
+      }
+
+      _bits[offset] &amp;= ~(1 &lt;&lt; pos);
+      recalcualteWordsInUse();
+      checkInvariants();
+    }
+  };
+
+  /**
+   * Sets the bits from the specified 'from' index (inclusive) to the specified
+   * 'to' index (exclusive) to false.
+   * @param  {Number} fromIndex The starting index. Throws ArgumentNullException
+   * if null. Throws IllegalArgumentException if not a number. Throws RangeError
+   * if less than zero or greater than toIndex.
+   * @param  {Number} toIndex   The ending index. Throws ArgumentNullException if
+   * null. Throws IllegalArgumentException if not a number. Throws RangeError if
+   * less than zero.
+   * @throws {ArgumentNullException} if fromIndex is null or toIndex is null.
+   * @throws {IllegalArgumentException} if either parameter is not a number.
+   * @throws {RangeError} if either parameter is less than zero.
+   */
+  this.clearFromTo = function(fromIndex, toIndex) {
+    checkRange(fromIndex, toIndex);
+    if (fromIndex === toIndex) {
+      return;
+    }
+
+    var startWordIndex = wordIndex(fromIndex);
+    if (startWordIndex >= _wordsInUse) {
+      return;
+    }
+
+    var endWordIndex = wordIndex(toIndex - 1);
+    if (endWordIndex >= _wordsInUse) {
+      toIndex = self.length();
+      endWordIndex = _wordsInUse - 1;
+    }
+
+    var firstWordMask = LONG_MASK &lt;&lt; fromIndex;
+    var lastWordMask = LONG_MASK >> -toIndex;
+    if (startWordIndex === endWordIndex) {
+      // Case 1: Single word.
+      _bits[startWordIndex] &amp;= ~(firstWordMask &amp; lastWordMask);
+    }
+    else {
+      // Case 2: Multiple words.
+      // Handle first word.
+      _bits[startWordIndex] &amp;= ~firstWordMask;
+
+      // Handle intermediate words, if any.
+      for (var i = startWordIndex + 1; i &lt; endWordIndex; i++) {
+        _bits[i] = 0;
+      }
+
+      // Handle last word.
+      _bits[endWordIndex] &amp;= ~lastWordMask;
+    }
+
+    recalcualteWordsInUse();
+    checkInvariants();
+  };
+
+  /**
+   * Public method for performing invariant checks. Every public method must
+   * preserve the invariants. This method checks to see if this is true using
+   * assertions. Assertion errors are thrown if any of the assertions fail.
+   */
+  this.doCheckInvariants = function() {
+    checkInvariants();
+  };
+
+  /**
+   * Creates a new object that is a copy of the current instance.
+   * @return {BitSet} A new BitSet that is a copy of this instance.
+   */
+  this.clone = function() {
+    if (_sizeIsSticky) {
+      trimToSize();
+    }
+
+    try {
+      return fromWordArray(_bits);
+    }
+    catch(e) {
+      return null;
+    }
+  };
+
+  /**
+   * Determines whether the specified object is equal to the current BitSet.
+   * @param  {Object} obj The object to compare with the current BitSet.
+   * Generally, this method should be used to check against other BitSet
+   * instances.
+   * @return {Boolean}     true if equal; Otherwise, false.
+   */
+  this.equals = function(obj) {
+    if (util.isNullOrUndefined(obj)) {
+      return false;
+    }
+
+    if (!(obj instanceof 'BitSet')) {
+      return false;
+    }
+
+    checkInvariants();
+    obj.doCheckInvariants();
+
+    if (_wordsInUse !== obj.getWordsInUse()) {
+      return false;
+    }
+
+    var result = true;
+    for (var i = 0; i &lt; _wordsInUse; i++) {
+      if (_bits[i] !== obj.getBits()[i]) {
+        result = false;
+        break;
+      }
+    }
+
+    return result;
+  };
+
+  /**
+   * Sets the bit at the specified index to the compliment of its current value.
+   * @param  {Number} index The index of the bit to flip.
+   * @throws {IllegalArgumentException} if index is not a number.
+   * @throws {RangeError} if index is less than zero.
+   */
+  this.flip = function(index) {
+    if (typeof index !== 'number') {
+      throw new IllegalArgumentException("index must be a valid number.");
+    }
+
+    if (index &lt; 0) {
+      throw new RangeError("index cannot be less than zero.");
+    }
+
+    var offset = wordIndex(index);
+    expandTo(offset);
+    _bits[offset] ^= 1 &lt;&lt; index;
+    recalcualteWordsInUse();
+    checkInvariants();
+  };
+
+  /**
+   * Sets each bit from the specified "from" (inclusive) index to the specified
+   * "to" (exclusive) index to the compliment of its current value.
+   * @param  {Number} fromIndex The starting index. This is the first bit to
+   * flip.
+   * @param  {Number} toIndex   The ending index. This is the index after the
+   * last bit to flip.
+   * @throws {ArgumentNullException} if fromIndex is null or toIndex is null.
+   * @throws {IllegalArgumentException} if either parameter is not a number.
+   * @throws {RangeError} if either parameter is less than zero.
+   */
+  this.flipFromTo = function(fromIndex, toIndex) {
+    checkRange(fromIndex, toIndex);
+    if (fromIndex === toIndex) {
+      return;
+    }
+
+    var startWordIndex = wordIndex(fromIndex);
+    var lastWordIndex = wordIndex(toIndex - 1);
+    expandTo(lastWordIndex);
+
+    var firstWordMask = LONG_MASK &lt;&lt; fromIndex;
+    var lastWordMask = LONG_MASK >> -toIndex;
+    if (startWordIndex === lastWordIndex) {
+      // Case 1: single word.
+      _bits[startWordIndex] ^= (firstWordMask &amp; lastWordMask);
+    }
+    else {
+      // Case 2: multiple words.
+      // Handle first word.
+      _bits[startWordIndex] ^= firstWordMask;
+
+      // Handle intermediate words, if any.
+      for (var i = startWordIndex + 1; i &lt; lastWordIndex; i++) {
+        _bits[i] ^= LONG_MASK;
+      }
+
+      // Handle last word.
+      _bits[lastWordIndex] ^= lastWordMask;
+    }
+
+    recalcualteWordsInUse();
+    checkInvariants();
+  };
+
+  /**
+   * Sets the raw bit value at the specified index. Avoid using this method
+   * whenever possible. Instead use either set() or setFromTo() so as to
+   * preserve invariants.
+   * @param  {Number} index The index at which to set the specified bit.
+   * @param  {Number|Boolean} bit   Set true or 1 to set the bit, or false or 0
+   * to clear the bit.
+   * @throws {IllegalArgumentException} if index is not a number - or - bit is
+   * is not a number (0 or 1) or boolean.
+   * @throws {RangeError} if index is less than zero or greater than the last
+   * index.
+   */
+  this.setBitValueRaw = function(index, bit) {
+    if (typeof index !== 'number') {
+      throw new IllegalArgumentException("index must be a valid number.");
+    }
+
+    if ((index &lt; 0) || (index > _bits.length - 1)) {
+      throw new RangeError("index must be greater than zero and less than or " +
+                            "equal to the last index in the bit set.");
+    }
+
+    if (typeof bit === 'number') {
+      if (bit &lt; 0) {
+        bit = 0;
+      }
+
+      if (bit > 1) {
+        bit = 1;
+      }
+    }
+    else if (typeof bit === 'boolean') {
+      if (bit === true) {
+        bit = 1;
+      }
+      else {
+        bit = 0;
+      }
+    }
+    else {
+      throw new IllegalArgumentException("bit must be a number (0 or 1) or boolean.");
+    }
+    _bits[index] = bit;
+  };
+
+  /**
+   * Gets the value of the bit at the specified index.
+   * @param  {Number} index The index at which to get the bit value.
+   * @return {Boolean}       true if the requested bit is set; Otherwise, false.
+   * @throws {IllegalArgumentException} if index is not a number.
+   * @throws {RangeError} if index is less than zero.
+   */
+  this.get = function(index) {
+    if (typeof index !== 'number') {
+      throw new IllegalArgumentException("index must be a valid number.");
+    }
+
+    if (index &lt; 0) {
+      throw new RangeError("index cannot be less than zero.");
+    }
+
+    checkInvariants();
+    var offset = wordIndex(index);
+    return ((offset &lt; _wordsInUse) &amp;&amp;
+            ((_bits[index] &amp; (1 &lt;&lt; index)) !== 0));
+  };
+
+  /**
+   * Public method for recalculating the words in use. Sets the internal word
+   * count field to the logical size in words of the BitSet. WARNING: This
+   * method assumes that the number of words actually in use is less than or
+   * equal to the current value of the words in use field!!!
+   */
+  this.doRecalculateWordsInUse = function() {
+    recalcualteWordsInUse();
+  };
+
+  /**
+   * Returns a new BitSet composed of bits from this BitSet from the specified
+   * the specified "from" (inclusive) index to the specified "to" (exclusive)
+   * index.
+   * @param  {Number} fromIndex The starting index. This is the first bit to
+   * include.
+   * @param  {Number} toIndex   The ending index. This is the index after the
+   * last bit to include.
+   * @return {BitSet}           A new BitSet instance composed of the specified
+   * range of bits from this instance.
+   * @throws {ArgumentNullException} if fromIndex is null or toIndex is null.
+   * @throws {IllegalArgumentException} if either parameter is not a number.
+   * @throws {RangeError} if either parameter is less than zero.
+   */
+  this.getFromTo = function(fromIndex, toIndex) {
+    checkRange(fromIndex, toIndex);
+    checkInvariants();
+
+    // If no set bits in range, then return the empty BitSet.
+    var len = self.length();
+    if ((len &lt;= fromIndex) || (fromIndex === toIndex)) {
+      return fromWordArray(new Array(0));
+    }
+
+    // Optimize.
+    if (toIndex > len) {
+      toIndex = len;
+    }
+
+    var bs = new BitSet(toIndex - fromIndex);
+    var targetWords = wordIndex(toIndex - fromIndex - 1) + 1;
+    var sourceIndex = wordIndex(fromIndex);
+    var aligned = ((fromIndex &amp; BIT_INDEX_MASK) === 0);
+
+    // Process all words but the last one.
+    var setBit = 0;
+    for (var i = 0; i &lt; targetWords - 1; i++, sourceIndex++) {
+      setBit = aligned ? _bits[sourceIndex] :
+          (_bits[sourceIndex] >> fromIndex) |
+          (_bits[sourceIndex + 1] &lt;&lt; -fromIndex);
+      bs.setBitValueRaw(i, setBit);
+    }
+
+    // Process last word.
+    var lastWordMask = LONG_MASK >> -toIndex;
+    setBit = ((toIndex - 1) &amp; BIT_INDEX_MASK) &lt; (fromIndex &amp; BIT_INDEX_MASK) ?
+              ((_bits[sourceIndex] >> fromIndex) |
+                (_bits[sourceIndex + 1] &amp; lastWordMask) &lt;&lt; -fromIndex) :
+                ((_bits[sourceIndex] &amp; lastWordMask) >> fromIndex);
+
+    bs.setBitValueRaw(targetWords - 1, setBit);
+    bs.doCheckInvariants();
+    bs.doRecalculateWordsInUse();
+    return bs;
+  };
+
+  /**
+   * Sets the bit at the specified index to true.
+   * @param  {Number} index The index at which to set the bit.
+   * @throws {IllegalArgumentException} if index is not a number.
+   * @throws {RangeError} if index is less than zero.
+   */
+  this.set = function(index) {
+    if (typeof index !== 'number') {
+      throw new IllegalArgumentException("index must be a valid number.");
+    }
+
+    if (index &lt; 0) {
+      throw new RangeError("index cannot be less than zero.");
+    }
+
+    var offset = wordIndex(index);
+    expandTo(offset);
+    _bits[offset] |= (1 &lt;&lt; index);  // Restores invariants;
+    checkInvariants();
+  };
+
+  /**
+   * Sets the bit at the specified index to the specified value.
+   * @param  {Number} index The index at which to set the bit.
+   * @param  {Boolean} value The value to set.
+   * @throws {IllegalArgumentException} if index is not a number.
+   * @throws {RangeError} if index is less than zero.
+   */
+  this.setValue = function(index, value) {
+    if (value) {
+      self.set(index);
+    }
+    else {
+      self.clear(index);
+    }
+  };
+
+  /**
+   * Sets the bits from the specified "from" index (inclusive) to the specified
+   * "to" index (exclusive) to true.
+   * @param  {Number} fromIndex The starting index. This is the first bit to
+   * set.
+   * @param  {Number} toIndex   The ending index. This is the index after the
+   * last bit to set.
+   * @throws {ArgumentNullException} if fromIndex is null or toIndex is null.
+   * @throws {IllegalArgumentException} if either parameter is not a number.
+   * @throws {RangeError} if either parameter is less than zero.
+   */
+  this.setFromTo = function(fromIndex, toIndex) {
+    checkRange(fromIndex, toIndex);
+    if (fromIndex === toIndex) {
+      return;
+    }
+
+    var startWordIndex = wordIndex(fromIndex);
+    var endWordIndex = wordIndex(toIndex - 1);
+    expandTo(endWordIndex);
+
+    var firstWordMask = LONG_MASK &lt;&lt; fromIndex;
+    var lastWordMask = LONG_MASK >> -toIndex;
+    if (startWordIndex === endWordIndex) {
+      // Case 1: single word.
+      _bits[startWordIndex] |= (firstWordMask &amp; lastWordMask);
+    }
+    else {
+      // Case 2: multiple words.
+      // Handle first word.
+      _bits[startWordIndex] |= firstWordMask;
+
+      // Handle intermediate words, if any.
+      for (var i = startWordIndex + 1; i &lt; endWordIndex; i++) {
+        _bits[i] = LONG_MASK;
+      }
+
+      // Handle last word (restores invariants).
+      _bits[endWordIndex] |= lastWordMask;
+    }
+
+    checkInvariants();
+  };
+
+  /**
+   * Sets the bits from the specified "from" index (inclusive) to the specified
+   * "to" index (exclusive) to the specified value.
+   * @param  {Number} fromIndex The starting index. This is the first bit to
+   * set.
+   * @param  {Number} toIndex   The ending index. This is the index after the
+   * last bit to set.
+   * @param  {Boolean} value The value to set.
+   * @throws {ArgumentNullException} if fromIndex is null or toIndex is null.
+   * @throws {IllegalArgumentException} if either parameter is not a number.
+   * @throws {RangeError} if either parameter is less than zero.
+   */
+  this.setValueFromTo = function(fromIndex, toIndex, value) {
+    if (value) {
+      self.setFromTo(fromIndex, toIndex);
+    }
+    else {
+      self.clearFromTo(fromIndex, toIndex);
+    }
+  };
+
+  /**
+   * Gets a hash code value for this BitSet. The hash code depends only on which
+   * bits are set within this instance.
+   * @return {Number} The hash code value for this BitSet.
+   */
+  this.getHashCode = function() {
+    var h = 1234;
+    for (var i = _bits.length; --i >= 0;) {
+      h ^= _bits[i] * (i + 1);
+    }
+
+    return ((h >> 32) ^ h);
+  };
+
+  /**
+   * Determines whether or not the specified BitSet has any bits set to true
+   * that are also set to true in this BitSet.
+   * @param  {BitSet} bs The BitSet to intersect with.
+   * @return {Boolean}   true if this instance intersects with the specified
+   * BitSet.
+   */
+  this.intersects = function(bs) {
+    if (util.isNullOrUndefined(bs)) {
+      return false;
+    }
+
+    if (!(bs instanceof 'BitSet')) {
+      return false;
+    }
+
+    var goodBits = false;
+    var i = Math.min(_bits.length, bs.getBits().length);
+    while (--i >= 0) {
+      if ((_bits[i] &amp; bs.getBits()[i]) !== 0) {
+        goodBits = true;
+        break;
+      }
+    }
+    return goodBits;
+  };
+
+  /**
+   * Returns the index of the first bit that is set to false that occurs on or
+   * after the specified starting index.
+   * @param  {Number} fromIndex The index to start checking from (inclusive).
+   * @return {Number}           The index of the next clear bit; Otherwise, -1
+   * if no such bit is found.
+   * @throws {RangeError} if fromIndex is less than zero.
+   */
+  this.nextClearBit = function(fromIndex) {
+    if (fromIndex &lt; 0) {
+      throw new RangeError("'from' index cannot be less than zero.");
+    }
+
+    checkInvariants();
+    var offset = wordIndex(fromIndex);
+    if (offset >= _wordsInUse) {
+      return fromIndex;
+    }
+
+    var result = -1;
+    var w = ~_bits[offset] &amp; (LONG_MASK &lt;&lt; fromIndex);
+    while (true) {
+      if (w !== 0) {
+        result = (offset * BITS_PER_WORD) + numberOfTrailingZeros(w);
+        break;
+      }
+
+      if (++offset === _wordsInUse) {
+        result = _wordsInUse * BITS_PER_WORD;
+        break;
+      }
+      w = ~_bits[offset];
+    }
+    return result;
+  };
+
+  /**
+   * Returns the index of the first bit that is set to true that occurs on or
+   * after the specified starting index.
+   * @param  {Number} fromIndex The index to start checking from (inclusive).
+   * Throws RangeError if less than zero.
+   * @return {Number}           The index of the next set bit after the
+   * specified index. If no such bit exists, then returns -1.
+   * @throws {RangeError} if fromIndex is less than zero.
+   */
+  this.nextSetBit = function(fromIndex) {
+    if (fromIndex &lt; 0) {
+      throw new RangeError("'from' index cannot be less than zero.");
+    }
+
+    checkInvariants();
+    var offset = wordIndex(fromIndex);
+    if (offset >= _wordsInUse) {
+      return -1;
+    }
+
+    var result = -1;
+    var w = _bits[offset] &amp; (LONG_MASK &lt;&lt; fromIndex);
+    while (true) {
+      if (w !== 0) {
+        result = (offset * BITS_PER_WORD) + numberOfTrailingZeros(w);
+        break;
+      }
+
+      if (++offset === _wordsInUse) {
+        break;
+      }
+
+      w = _bits[offset];
+    }
+    return result;
+  };
+
+  /**
+   * Returns the index of the nearest bit that is set to true that occurs on or
+   * before the specified starting index.
+   * @param  {Number} fromIndex The index to start checking from (inclusive).
+   * Throws RangeError if less than zero.
+   * @return {Number}           The index of the previous set bit, or -1 if
+   * there is no such bit or if fromIndex is set to -1.
+   * @throws {RangeError} if fromIndex is less than zero.
+   */
+  this.previousSetBit = function(fromIndex) {
+    if (fromIndex &lt; 0) {
+      if (fromIndex === -1) {
+        return -1;
+      }
+      throw new RangeError("'from' index cannot be less than zero.");
+    }
+
+    checkInvariants();
+    var offset = wordIndex(fromIndex);
+    if (offset >= _wordsInUse) {
+      return (self.length() - 1);
+    }
+
+    var result = -1;
+    var w = _bits[offset] &amp; (LONG_MASK >> -(fromIndex + 1));
+    while (true) {
+      if (w !== 0) {
+        result = (offset + 1) * BITS_PER_WORD - 1 - numberOfTrailingZeros(w);
+        break;
+      }
+
+      if (offset-- === 0) {
+        break;
+      }
+
+      w = _bits[offset];
+    }
+    return result;
+  };
+
+  /**
+   * Returns the index of the nearest bit that is set to false that occurs on or
+   * before the specified starting index.
+   * @param  {Number} fromIndex The index to start checking from (inclusive).
+   * Throws RangeError if fromIndex is less than -1.
+   * @return {Number}           The index of the previous clear bit, or -1 if
+   * there is no such bit or fromIndex is -1.
+   * @throws {RangeError} if fromIndex is less than zero.
+   */
+  this.previousClearBit = function(fromIndex) {
+    if (fromIndex &lt; 0) {
+      if (fromIndex === -1) {
+        return -1;
+      }
+      throw new RangeError("'from' index cannot be less than zero.");
+    }
+
+    checkInvariants();
+    var offset = wordIndex(fromIndex);
+    if (offset >= _wordsInUse) {
+      return fromIndex;
+    }
+
+    var result = -1;
+    var w = ~_bits[offset] &amp; (LONG_MASK >> -(fromIndex + 1));
+    while (true) {
+      if (w !== 0) {
+        result = (offset + 1) * BITS_PER_WORD - 1 - numberOfTrailingZeros(w);
+        break;
+      }
+
+      if (offset-- === 0) {
+        break;
+      }
+
+      w = ~_bits[offset];
+    }
+    return result;
+  };
+
+  /**
+   * This method is used for efficiency. It checks to see if this instance
+   * contains all the same bits as the specified BitSet.
+   * @param  {BitSet} otherBS The BitSet to check.
+   * @return {Boolean}         true if the specified BitSet contains all the same
+   * bits; Otherwise, false.
+   */
+  this.containsAll = function(otherBS) {
+    if (util.isNullOrUndefined(otherBS)) {
+      return false;
+    }
+
+    var result = true;
+    for (var i = 0; i &lt; otherBS.getBits().length; i++) {
+      if ((_bits[i] &amp; otherBS.getBits()[i]) !== otherBS.getBits()[i]) {
+        result = false;
+        break;
+      }
+    }
+    return result;
+  };
+
+  /**
+   * Returns a String that represents the current BitSet. For every index for
+   * which this BitSet contains a bit in the set state, the decimal
+   * representation of that index is included in the result. Such indices are
+   * listed in order from lowest to highest, separated by a ", " (a comma and a
+   * space) and surrounded by braces, resulting in the usual mathematical
+   * notation for a set of integers.
+   * @return {String} A String that represents the current BitSet.
+   */
+  this.toString = function() {
+    var sb = new StringBuilder();
+    sb.append("{");
+
+    var first = true;
+    var bit = 0;
+    var word = 0;
+    for (var i = 0; i &lt; _bits.length; ++i) {
+      bit = 1;
+      word = _bits[i];
+      if (word === 0) {
+        continue;
+      }
+
+      for (var j = 0; j &lt; 64; ++j) {
+        if ((word &amp; bit) !== 0) {
+          if (!first) {
+            sb.append(", ");
+          }
+          sb.append((64 * i + j).toString());
+          first = false;
+        }
+        bit &lt;&lt;= 1;
+      }
+    }
+
+    sb.append("}");
+    return sb.toString();
+  };
+
+  /**
+   * Returns a new array of bits containing all the bits in this BitSet.
+   * @return {Array} An array of bits containing little-endian representation of
+   * all the bits in this BitSet.
+   */
+  this.toBitArray = function() {
+    return (_bits || []).concat();
+  };
+}
+
+
+BitSet.prototype.constructor = BitSet;
+
+
+/**
+ * Returns a new BitSet containing all the bits in the specified array of
+ * numbers (bits).
+ * @param  {Array} words The array of bits to construct a BitSet from. If null,
+ * then this function will return null.
+ * @return {BitSet}      A new BitSet containing the specified array of bits.
+ * @throws {IllegalArgumentException} if not an array.
+ */
+var valueOf = function(words) {
+  if (util.isNullOrUndefined(words)) {
+    return null;
+  }
+
+  if (!util.isArray(words)) {
+    throw new IllegalArgumentException("param 'words' must be an array of bits.");
+  }
+
+  var n = 0;
+  for (n = words.length; n > 0 &amp;&amp; words[n - 1] === 0; n--) {
+  }
+
+  var wordsCopy = (words || []).concat();
+  return new BitSet(wordsCopy);
+};
+/* jshint latedef: true */
+
+module.exports.WordIndex = wordIndex;
+module.exports.CheckRange = checkRange;
+module.exports.valueOf = valueOf;
+module.exports.numberOfTrailingZeros = numberOfTrailingZeros;
+module.exports.fromWordArray = fromWordArray;
+module.exports.BitSet = BitSet;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-Access.html">Access</a></li><li><a href="module-Buttons.html">Buttons</a></li><li><a href="module-Buzzers.html">Buzzers</a></li><li><a href="module-CaptureUtils.html">CaptureUtils</a></li><li><a href="module-Components.html">Components</a></li><li><a href="module-CoreUtils.html">CoreUtils</a></li><li><a href="module-ExecUtils.html">ExecUtils</a></li><li><a href="module-FirePlace.html">FirePlace</a></li><li><a href="module-Garage.html">Garage</a></li><li><a href="module-Gate.html">Gate</a></li><li><a href="module-IO.html">IO</a></li><li><a href="module-jsrpi.html">jsrpi</a></li><li><a href="module-LCD.html">LCD</a></li><li><a href="module-LcdDisplay.html">LcdDisplay</a></li><li><a href="module-LED.html">LED</a></li><li><a href="module-Lights.html">Lights</a></li><li><a href="module-Motors.html">Motors</a></li><li><a href="module-NetworkInfo.html">NetworkInfo</a></li><li><a href="module-PiBrella.html">PiBrella</a></li><li><a href="module-PiBrellaInput.html">PiBrellaInput</a></li><li><a href="module-PiBrellaOutput.html">PiBrellaOutput</a></li><li><a href="module-PiCamera.html">PiCamera</a></li><li><a href="module-PiFace.html">PiFace</a></li><li><a href="module-PiFacePinFactory.html">PiFacePinFactory</a></li><li><a href="module-PinUtils.html">PinUtils</a></li><li><a href="module-PiSystem.html">PiSystem</a></li><li><a href="module-PowerUtils.html">PowerUtils</a></li><li><a href="module-RCSwtich.html">RCSwtich</a></li><li><a href="module-Relays.html">Relays</a></li><li><a href="module-RelayUtils.html">RelayUtils</a></li><li><a href="module-Sensors.html">Sensors</a></li><li><a href="module-Serial.html">Serial</a></li><li><a href="module-Sprinkler.html">Sprinkler</a></li><li><a href="module-StringUtils.html">StringUtils</a></li><li><a href="module-SystemInfo.html">SystemInfo</a></li><li><a href="module-Temperature.html">Temperature</a></li><li><a href="module-TemperatureConversion.html">TemperatureConversion</a></li><li><a href="module-TempScaleUtils.html">TempScaleUtils</a></li></ul><h3>Classes</h3><ul><li><a href="ArgumentNullException.html">ArgumentNullException</a></li><li><a href="BitSet.html">BitSet</a></li><li><a href="ButtonBase.html">ButtonBase</a></li><li><a href="ButtonComponent.html">ButtonComponent</a></li><li><a href="BuzzerComponent.html">BuzzerComponent</a></li><li><a href="ComponentBase.html">ComponentBase</a></li><li><a href="DeviceBase.html">DeviceBase</a></li><li><a href="DimmableLightBase.html">DimmableLightBase</a></li><li><a href="DimmableLightComponent.html">DimmableLightComponent</a></li><li><a href="DS1620.html">DS1620</a></li><li><a href="FileInfo.html">FileInfo</a></li><li><a href="FireplaceBase.html">FireplaceBase</a></li><li><a href="FireplaceDevice.html">FireplaceDevice</a></li><li><a href="FireplacePilotLightException.html">FireplacePilotLightException</a></li><li><a href="GarageDoorOpenerBase.html">GarageDoorOpenerBase</a></li><li><a href="GarageDoorOpenerDevice.html">GarageDoorOpenerDevice</a></li><li><a href="GateOpenerBase.html">GateOpenerBase</a></li><li><a href="GateOpenerDevice.html">GateOpenerDevice</a></li><li><a href="GpioBase.html">GpioBase</a></li><li><a href="GpioLcdTransferProviderStandard.html">GpioLcdTransferProviderStandard</a></li><li><a href="GpioPowerComponent.html">GpioPowerComponent</a></li><li><a href="GpioStandard.html">GpioStandard</a></li><li><a href="IllegalArgumentException.html">IllegalArgumentException</a></li><li><a href="InvalidOperationException.html">InvalidOperationException</a></li><li><a href="InvalidPinModeException.html">InvalidPinModeException</a></li><li><a href="IOException.html">IOException</a></li><li><a href="LcdBase.html">LcdBase</a></li><li><a href="LcdComponent.html">LcdComponent</a></li><li><a href="LcdModule.html">LcdModule</a></li><li><a href="LEDBase.html">LEDBase</a></li><li><a href="LEDComponent.html">LEDComponent</a></li><li><a href="LightBase.html">LightBase</a></li><li><a href="LightComponent.html">LightComponent</a></li><li><a href="MomentarySwitchBase.html">MomentarySwitchBase</a></li><li><a href="MomentarySwitchComponent.html">MomentarySwitchComponent</a></li><li><a href="MotionSensorBase.html">MotionSensorBase</a></li><li><a href="MotionSensorComponent.html">MotionSensorComponent</a></li><li><a href="MotorBase.html">MotorBase</a></li><li><a href="NotImplementedException.html">NotImplementedException</a></li><li><a href="ObjectDisposedException.html">ObjectDisposedException</a></li><li><a href="OpenerBase.html">OpenerBase</a></li><li><a href="OpenerDevice.html">OpenerDevice</a></li><li><a href="OpenerLockedException.html">OpenerLockedException</a></li><li><a href="PiBrellaBase.html">PiBrellaBase</a></li><li><a href="PiBrellaDevice.html">PiBrellaDevice</a></li><li><a href="PiCameraDevice.html">PiCameraDevice</a></li><li><a href="PiFaceBase.html">PiFaceBase</a></li><li><a href="PiFaceDevice.html">PiFaceDevice</a></li><li><a href="PiFaceGpioBase.html">PiFaceGpioBase</a></li><li><a href="PiFaceGpioDigital.html">PiFaceGpioDigital</a></li><li><a href="PowerBase.html">PowerBase</a></li><li><a href="RCSwitchDevice.html">RCSwitchDevice</a></li><li><a href="RelayBase.html">RelayBase</a></li><li><a href="RelayComponent.html">RelayComponent</a></li><li><a href="SensorBase.html">SensorBase</a></li><li><a href="SensorComponent.html">SensorComponent</a></li><li><a href="Size.html">Size</a></li><li><a href="SprinklerControllerBase.html">SprinklerControllerBase</a></li><li><a href="SprinklerControllerDevice.html">SprinklerControllerDevice</a></li><li><a href="SprinklerZoneBase.html">SprinklerZoneBase</a></li><li><a href="SprinklerZoneDevice.html">SprinklerZoneDevice</a></li><li><a href="StepperMotorBase.html">StepperMotorBase</a></li><li><a href="StepperMotorComponent.html">StepperMotorComponent</a></li><li><a href="StillCaptureSettings.html">StillCaptureSettings</a></li><li><a href="SwitchBase.html">SwitchBase</a></li><li><a href="SwitchComponent.html">SwitchComponent</a></li><li><a href="TemperatureSensorBase.html">TemperatureSensorBase</a></li><li><a href="TemperatureSensorComponent.html">TemperatureSensorComponent</a></li><li><a href="TM16XXBase.html">TM16XXBase</a></li><li><a href="TM1638.html">TM1638</a></li><li><a href="ToggleSwitchBase.html">ToggleSwitchBase</a></li><li><a href="ToggleSwitchComponent.html">ToggleSwitchComponent</a></li></ul><h3>Events</h3><ul><li><a href="global.html#event:ButtonEvent">ButtonEvent</a></li><li><a href="global.html#event:CaptureDoneEvent">CaptureDoneEvent</a></li><li><a href="global.html#event:CaptureOutputEvent">CaptureOutputEvent</a></li><li><a href="global.html#event:CaptureStartEvent">CaptureStartEvent</a></li><li><a href="global.html#event:FireplacePilotLightEvent">FireplacePilotLightEvent</a></li><li><a href="global.html#event:FireplaceStateChangedEvent">FireplaceStateChangedEvent</a></li><li><a href="global.html#event:FireplaceTimeoutEvent">FireplaceTimeoutEvent</a></li><li><a href="global.html#event:LightLevelChangeEvent">LightLevelChangeEvent</a></li><li><a href="global.html#event:LightStateChangeEvent">LightStateChangeEvent</a></li><li><a href="global.html#event:MotionDetectedEvent">MotionDetectedEvent</a></li><li><a href="global.html#event:MotorRotateEvent">MotorRotateEvent</a></li><li><a href="global.html#event:MotorStateChangeEvent">MotorStateChangeEvent</a></li><li><a href="global.html#event:OpenerLockChangeEvent">OpenerLockChangeEvent</a></li><li><a href="global.html#event:OpenerStateChangeEvent">OpenerStateChangeEvent</a></li><li><a href="global.html#event:PinPollFailEvent">PinPollFailEvent</a></li><li><a href="global.html#event:PinStateChangeEvent">PinStateChangeEvent</a></li><li><a href="global.html#event:PowerStateChangeEvent">PowerStateChangeEvent</a></li><li><a href="global.html#event:RelayStateChangeEvent">RelayStateChangeEvent</a></li><li><a href="global.html#event:SensorStateChangeEvent">SensorStateChangeEvent</a></li><li><a href="global.html#event:SwitchStateChangeEvent">SwitchStateChangeEvent</a></li><li><a href="global.html#event:TemperatureChangeEvent">TemperatureChangeEvent</a></li><li><a href="global.html#event:UnrecognizedPinFoundEvent">UnrecognizedPinFoundEvent</a></li><li><a href="global.html#event:ZoneStateChangeEvent">ZoneStateChangeEvent</a></li></ul><h3>Interfaces</h3><ul><li><a href="Button.html">Button</a></li><li><a href="Buzzer.html">Buzzer</a></li><li><a href="Component.html">Component</a></li><li><a href="Device.html">Device</a></li><li><a href="DimmableLight.html">DimmableLight</a></li><li><a href="Disposable.html">Disposable</a></li><li><a href="DS1620Interface.html">DS1620Interface</a></li><li><a href="FireplaceInterface.html">FireplaceInterface</a></li><li><a href="GarageDoorOpener.html">GarageDoorOpener</a></li><li><a href="GateOpener.html">GateOpener</a></li><li><a href="Gpio.html">Gpio</a></li><li><a href="Lcd.html">Lcd</a></li><li><a href="LcdTransferProvider.html">LcdTransferProvider</a></li><li><a href="LEDInterface.html">LEDInterface</a></li><li><a href="Light.html">Light</a></li><li><a href="MomentarySwitch.html">MomentarySwitch</a></li><li><a href="MotionSensor.html">MotionSensor</a></li><li><a href="Motor.html">Motor</a></li><li><a href="Opener.html">Opener</a></li><li><a href="PiBrellaInterface.html">PiBrellaInterface</a></li><li><a href="PiFaceGPIO.html">PiFaceGPIO</a></li><li><a href="PiFaceInterface.html">PiFaceInterface</a></li><li><a href="Pin.html">Pin</a></li><li><a href="PowerInterface.html">PowerInterface</a></li><li><a href="RaspiGpio.html">RaspiGpio</a></li><li><a href="RCSwitchInterface.html">RCSwitchInterface</a></li><li><a href="Relay.html">Relay</a></li><li><a href="Sensor.html">Sensor</a></li><li><a href="SprinklerController.html">SprinklerController</a></li><li><a href="SprinklerZone.html">SprinklerZone</a></li><li><a href="StepperMotor.html">StepperMotor</a></li><li><a href="Switch.html">Switch</a></li><li><a href="TemperatureSensor.html">TemperatureSensor</a></li><li><a href="ToggleSwitch.html">ToggleSwitch</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ADDRESS_BITS_PER_WORD">ADDRESS_BITS_PER_WORD</a></li><li><a href="global.html#AddressCode">AddressCode</a></li><li><a href="global.html#BaudRates">BaudRates</a></li><li><a href="global.html#BCM2835PwmClockDivider">BCM2835PwmClockDivider</a></li><li><a href="global.html#BITS_PER_WORD">BITS_PER_WORD</a></li><li><a href="global.html#BoardRevision">BoardRevision</a></li><li><a href="global.html#BoardType">BoardType</a></li><li><a href="global.html#ButtonState">ButtonState</a></li><li><a href="global.html#C_MAP">C_MAP</a></li><li><a href="global.html#ChannelCode">ChannelCode</a></li><li><a href="global.html#checkRange">checkRange</a></li><li><a href="global.html#ClockType">ClockType</a></li><li><a href="global.html#close">close</a></li><li><a href="global.html#DisplayEntryModes">DisplayEntryModes</a></li><li><a href="global.html#DisplayOnOffControl">DisplayOnOffControl</a></li><li><a href="global.html#dispose">dispose</a></li><li><a href="global.html#FireplaceState">FireplaceState</a></li><li><a href="global.html#fromWordArray">fromWordArray</a></li><li><a href="global.html#FunctionSetFlags">FunctionSetFlags</a></li><li><a href="global.html#getButton">getButton</a></li><li><a href="global.html#getEventMessage">getEventMessage</a></li><li><a href="global.html#getExitCode">getExitCode</a></li><li><a href="global.html#getFailureCause">getFailureCause</a></li><li><a href="global.html#getLevel">getLevel</a></li><li><a href="global.html#getNewState">getNewState</a></li><li><a href="global.html#getNewTemp">getNewTemp</a></li><li><a href="global.html#getOldState">getOldState</a></li><li><a href="global.html#getOldTemp">getOldTemp</a></li><li><a href="global.html#getOutput">getOutput</a></li><li><a href="global.html#getPID">getPID</a></li><li><a href="global.html#getPinAddress">getPinAddress</a></li><li><a href="global.html#getSensor">getSensor</a></li><li><a href="global.html#getState">getState</a></li><li><a href="global.html#getSteps">getSteps</a></li><li><a href="global.html#getSwitchGroupAddress">getSwitchGroupAddress</a></li><li><a href="global.html#getTemperatureChange">getTemperatureChange</a></li><li><a href="global.html#getTimestamp">getTimestamp</a></li><li><a href="global.html#getZone">getZone</a></li><li><a href="global.html#GpioPins">GpioPins</a></li><li><a href="global.html#ImageEncoding">ImageEncoding</a></li><li><a href="global.html#isClosed">isClosed</a></li><li><a href="global.html#isDisposed">isDisposed</a></li><li><a href="global.html#isFourBitMode">isFourBitMode</a></li><li><a href="global.html#isHandled">isHandled</a></li><li><a href="global.html#isLocked">isLocked</a></li><li><a href="global.html#isMotionDetected">isMotionDetected</a></li><li><a href="global.html#isOn">isOn</a></li><li><a href="global.html#isOpen">isOpen</a></li><li><a href="global.html#isPressed">isPressed</a></li><li><a href="global.html#isReleased">isReleased</a></li><li><a href="global.html#isState">isState</a></li><li><a href="global.html#LcdCommands">LcdCommands</a></li><li><a href="global.html#LcdTextAlignment">LcdTextAlignment</a></li><li><a href="global.html#lightIsOn">lightIsOn</a></li><li><a href="global.html#MotorState">MotorState</a></li><li><a href="global.html#numberOfTrailingZeros">numberOfTrailingZeros</a></li><li><a href="global.html#onPulseStart">onPulseStart</a></li><li><a href="global.html#onPulseStop">onPulseStop</a></li><li><a href="global.html#onRelayStateChanged">onRelayStateChanged</a></li><li><a href="global.html#open">open</a></li><li><a href="global.html#OpenerState">OpenerState</a></li><li><a href="global.html#PiFaceLED">PiFaceLED</a></li><li><a href="global.html#PiFacePins">PiFacePins</a></li><li><a href="global.html#PiFaceRelay">PiFaceRelay</a></li><li><a href="global.html#PiFaceSwitch">PiFaceSwitch</a></li><li><a href="global.html#PinMode">PinMode</a></li><li><a href="global.html#PinPullResistance">PinPullResistance</a></li><li><a href="global.html#PinState">PinState</a></li><li><a href="global.html#PowerState">PowerState</a></li><li><a href="global.html#pulse">pulse</a></li><li><a href="global.html#PwmChannel">PwmChannel</a></li><li><a href="global.html#PwmClockDivider">PwmClockDivider</a></li><li><a href="global.html#PwmMode">PwmMode</a></li><li><a href="global.html#RCProtocol">RCProtocol</a></li><li><a href="global.html#RCSwitchDevNum">RCSwitchDevNum</a></li><li><a href="global.html#RelayState">RelayState</a></li><li><a href="global.html#send">send</a></li><li><a href="global.html#SensorState">SensorState</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#SwitchState">SwitchState</a></li><li><a href="global.html#TemperatureScale">TemperatureScale</a></li><li><a href="global.html#TimeUnit">TimeUnit</a></li><li><a href="global.html#TM1638LedColor">TM1638LedColor</a></li><li><a href="global.html#toggle">toggle</a></li><li><a href="global.html#util">util</a></li><li><a href="global.html#valueOf">valueOf</a></li><li><a href="global.html#wordIndex">wordIndex</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.3</a> on Mon Oct 05 2015 17:09:47 GMT-0400 (Eastern Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

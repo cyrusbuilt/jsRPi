@@ -1,0 +1,57 @@
+"use strict";
+
+//
+//  MotorStateChangeEvent.js
+//
+//  Author:
+//       Chris Brunner <cyrusbuilt at gmail dot com>
+//
+//  Copyright (c) 2015 CyrusBuilt
+//
+//  This program is free software; you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation; either version 2 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+var MotorState = require('./MotorState.js');
+
+/**
+ * The event that gets raised when a motor changes state.
+ * @param {MotorState} oldState The state the motor was in prior to the change.
+ * @param {MotorState} newState The current state of the motor since the change
+ * occurred.
+ * @constructor
+ * @event
+ */
+function MotorStateChangeEvent(oldState, newState) {
+  var _oldState = oldState || MotorState.Stop;
+  var _newState = newState || MotorState.Stop;
+
+  /**
+   * Gets the state the motor was in prior to the change.
+   * @return {MotorState} The last motor state.
+   */
+  this.getOldState = function() {
+    return _oldState;
+  };
+
+  /**
+   * Gets the new (current) state.
+   * @return {MotorState} The current motor state.
+   */
+  this.getNewState = function() {
+    return _newState;
+  };
+}
+
+MotorStateChangeEvent.prototype.constructor = MotorStateChangeEvent;
+module.exports = MotorStateChangeEvent;

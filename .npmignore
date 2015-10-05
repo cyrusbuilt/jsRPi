@@ -1,0 +1,22 @@
+# Node for Visual Studio user files.
+*.suo
+.ntvs_analysis.dat
+
+# Node for Visual Studio object output directory.
+obj/
+
+# Node for Visual Studio settings directory.
+.settings/
+
+# GIT stuff
+.git
+.gitignore
+
+# SVN stuff
+.svn
+
+# Don't include these either.
+.idea
+.npmignore
+node_modules
+dist/*.js

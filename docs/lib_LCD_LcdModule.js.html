@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: lib/LCD/LcdModule.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: lib/LCD/LcdModule.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+
+//
+//  LcdModule.js
+//
+//  Author:
+//       Chris Brunner &lt;cyrusbuilt at gmail dot com>
+//
+//  Copyright (c) 2015 CyrusBuilt
+//
+//  This program is free software; you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation; either version 2 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+
+var inherits = require('util').inherits;
+var Disposable = require('../Disposable.js');
+var LcdTransferProvider = require('./LcdTransferProvider.js');
+var FunctionSetFlags = require('./FunctionSetFlags.js');
+var PinState = require('../IO/PinState.js');
+var LcdCommands = require('./LcdCommands.js');
+var DisplayOnOffControl = require('./DisplayOnOffControl.js');
+var DisplayEntryModes = require('./DisplayEntryModes.js');
+var conv = require('convert-string');
+var CoreUtils = require('../PiSystem/CoreUtils.js');
+var IllegalArgumentException = require('../IllegalArgumentException.js');
+var InvalidOperationException = require('../InvalidOperationException.js');
+
+/**
+ * @classdesc Hitachi HD44780-based LCD module control class, largely derived from:
+ * Micro Liquid Crystal Library
+ * http://microliquidcrystal.codeplex.com
+ * Appache License Version 2.0
+ * This classes uses the LcdTransferProvider to provide
+ * an interface between the Raspberry Pi and the LCD module via GPIO.
+ * @param {LcdTransferProvider} provider The transfer provider to use to send
+ * data and commands to the display.
+ * @throws {IllegalArgumentException} if the specified provider is null,
+ * undefined, or not an instance of LcdTransferProvider.
+ * @constructor
+ * @implements {Disposable}
+ */
+function LcdModule(provider) {
+  Disposable.call(this);
+
+  // **** Begin main constructor logic ****
+  if ((provider == null) ||
+      (provider === undefined) ||
+      (!(provider instanceof LcdTransferProvider))) {
+    throw new IllegalArgumentException("'provider' param must be an LcdTransferProvider.");
+  }
+
+  var self = this;
+  var _rowOffsets = [0x00, 0x40, 0x14, 0x54];
+  var _provider = provider;
+  var _showCursor = true;
+  var _blinkCursor = true;
+  var _visible = true;
+  var _backlight = true;
+  var _numLines = 0;
+  var _numColumns = 0;
+  var _displayFunction = 0;
+  var _sendQueue = [];
+  var _ready = false;
+  var _isDisposed = false;
+  // var _autoScroll = false  // TODO implement this?
+  // var _currLine = 0;       // TODO implement this?
+
+  if (_provider.isFourBitMode()) {
+    _displayFunction = (FunctionSetFlags.FourBitMode |
+                        FunctionSetFlags.OneLine |
+                        FunctionSetFlags.FiveByEightDots);
+  }
+  else {
+    _displayFunction = (FunctionSetFlags.EightBitMode |
+                        FunctionSetFlags.OneLine |
+                        FunctionSetFlags.FiveByEightDots);
+  }
+  // **** End main constructor logic ****
+
+  /**
+   * Determines whether or not the current instance has been disposed.
+   * @return {Boolean} true if disposed; Otherwise, false.
+   * @override
+   */
+  this.isDisposed = function() {
+    return _isDisposed;
+  };
+
+  /**
+   * Gets the number of rows.
+   * @return {Number} The number of rows.
+   */
+  this.rows = function() {
+    return _numLines;
+  };
+
+  /**
+   * Gets the number of columns.
+   * @return {number} The number of columns.
+   */
+  this.columns = function() {
+    return _numColumns;
+  };
+
+  /**
+   * Gets the LCD transfer provider.
+   * @return {LcdTransferProvider} The LCD transfer provider.
+   * @see {GpioLcdTransferProviderStandard}
+   */
+  this.provider = function() {
+    return _provider;
+  };
+
+  /**
+   * Gets a flag indicating whether or not to show the cursor.
+   * @return {Boolean} true if the cursor is shown; Otherwise, false.
+   */
+  this.getShowCursor = function() {
+    return _showCursor;
+  };
+
+  /**
+   * Sends a command to the display.
+   * @param  {Byte|Number} data The data or command to send.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.sendCommand = function(data) {
+    _provider.send(data, PinState.Low, _backlight);
+  };
+
+  /**
+   * Updates the display control. This method should be called whenever any of
+   * the display properties are changed.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @protected
+   */
+  this._updateDisplayControl = function() {
+    var command = LcdCommands.DisplayControl;
+    command |= _visible ? DisplayOnOffControl.DisplayOn : DisplayOnOffControl.DisplayOff;
+    command |= _showCursor ? DisplayOnOffControl.CursorOn : DisplayOnOffControl.CursorOff;
+    command |= _blinkCursor ? DisplayOnOffControl.BlinkOn : DisplayOnOffControl.BlinkOff;
+
+    // NOTE: Backlight is updated with each command.
+    self.sendCommand(command);
+  };
+
+  /**
+   * Sets a flag indicating whether or not the cursor should be shown.
+   * @param  {Boolean} show true to show the cursor; Otherwise, false.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.setShowCursor = function(show) {
+    if (_showCursor !== show) {
+      _showCursor = show;
+      self._updateDisplayControl();
+    }
+  };
+
+  /**
+   * Gets a flag indicating whether or not the cursor should blink.
+   * @return {Boolean} true if the cursor is blinking; Otherwise, false.
+   */
+  this.getBlinkCursor = function() {
+    return _blinkCursor;
+  };
+
+  /**
+   * Sets a flag indicating whether or not the cursor should blink.
+   * @param  {Boolean} blink Set true if the cursor should blink.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.setBlinkCursor = function(blink) {
+    if (_blinkCursor !== blink) {
+      _blinkCursor = blink;
+      self._updateDisplayControl();
+    }
+  };
+
+  /**
+   * Gets a flag indicating whether or not the LCD display is turned on or off.
+   * @return {Boolean} true if the display is on; Otherwise, false.
+   */
+  this.getVisible = function() {
+    return _visible;
+  };
+
+  /**
+   * Sets a flag to turn the display on or off. If true, this will restore the
+   * text (and cursor) that was on the display.
+   * @param  {Boolean} visible Set true to turn the display on.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.setVisible = function(visible) {
+    if (_visible !== visible) {
+      _visible = visible;
+      self._updateDisplayControl();
+    }
+  };
+
+  /**
+   * Gets a flag indicating whether or not the backlight is enabled.
+   * @return {Boolean} true if enabled; Otherwise, false.
+   */
+  this.getBacklightEnabled = function() {
+    return _backlight;
+  };
+
+  /**
+   * Sets a flag indicating whether or not the backligh should be enabled.
+   * @param  {Boolean} enabled Set true to enable.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.setBacklightEnabled = function(enabled) {
+    if (_backlight !== enabled) {
+      _backlight = enabled;
+      self._updateDisplayControl();
+    }
+  };
+
+  /**
+   * Sends on data byte to the display.
+   * @param  {Byte|Number} data The data to send.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.writeByte = function(data) {
+    _provider.send(data, PinState.High, _backlight);
+  };
+
+  /**
+   * Creates a custom character (glyph) for use on the LCD. Up to eight
+   * characters of 5x8 pixels are supported (numbered 0 - 7). The appearance of
+   * each custom character is specified by an array of eight bytes, one for each
+   * row. The five least significan bits of each byte determine the pixels in
+   * that row. To display a custom character on the screen, call writeByte() and
+   * pass its number.
+   * @param  {Number} location Which character to create (0 - 7).
+   * @param  {Array} charmap   The character's pixel data.
+   * @param  {Number} offset   Offset in the charmap where character data is found.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.createChar = function(location, charmap, offset) {
+    location &amp;= 0x07;  // We only have 8 locations (0 - 7).
+    offset = offset || 0;
+    self.sendCommand(LcdCommands.SetCgRamAddr | (location &lt;&lt; 3));
+    for (var i = 0; i &lt; 8; i++) {
+      self.writeByte(charmap[offset + i]);
+    }
+  };
+
+  /**
+   * Writes a specified number of bytes to the LCD using data from a buffer.
+   * @param  {Array} buffer The byte array containing data to write to the display.
+   * @param  {Number} offset The zero-base byte offset in the buffer at which to
+   * begin copying bytes.
+   * @param  {Number} count  The number of bytes to write.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.write = function(buffer, offset, count) {
+    var len = (offset + count);
+    for (var i = offset; i &lt; len; i++) {
+      self.writeByte(buffer[i]);
+    }
+  };
+
+  /**
+   * Writes text to the LCD.
+   * @param  {String} str The text to display.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.writeString = function(str) {
+    var buffer = conv.UTF8.stringToBytes(str);
+    self.write(buffer, 0, buffer.length);
+  };
+
+  /**
+   * Moves the cursor left or right.
+   * @param  {Boolean} right Set true to move the cursor right; false to move left.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.moveCursor = function(right) {
+    self.sendCommand(0x10 | (right ? 0x04 : 0x00));
+  };
+
+  /**
+   * Scrolls the contents of the display (text and cursor) one
+	 * space to the right.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.scrollDisplayRight = function() {
+    self.sendCommand(0x18 | 0x04);
+  };
+
+  /**
+   * Scrolls the contents of the display (text and cursor) one
+ 	 * space to the left.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.scrollDisplayLeft = function() {
+    self.sendCommand(0x18 | 0x00);
+  };
+
+  /**
+   * Position the LCD cursor; that is, set the location at which
+	 * subsequent text written to the LCD will be displayed.
+   * @param  {Number} column The column position.
+   * @param  {Number} row    The row position.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.setCursorPosition = function(column, row) {
+    if (row > _numLines) {
+      row = (_numLines - 1);
+    }
+    var address = (column + _rowOffsets[row]);
+    self.sendCommand(LcdCommands.SetDdRamAddr | address);
+  };
+
+  /**
+   * Positions the cursor in the upper-left of the LCD (home position).
+	 * That is, use that location in outputting subsequent text to the
+	 * display. To also clear the display, use the clear()
+	 * method instead.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.returnHome = function() {
+    self.sendCommand(LcdCommands.ReturnHome);
+    CoreUtils.sleepMicroseconds(2000);  // This command takes some time.
+  };
+
+  /**
+   * Clears the LCD screen and positions the cursor in the upper-left
+	 * corner of the display.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.clear = function() {
+    self.sendCommand(LcdCommands.ClearDisplay);
+    CoreUtils.sleepMicroseconds(2000);  // This command takes some time.
+  };
+
+  /**
+   * Process commands to be sent from the queue synchronously and sequentially.
+   * @param  {Number} timeout The amount of time to wait between executions in
+   * milliseconds.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @private
+   */
+  var processSendQueue = function(timeout) {
+    if ((!_ready) || (_sendQueue.length === 0)) {
+      return;
+    }
+
+    _ready = false;
+    timeout = timeout || 0;
+    var cmd = _sendQueue.shift();
+    if (cmd != null) {
+        self.sendCommand(cmd);
+    }
+
+    setTimeout(function() {
+      _ready = true;
+      processSendQueue(timeout);
+    }, timeout);
+  };
+
+  /**
+   * Queues a command to be sent to the display.
+   * @param  {Byte|Number} cmd     The command or data to send.
+   * @param  {Number} timeout The amount of time in milliseconds to wait
+   * before executing the command.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @private
+   */
+  var enqueueCommand = function(cmd, timeout) {
+    _sendQueue.push(cmd);
+    processSendQueue(timeout);
+  };
+
+  /**
+   * Initializes the LCD. Specifies dimensions (width and height)
+	 * of the display.
+   * @param  {Number} columns     The number of columns that the display has.
+   * @param  {Number} lines       The number of rows the display has.
+   * @param  {Boolean} leftToRight If set to true left to right, versus right to left.
+   * @param  {Boolean} dotSize     If set true and only one line set, then the
+   * font size will be set 10px high.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  this.begin = function(columns, lines, leftToRight, dotSize) {
+    if (lines > 1) {
+      _displayFunction |= FunctionSetFlags.TwoLine;
+    }
+
+    leftToRight = leftToRight || true;
+    dotSize = dotSize || false;
+
+    // _currLine = 0;
+    _numLines = lines;
+    _numColumns = columns;
+
+    // For some 1 line displays, you can select 10 pixel high font.
+    if ((dotSize) &amp;&amp; (lines === 1)) {
+      _displayFunction |= FunctionSetFlags.FiveByEightDots;
+    }
+
+    // LCD controller needs time to warm-up.
+    enqueueCommand(null, 50);
+
+    // rs, rw, and enable should be low by default.
+    if (_provider.isFourBitMode()) {
+      // This is according to the Hitachi HD44780 datasheet.
+      // figure 24, pg 46.
+
+      // We start in 8-bit mode, try to set to 4-bit mode.
+      self.sendCommand(0x03);
+      enqueueCommand(0x03, 5); // Wait minimum 4.1ms.
+      enqueueCommand(0x03, 5);
+      enqueueCommand(0x02, 5); // Finally, set to 4-bit interface.
+    }
+    else {
+      // This is according to the Hitachi HD44780 datasheet
+			// page 45, figure 23.
+
+			// Send function set command sequence.
+			self.sendCommand(LcdCommands.FunctionSet | _displayFunction);
+      enqueueCommand(LcdCommands.FunctionSet | _displayFunction, 5);
+      enqueueCommand(LcdCommands.FunctionSet | _displayFunction, 5);
+    }
+
+    // Finally, set # of lines, font size, etc.
+    enqueueCommand(LcdCommands.FunctionSet | _displayFunction, 0);
+
+    // Turn the display on with no cursor or blinking default.
+    _visible = true;
+    _showCursor = false;
+    _blinkCursor = false;
+    _backlight = true;
+    self._updateDisplayControl();
+
+    // Clear it off.
+    self.clear();
+
+    // Set the entry mode.
+    var displayMode = (leftToRight ? DisplayEntryModes.EntryLeft : DisplayEntryModes.EntryRight);
+    displayMode |= DisplayEntryModes.EntryShiftDecrement;
+    self.sendCommand(LcdCommands.EntryModeSet | displayMode);
+  };
+
+  /**
+   * Releases all managed resources used by this instance.
+   * @override
+   */
+  this.dispose = function() {
+    if (_isDisposed) {
+      return;
+    }
+
+    if ((_provider != null) &amp;&amp; (_provider !== undefined)) {
+      _provider.dispose();
+      _provider = undefined;
+    }
+    _isDisposed = true;
+  };
+}
+
+LcdModule.prototype.constructor = LcdModule;
+inherits(LcdModule, Disposable);
+
+module.exports = LcdModule;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-Access.html">Access</a></li><li><a href="module-Buttons.html">Buttons</a></li><li><a href="module-Buzzers.html">Buzzers</a></li><li><a href="module-CaptureUtils.html">CaptureUtils</a></li><li><a href="module-Components.html">Components</a></li><li><a href="module-CoreUtils.html">CoreUtils</a></li><li><a href="module-ExecUtils.html">ExecUtils</a></li><li><a href="module-FirePlace.html">FirePlace</a></li><li><a href="module-Garage.html">Garage</a></li><li><a href="module-Gate.html">Gate</a></li><li><a href="module-IO.html">IO</a></li><li><a href="module-jsrpi.html">jsrpi</a></li><li><a href="module-LCD.html">LCD</a></li><li><a href="module-LcdDisplay.html">LcdDisplay</a></li><li><a href="module-LED.html">LED</a></li><li><a href="module-Lights.html">Lights</a></li><li><a href="module-Motors.html">Motors</a></li><li><a href="module-NetworkInfo.html">NetworkInfo</a></li><li><a href="module-PiBrella.html">PiBrella</a></li><li><a href="module-PiBrellaInput.html">PiBrellaInput</a></li><li><a href="module-PiBrellaOutput.html">PiBrellaOutput</a></li><li><a href="module-PiCamera.html">PiCamera</a></li><li><a href="module-PiFace.html">PiFace</a></li><li><a href="module-PiFacePinFactory.html">PiFacePinFactory</a></li><li><a href="module-PinUtils.html">PinUtils</a></li><li><a href="module-PiSystem.html">PiSystem</a></li><li><a href="module-PowerUtils.html">PowerUtils</a></li><li><a href="module-RCSwtich.html">RCSwtich</a></li><li><a href="module-Relays.html">Relays</a></li><li><a href="module-RelayUtils.html">RelayUtils</a></li><li><a href="module-Sensors.html">Sensors</a></li><li><a href="module-Serial.html">Serial</a></li><li><a href="module-Sprinkler.html">Sprinkler</a></li><li><a href="module-StringUtils.html">StringUtils</a></li><li><a href="module-SystemInfo.html">SystemInfo</a></li><li><a href="module-Temperature.html">Temperature</a></li><li><a href="module-TemperatureConversion.html">TemperatureConversion</a></li><li><a href="module-TempScaleUtils.html">TempScaleUtils</a></li></ul><h3>Classes</h3><ul><li><a href="ArgumentNullException.html">ArgumentNullException</a></li><li><a href="BitSet.html">BitSet</a></li><li><a href="ButtonBase.html">ButtonBase</a></li><li><a href="ButtonComponent.html">ButtonComponent</a></li><li><a href="BuzzerComponent.html">BuzzerComponent</a></li><li><a href="ComponentBase.html">ComponentBase</a></li><li><a href="DeviceBase.html">DeviceBase</a></li><li><a href="DimmableLightBase.html">DimmableLightBase</a></li><li><a href="DimmableLightComponent.html">DimmableLightComponent</a></li><li><a href="DS1620.html">DS1620</a></li><li><a href="FileInfo.html">FileInfo</a></li><li><a href="FireplaceBase.html">FireplaceBase</a></li><li><a href="FireplaceDevice.html">FireplaceDevice</a></li><li><a href="FireplacePilotLightException.html">FireplacePilotLightException</a></li><li><a href="GarageDoorOpenerBase.html">GarageDoorOpenerBase</a></li><li><a href="GarageDoorOpenerDevice.html">GarageDoorOpenerDevice</a></li><li><a href="GateOpenerBase.html">GateOpenerBase</a></li><li><a href="GateOpenerDevice.html">GateOpenerDevice</a></li><li><a href="GpioBase.html">GpioBase</a></li><li><a href="GpioLcdTransferProviderStandard.html">GpioLcdTransferProviderStandard</a></li><li><a href="GpioPowerComponent.html">GpioPowerComponent</a></li><li><a href="GpioStandard.html">GpioStandard</a></li><li><a href="IllegalArgumentException.html">IllegalArgumentException</a></li><li><a href="InvalidOperationException.html">InvalidOperationException</a></li><li><a href="InvalidPinModeException.html">InvalidPinModeException</a></li><li><a href="IOException.html">IOException</a></li><li><a href="LcdBase.html">LcdBase</a></li><li><a href="LcdComponent.html">LcdComponent</a></li><li><a href="LcdModule.html">LcdModule</a></li><li><a href="LEDBase.html">LEDBase</a></li><li><a href="LEDComponent.html">LEDComponent</a></li><li><a href="LightBase.html">LightBase</a></li><li><a href="LightComponent.html">LightComponent</a></li><li><a href="MomentarySwitchBase.html">MomentarySwitchBase</a></li><li><a href="MomentarySwitchComponent.html">MomentarySwitchComponent</a></li><li><a href="MotionSensorBase.html">MotionSensorBase</a></li><li><a href="MotionSensorComponent.html">MotionSensorComponent</a></li><li><a href="MotorBase.html">MotorBase</a></li><li><a href="NotImplementedException.html">NotImplementedException</a></li><li><a href="ObjectDisposedException.html">ObjectDisposedException</a></li><li><a href="OpenerBase.html">OpenerBase</a></li><li><a href="OpenerDevice.html">OpenerDevice</a></li><li><a href="OpenerLockedException.html">OpenerLockedException</a></li><li><a href="PiBrellaBase.html">PiBrellaBase</a></li><li><a href="PiBrellaDevice.html">PiBrellaDevice</a></li><li><a href="PiCameraDevice.html">PiCameraDevice</a></li><li><a href="PiFaceBase.html">PiFaceBase</a></li><li><a href="PiFaceDevice.html">PiFaceDevice</a></li><li><a href="PiFaceGpioBase.html">PiFaceGpioBase</a></li><li><a href="PiFaceGpioDigital.html">PiFaceGpioDigital</a></li><li><a href="PowerBase.html">PowerBase</a></li><li><a href="RCSwitchDevice.html">RCSwitchDevice</a></li><li><a href="RelayBase.html">RelayBase</a></li><li><a href="RelayComponent.html">RelayComponent</a></li><li><a href="SensorBase.html">SensorBase</a></li><li><a href="SensorComponent.html">SensorComponent</a></li><li><a href="Size.html">Size</a></li><li><a href="SprinklerControllerBase.html">SprinklerControllerBase</a></li><li><a href="SprinklerControllerDevice.html">SprinklerControllerDevice</a></li><li><a href="SprinklerZoneBase.html">SprinklerZoneBase</a></li><li><a href="SprinklerZoneDevice.html">SprinklerZoneDevice</a></li><li><a href="StepperMotorBase.html">StepperMotorBase</a></li><li><a href="StepperMotorComponent.html">StepperMotorComponent</a></li><li><a href="StillCaptureSettings.html">StillCaptureSettings</a></li><li><a href="SwitchBase.html">SwitchBase</a></li><li><a href="SwitchComponent.html">SwitchComponent</a></li><li><a href="TemperatureSensorBase.html">TemperatureSensorBase</a></li><li><a href="TemperatureSensorComponent.html">TemperatureSensorComponent</a></li><li><a href="TM16XXBase.html">TM16XXBase</a></li><li><a href="TM1638.html">TM1638</a></li><li><a href="ToggleSwitchBase.html">ToggleSwitchBase</a></li><li><a href="ToggleSwitchComponent.html">ToggleSwitchComponent</a></li></ul><h3>Events</h3><ul><li><a href="global.html#event:ButtonEvent">ButtonEvent</a></li><li><a href="global.html#event:CaptureDoneEvent">CaptureDoneEvent</a></li><li><a href="global.html#event:CaptureOutputEvent">CaptureOutputEvent</a></li><li><a href="global.html#event:CaptureStartEvent">CaptureStartEvent</a></li><li><a href="global.html#event:FireplacePilotLightEvent">FireplacePilotLightEvent</a></li><li><a href="global.html#event:FireplaceStateChangedEvent">FireplaceStateChangedEvent</a></li><li><a href="global.html#event:FireplaceTimeoutEvent">FireplaceTimeoutEvent</a></li><li><a href="global.html#event:LightLevelChangeEvent">LightLevelChangeEvent</a></li><li><a href="global.html#event:LightStateChangeEvent">LightStateChangeEvent</a></li><li><a href="global.html#event:MotionDetectedEvent">MotionDetectedEvent</a></li><li><a href="global.html#event:MotorRotateEvent">MotorRotateEvent</a></li><li><a href="global.html#event:MotorStateChangeEvent">MotorStateChangeEvent</a></li><li><a href="global.html#event:OpenerLockChangeEvent">OpenerLockChangeEvent</a></li><li><a href="global.html#event:OpenerStateChangeEvent">OpenerStateChangeEvent</a></li><li><a href="global.html#event:PinPollFailEvent">PinPollFailEvent</a></li><li><a href="global.html#event:PinStateChangeEvent">PinStateChangeEvent</a></li><li><a href="global.html#event:PowerStateChangeEvent">PowerStateChangeEvent</a></li><li><a href="global.html#event:RelayStateChangeEvent">RelayStateChangeEvent</a></li><li><a href="global.html#event:SensorStateChangeEvent">SensorStateChangeEvent</a></li><li><a href="global.html#event:SwitchStateChangeEvent">SwitchStateChangeEvent</a></li><li><a href="global.html#event:TemperatureChangeEvent">TemperatureChangeEvent</a></li><li><a href="global.html#event:UnrecognizedPinFoundEvent">UnrecognizedPinFoundEvent</a></li><li><a href="global.html#event:ZoneStateChangeEvent">ZoneStateChangeEvent</a></li></ul><h3>Interfaces</h3><ul><li><a href="Button.html">Button</a></li><li><a href="Buzzer.html">Buzzer</a></li><li><a href="Component.html">Component</a></li><li><a href="Device.html">Device</a></li><li><a href="DimmableLight.html">DimmableLight</a></li><li><a href="Disposable.html">Disposable</a></li><li><a href="DS1620Interface.html">DS1620Interface</a></li><li><a href="FireplaceInterface.html">FireplaceInterface</a></li><li><a href="GarageDoorOpener.html">GarageDoorOpener</a></li><li><a href="GateOpener.html">GateOpener</a></li><li><a href="Gpio.html">Gpio</a></li><li><a href="Lcd.html">Lcd</a></li><li><a href="LcdTransferProvider.html">LcdTransferProvider</a></li><li><a href="LEDInterface.html">LEDInterface</a></li><li><a href="Light.html">Light</a></li><li><a href="MomentarySwitch.html">MomentarySwitch</a></li><li><a href="MotionSensor.html">MotionSensor</a></li><li><a href="Motor.html">Motor</a></li><li><a href="Opener.html">Opener</a></li><li><a href="PiBrellaInterface.html">PiBrellaInterface</a></li><li><a href="PiFaceGPIO.html">PiFaceGPIO</a></li><li><a href="PiFaceInterface.html">PiFaceInterface</a></li><li><a href="Pin.html">Pin</a></li><li><a href="PowerInterface.html">PowerInterface</a></li><li><a href="RaspiGpio.html">RaspiGpio</a></li><li><a href="RCSwitchInterface.html">RCSwitchInterface</a></li><li><a href="Relay.html">Relay</a></li><li><a href="Sensor.html">Sensor</a></li><li><a href="SprinklerController.html">SprinklerController</a></li><li><a href="SprinklerZone.html">SprinklerZone</a></li><li><a href="StepperMotor.html">StepperMotor</a></li><li><a href="Switch.html">Switch</a></li><li><a href="TemperatureSensor.html">TemperatureSensor</a></li><li><a href="ToggleSwitch.html">ToggleSwitch</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ADDRESS_BITS_PER_WORD">ADDRESS_BITS_PER_WORD</a></li><li><a href="global.html#AddressCode">AddressCode</a></li><li><a href="global.html#BaudRates">BaudRates</a></li><li><a href="global.html#BCM2835PwmClockDivider">BCM2835PwmClockDivider</a></li><li><a href="global.html#BITS_PER_WORD">BITS_PER_WORD</a></li><li><a href="global.html#BoardRevision">BoardRevision</a></li><li><a href="global.html#BoardType">BoardType</a></li><li><a href="global.html#ButtonState">ButtonState</a></li><li><a href="global.html#C_MAP">C_MAP</a></li><li><a href="global.html#ChannelCode">ChannelCode</a></li><li><a href="global.html#checkRange">checkRange</a></li><li><a href="global.html#ClockType">ClockType</a></li><li><a href="global.html#close">close</a></li><li><a href="global.html#DisplayEntryModes">DisplayEntryModes</a></li><li><a href="global.html#DisplayOnOffControl">DisplayOnOffControl</a></li><li><a href="global.html#dispose">dispose</a></li><li><a href="global.html#FireplaceState">FireplaceState</a></li><li><a href="global.html#fromWordArray">fromWordArray</a></li><li><a href="global.html#FunctionSetFlags">FunctionSetFlags</a></li><li><a href="global.html#getButton">getButton</a></li><li><a href="global.html#getEventMessage">getEventMessage</a></li><li><a href="global.html#getExitCode">getExitCode</a></li><li><a href="global.html#getFailureCause">getFailureCause</a></li><li><a href="global.html#getLevel">getLevel</a></li><li><a href="global.html#getNewState">getNewState</a></li><li><a href="global.html#getNewTemp">getNewTemp</a></li><li><a href="global.html#getOldState">getOldState</a></li><li><a href="global.html#getOldTemp">getOldTemp</a></li><li><a href="global.html#getOutput">getOutput</a></li><li><a href="global.html#getPID">getPID</a></li><li><a href="global.html#getPinAddress">getPinAddress</a></li><li><a href="global.html#getSensor">getSensor</a></li><li><a href="global.html#getState">getState</a></li><li><a href="global.html#getSteps">getSteps</a></li><li><a href="global.html#getSwitchGroupAddress">getSwitchGroupAddress</a></li><li><a href="global.html#getTemperatureChange">getTemperatureChange</a></li><li><a href="global.html#getTimestamp">getTimestamp</a></li><li><a href="global.html#getZone">getZone</a></li><li><a href="global.html#GpioPins">GpioPins</a></li><li><a href="global.html#ImageEncoding">ImageEncoding</a></li><li><a href="global.html#isClosed">isClosed</a></li><li><a href="global.html#isDisposed">isDisposed</a></li><li><a href="global.html#isFourBitMode">isFourBitMode</a></li><li><a href="global.html#isHandled">isHandled</a></li><li><a href="global.html#isLocked">isLocked</a></li><li><a href="global.html#isMotionDetected">isMotionDetected</a></li><li><a href="global.html#isOn">isOn</a></li><li><a href="global.html#isOpen">isOpen</a></li><li><a href="global.html#isPressed">isPressed</a></li><li><a href="global.html#isReleased">isReleased</a></li><li><a href="global.html#isState">isState</a></li><li><a href="global.html#LcdCommands">LcdCommands</a></li><li><a href="global.html#LcdTextAlignment">LcdTextAlignment</a></li><li><a href="global.html#lightIsOn">lightIsOn</a></li><li><a href="global.html#MotorState">MotorState</a></li><li><a href="global.html#numberOfTrailingZeros">numberOfTrailingZeros</a></li><li><a href="global.html#onPulseStart">onPulseStart</a></li><li><a href="global.html#onPulseStop">onPulseStop</a></li><li><a href="global.html#onRelayStateChanged">onRelayStateChanged</a></li><li><a href="global.html#open">open</a></li><li><a href="global.html#OpenerState">OpenerState</a></li><li><a href="global.html#PiFaceLED">PiFaceLED</a></li><li><a href="global.html#PiFacePins">PiFacePins</a></li><li><a href="global.html#PiFaceRelay">PiFaceRelay</a></li><li><a href="global.html#PiFaceSwitch">PiFaceSwitch</a></li><li><a href="global.html#PinMode">PinMode</a></li><li><a href="global.html#PinPullResistance">PinPullResistance</a></li><li><a href="global.html#PinState">PinState</a></li><li><a href="global.html#PowerState">PowerState</a></li><li><a href="global.html#pulse">pulse</a></li><li><a href="global.html#PwmChannel">PwmChannel</a></li><li><a href="global.html#PwmClockDivider">PwmClockDivider</a></li><li><a href="global.html#PwmMode">PwmMode</a></li><li><a href="global.html#RCProtocol">RCProtocol</a></li><li><a href="global.html#RCSwitchDevNum">RCSwitchDevNum</a></li><li><a href="global.html#RelayState">RelayState</a></li><li><a href="global.html#send">send</a></li><li><a href="global.html#SensorState">SensorState</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#SwitchState">SwitchState</a></li><li><a href="global.html#TemperatureScale">TemperatureScale</a></li><li><a href="global.html#TimeUnit">TimeUnit</a></li><li><a href="global.html#TM1638LedColor">TM1638LedColor</a></li><li><a href="global.html#toggle">toggle</a></li><li><a href="global.html#util">util</a></li><li><a href="global.html#valueOf">valueOf</a></li><li><a href="global.html#wordIndex">wordIndex</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.3</a> on Mon Oct 05 2015 17:09:47 GMT-0400 (Eastern Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

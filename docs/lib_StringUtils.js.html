@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: lib/StringUtils.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: lib/StringUtils.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>"use strict";
+
+//
+//  StringUtils.js
+//
+//  Author:
+//       Chris Brunner &lt;cyrusbuilt at gmail dot com>
+//
+//  Copyright (c) 2015 CyrusBuilt
+//
+//  This program is free software; you can redistribute it and/or modify
+//  it under the terms of the GNU General Public License as published by
+//  the Free Software Foundation; either version 2 of the License, or
+//  (at your option) any later version.
+//
+//  This program is distributed in the hope that it will be useful,
+//  but WITHOUT ANY WARRANTY; without even the implied warranty of
+//  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+//  GNU General Public License for more details.
+//
+//  You should have received a copy of the GNU General Public License
+//  along with this program; if not, write to the Free Software
+//  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+//
+
+/**
+ * @fileOverview Provides utility methods and constants for working with strings.
+ *
+ * @module StringUtils
+ * @requires util
+ * @requires string-builder
+ * @requires IllegalArgumentException
+ */
+
+var util = require('util');
+var StringBuilder = require("string-builder");
+var IllegalArgumentException = require("./IllegalArgumentException.js");
+
+/**
+ * The default padding character.
+ * @constant {String}
+ */
+var DEFAULT_PAD_CHAR = ' ';
+
+/**
+ * Represents an empty string.
+ * @constant {String}
+ */
+var EMPTY = "";
+
+/**
+ * Creates a string from the specified character or string.
+ * @param  {String} c      The character or string to create the string from. If
+ * null or an empty string, then DEFAULT_PAD_CHAR is used instead.
+ * @param  {Integer} length The number of instances or the specified character
+ * or string to construct the string from.
+ * @return {String}        The constructed string.
+ */
+var create = function(c, length) {
+  if ((util.isNullOrUndefined(c)) || (c === EMPTY)) {
+    c = DEFAULT_PAD_CHAR;
+  }
+
+  var sb = new StringBuilder();
+  for (var i = 0; i &lt; length; i++) {
+    sb.append(c);
+  }
+  return sb.toString();
+};
+
+/**
+ * Pads the left side of the specified string.
+ * @param  {String} data   The string to pad.
+ * @param  {String} pad    The character or string to pad the specified string
+ * with. If null or empty string, then DEFAULT_PAD_CHAR will be used instead.
+ * @param  {Integer} length The number of pad characters or instances of string
+ * to inject.
+ * @return {String}        The padded version of the string.
+ */
+var padLeft = function(data, pad, length) {
+  if ((util.isNullOrUndefined(pad)) || (pad === EMPTY)) {
+    pad = DEFAULT_PAD_CHAR;
+  }
+
+  var sb = new StringBuilder();
+  for (var i = 0; i &lt; length; i++) {
+    sb.append(pad);
+  }
+
+  sb.append(data);
+  return sb.toString();
+};
+
+/**
+ * Pads the righ side of the specified string.
+ * @param  {String} data   The string to pad.
+ * @param  {String} pad    The character or string to pad the specified string
+ * with. If null or empty string, DEFAULT_PAD_CHAR will be used instead.
+ * @param  {Integer} length The number of padding characters or instances of
+ * string to use.
+ * @return {String}        The padded version of the string.
+ */
+var padRight = function(data, pad, length) {
+  if ((util.isNullOrUndefined(pad)) || (pad === EMPTY)) {
+    pad = DEFAULT_PAD_CHAR;
+  }
+
+  var sb = new StringBuilder();
+  sb.append(data);
+  for (var i = 0; i &lt; length; i++) {
+    sb.append(pad);
+  }
+
+  return sb.toString();
+};
+
+/**
+ * Pads the specified string on both sides.
+ * @param  {String} data   The string to pad.
+ * @param  {String} pad    The character or string to pad the specified string
+ * with. If null or empty string, DEFAULT_PAD_CHAR will be used instead.
+ * @param  {Integer} length The number of characters or instances of string to
+ * pad on both sides.
+ * @return {String}        The padded version of the string.
+ */
+var pad = function(data, pad, length) {
+  if ((util.isNullOrUndefined(pad)) || (pad === EMPTY)) {
+    pad = DEFAULT_PAD_CHAR;
+  }
+
+  var sb = new StringBuilder();
+  sb.append(this.create(pad, length));
+  sb.append(data);
+  sb.append(this.create(pad, length));
+  return sb.toString();
+};
+
+/**
+ * Pads the center of the specified string.
+ * @param  {String} data   The string to pad.
+ * @param  {String} c      The character or string to pad the center of the
+ * specified string with. If null or empty string, DEFAULT_PAD_CHAR will be
+ * used instead.
+ * @param  {Number} length The number of characters or instances of string to
+ * pad the center with.
+ * @return {String}        The padded version of the string.
+ * @throws {IllegalArgumentException} if data param is null or not a string.
+ */
+var padCenter = function(data, c, length) {
+  if ((util.isNullOrUndefined(data)) || (typeof data !== 'string')) {
+    throw new IllegalArgumentException("data param must be a string.");
+  }
+
+  if ((c === undefined) || (c == null) || (c === EMPTY)) {
+    c = DEFAULT_PAD_CHAR;
+  }
+
+  if (data.length &lt; length) {
+    var needed = (length - data.length);
+    var padNeeded = (needed / 2);
+
+    var sb = new StringBuilder();
+    sb.append(this.create(c, padNeeded));
+    sb.append(data);
+    sb.append(this.create(c, padNeeded));
+
+    var remaining = (length - sb.toString().length);
+    sb.append(this.create(c, remaining));
+    return sb.toString();
+  }
+  return data;
+};
+
+/**
+ * Checks to see if the specified string ends with the specified suffix.
+ * @param  {String} str    The string to check.
+ * @param  {String} suffix The suffix to search the specified string for.
+ * @return {Boolean}       true if the string ends with the specified suffix;
+ * Otherwise, false.
+ */
+var endsWith = function(str, suffix) {
+  return str.indexOf(suffix, str.length - suffix.length) !== -1;
+};
+
+/**
+ * Checks to see if the specified string begins with the specified prefix.
+ * @param  {String} str    The string to check.
+ * @param  {String} prefix The prefix to search the specified string for.
+ * @return {Boolean}       true if the string starts with the specified suffix;
+ * Otherwise, false.
+ */
+var startsWith = function(str, prefix) {
+  return str.indexOf(prefix, 0) === 0;
+};
+
+/**
+ * Checks to see if the specified string is null or empty.
+ * @param  {String} str The string object to inspect.
+ * @return {Boolean}    true if the specified string is null or empty;
+ * Otherwise, false.
+ */
+var isNullOrEmpty = function(str) {
+  if ((util.isNullOrUndefined(str)) || (str.length === 0)) {
+    return true;
+  }
+  return false;
+};
+
+/**
+ * Trims whitespace from the beginning and end of the specified string.
+ * @param  {String} str The string to trim.
+ * @return {String}     The resulting (trimmed) string.
+ */
+var trim = function(str) {
+  if ((util.isNullOrUndefined(str)) || (typeof str !== 'string')) {
+    return "";
+  }
+
+  if (this.isNullOrEmpty(str)) {
+    return "";
+  }
+  return str.replace(/^\s+|\s+$/gm,'');
+};
+
+/**
+ * Checks to see if the specified string contains the specified substring.
+ * @param  {String} str    The string to check.
+ * @param  {String} substr The string to search for.
+ * @return {Boolean}       true if at least one instance of the specified
+ * substring was found within the specified string.
+ */
+var contains = function(str, substr) {
+  return (str.indexOf(substr) > -1);
+};
+
+/**
+ * Coverts a string value to a byte value.
+ * @param  {String} str A string representing a byte value (ie. "00000000").
+ * @return {Byte|Number}     The byte value.
+ */
+var convertStringToByte = function(str) {
+  var ch = 0;
+  var st = [];
+  var re = [];
+  for (var i = 0; i &lt; str.length; i++) {
+    st = [];
+    ch = str.charCodeAt(i);
+    while (ch) {
+      st.push(ch &amp; 0xFF);
+      ch >>= 8;
+    }
+    re = re.concat(st.reverse());
+  }
+  return re;
+};
+
+module.exports.DEFAULT_PAD_CHAR = DEFAULT_PAD_CHAR;
+module.exports.EMPTY = EMPTY;
+module.exports.create = create;
+module.exports.padLeft = padLeft;
+module.exports.padRight = padRight;
+module.exports.pad = pad;
+module.exports.padCenter = padCenter;
+module.exports.endsWith = endsWith;
+module.exports.startsWith = startsWith;
+module.exports.isNullOrEmpty = isNullOrEmpty;
+module.exports.trim = trim;
+module.exports.contains = contains;
+module.exports.convertStringToByte = convertStringToByte;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-Access.html">Access</a></li><li><a href="module-Buttons.html">Buttons</a></li><li><a href="module-Buzzers.html">Buzzers</a></li><li><a href="module-CaptureUtils.html">CaptureUtils</a></li><li><a href="module-Components.html">Components</a></li><li><a href="module-CoreUtils.html">CoreUtils</a></li><li><a href="module-ExecUtils.html">ExecUtils</a></li><li><a href="module-FirePlace.html">FirePlace</a></li><li><a href="module-Garage.html">Garage</a></li><li><a href="module-Gate.html">Gate</a></li><li><a href="module-IO.html">IO</a></li><li><a href="module-jsrpi.html">jsrpi</a></li><li><a href="module-LCD.html">LCD</a></li><li><a href="module-LcdDisplay.html">LcdDisplay</a></li><li><a href="module-LED.html">LED</a></li><li><a href="module-Lights.html">Lights</a></li><li><a href="module-Motors.html">Motors</a></li><li><a href="module-NetworkInfo.html">NetworkInfo</a></li><li><a href="module-PiBrella.html">PiBrella</a></li><li><a href="module-PiBrellaInput.html">PiBrellaInput</a></li><li><a href="module-PiBrellaOutput.html">PiBrellaOutput</a></li><li><a href="module-PiCamera.html">PiCamera</a></li><li><a href="module-PiFace.html">PiFace</a></li><li><a href="module-PiFacePinFactory.html">PiFacePinFactory</a></li><li><a href="module-PinUtils.html">PinUtils</a></li><li><a href="module-PiSystem.html">PiSystem</a></li><li><a href="module-PowerUtils.html">PowerUtils</a></li><li><a href="module-RCSwtich.html">RCSwtich</a></li><li><a href="module-Relays.html">Relays</a></li><li><a href="module-RelayUtils.html">RelayUtils</a></li><li><a href="module-Sensors.html">Sensors</a></li><li><a href="module-Serial.html">Serial</a></li><li><a href="module-Sprinkler.html">Sprinkler</a></li><li><a href="module-StringUtils.html">StringUtils</a></li><li><a href="module-SystemInfo.html">SystemInfo</a></li><li><a href="module-Temperature.html">Temperature</a></li><li><a href="module-TemperatureConversion.html">TemperatureConversion</a></li><li><a href="module-TempScaleUtils.html">TempScaleUtils</a></li></ul><h3>Classes</h3><ul><li><a href="ArgumentNullException.html">ArgumentNullException</a></li><li><a href="BitSet.html">BitSet</a></li><li><a href="ButtonBase.html">ButtonBase</a></li><li><a href="ButtonComponent.html">ButtonComponent</a></li><li><a href="BuzzerComponent.html">BuzzerComponent</a></li><li><a href="ComponentBase.html">ComponentBase</a></li><li><a href="DeviceBase.html">DeviceBase</a></li><li><a href="DimmableLightBase.html">DimmableLightBase</a></li><li><a href="DimmableLightComponent.html">DimmableLightComponent</a></li><li><a href="DS1620.html">DS1620</a></li><li><a href="FileInfo.html">FileInfo</a></li><li><a href="FireplaceBase.html">FireplaceBase</a></li><li><a href="FireplaceDevice.html">FireplaceDevice</a></li><li><a href="FireplacePilotLightException.html">FireplacePilotLightException</a></li><li><a href="GarageDoorOpenerBase.html">GarageDoorOpenerBase</a></li><li><a href="GarageDoorOpenerDevice.html">GarageDoorOpenerDevice</a></li><li><a href="GateOpenerBase.html">GateOpenerBase</a></li><li><a href="GateOpenerDevice.html">GateOpenerDevice</a></li><li><a href="GpioBase.html">GpioBase</a></li><li><a href="GpioLcdTransferProviderStandard.html">GpioLcdTransferProviderStandard</a></li><li><a href="GpioPowerComponent.html">GpioPowerComponent</a></li><li><a href="GpioStandard.html">GpioStandard</a></li><li><a href="IllegalArgumentException.html">IllegalArgumentException</a></li><li><a href="InvalidOperationException.html">InvalidOperationException</a></li><li><a href="InvalidPinModeException.html">InvalidPinModeException</a></li><li><a href="IOException.html">IOException</a></li><li><a href="LcdBase.html">LcdBase</a></li><li><a href="LcdComponent.html">LcdComponent</a></li><li><a href="LcdModule.html">LcdModule</a></li><li><a href="LEDBase.html">LEDBase</a></li><li><a href="LEDComponent.html">LEDComponent</a></li><li><a href="LightBase.html">LightBase</a></li><li><a href="LightComponent.html">LightComponent</a></li><li><a href="MomentarySwitchBase.html">MomentarySwitchBase</a></li><li><a href="MomentarySwitchComponent.html">MomentarySwitchComponent</a></li><li><a href="MotionSensorBase.html">MotionSensorBase</a></li><li><a href="MotionSensorComponent.html">MotionSensorComponent</a></li><li><a href="MotorBase.html">MotorBase</a></li><li><a href="NotImplementedException.html">NotImplementedException</a></li><li><a href="ObjectDisposedException.html">ObjectDisposedException</a></li><li><a href="OpenerBase.html">OpenerBase</a></li><li><a href="OpenerDevice.html">OpenerDevice</a></li><li><a href="OpenerLockedException.html">OpenerLockedException</a></li><li><a href="PiBrellaBase.html">PiBrellaBase</a></li><li><a href="PiBrellaDevice.html">PiBrellaDevice</a></li><li><a href="PiCameraDevice.html">PiCameraDevice</a></li><li><a href="PiFaceBase.html">PiFaceBase</a></li><li><a href="PiFaceDevice.html">PiFaceDevice</a></li><li><a href="PiFaceGpioBase.html">PiFaceGpioBase</a></li><li><a href="PiFaceGpioDigital.html">PiFaceGpioDigital</a></li><li><a href="PowerBase.html">PowerBase</a></li><li><a href="RCSwitchDevice.html">RCSwitchDevice</a></li><li><a href="RelayBase.html">RelayBase</a></li><li><a href="RelayComponent.html">RelayComponent</a></li><li><a href="SensorBase.html">SensorBase</a></li><li><a href="SensorComponent.html">SensorComponent</a></li><li><a href="Size.html">Size</a></li><li><a href="SprinklerControllerBase.html">SprinklerControllerBase</a></li><li><a href="SprinklerControllerDevice.html">SprinklerControllerDevice</a></li><li><a href="SprinklerZoneBase.html">SprinklerZoneBase</a></li><li><a href="SprinklerZoneDevice.html">SprinklerZoneDevice</a></li><li><a href="StepperMotorBase.html">StepperMotorBase</a></li><li><a href="StepperMotorComponent.html">StepperMotorComponent</a></li><li><a href="StillCaptureSettings.html">StillCaptureSettings</a></li><li><a href="SwitchBase.html">SwitchBase</a></li><li><a href="SwitchComponent.html">SwitchComponent</a></li><li><a href="TemperatureSensorBase.html">TemperatureSensorBase</a></li><li><a href="TemperatureSensorComponent.html">TemperatureSensorComponent</a></li><li><a href="TM16XXBase.html">TM16XXBase</a></li><li><a href="TM1638.html">TM1638</a></li><li><a href="ToggleSwitchBase.html">ToggleSwitchBase</a></li><li><a href="ToggleSwitchComponent.html">ToggleSwitchComponent</a></li></ul><h3>Events</h3><ul><li><a href="global.html#event:ButtonEvent">ButtonEvent</a></li><li><a href="global.html#event:CaptureDoneEvent">CaptureDoneEvent</a></li><li><a href="global.html#event:CaptureOutputEvent">CaptureOutputEvent</a></li><li><a href="global.html#event:CaptureStartEvent">CaptureStartEvent</a></li><li><a href="global.html#event:FireplacePilotLightEvent">FireplacePilotLightEvent</a></li><li><a href="global.html#event:FireplaceStateChangedEvent">FireplaceStateChangedEvent</a></li><li><a href="global.html#event:FireplaceTimeoutEvent">FireplaceTimeoutEvent</a></li><li><a href="global.html#event:LightLevelChangeEvent">LightLevelChangeEvent</a></li><li><a href="global.html#event:LightStateChangeEvent">LightStateChangeEvent</a></li><li><a href="global.html#event:MotionDetectedEvent">MotionDetectedEvent</a></li><li><a href="global.html#event:MotorRotateEvent">MotorRotateEvent</a></li><li><a href="global.html#event:MotorStateChangeEvent">MotorStateChangeEvent</a></li><li><a href="global.html#event:OpenerLockChangeEvent">OpenerLockChangeEvent</a></li><li><a href="global.html#event:OpenerStateChangeEvent">OpenerStateChangeEvent</a></li><li><a href="global.html#event:PinPollFailEvent">PinPollFailEvent</a></li><li><a href="global.html#event:PinStateChangeEvent">PinStateChangeEvent</a></li><li><a href="global.html#event:PowerStateChangeEvent">PowerStateChangeEvent</a></li><li><a href="global.html#event:RelayStateChangeEvent">RelayStateChangeEvent</a></li><li><a href="global.html#event:SensorStateChangeEvent">SensorStateChangeEvent</a></li><li><a href="global.html#event:SwitchStateChangeEvent">SwitchStateChangeEvent</a></li><li><a href="global.html#event:TemperatureChangeEvent">TemperatureChangeEvent</a></li><li><a href="global.html#event:UnrecognizedPinFoundEvent">UnrecognizedPinFoundEvent</a></li><li><a href="global.html#event:ZoneStateChangeEvent">ZoneStateChangeEvent</a></li></ul><h3>Interfaces</h3><ul><li><a href="Button.html">Button</a></li><li><a href="Buzzer.html">Buzzer</a></li><li><a href="Component.html">Component</a></li><li><a href="Device.html">Device</a></li><li><a href="DimmableLight.html">DimmableLight</a></li><li><a href="Disposable.html">Disposable</a></li><li><a href="DS1620Interface.html">DS1620Interface</a></li><li><a href="FireplaceInterface.html">FireplaceInterface</a></li><li><a href="GarageDoorOpener.html">GarageDoorOpener</a></li><li><a href="GateOpener.html">GateOpener</a></li><li><a href="Gpio.html">Gpio</a></li><li><a href="Lcd.html">Lcd</a></li><li><a href="LcdTransferProvider.html">LcdTransferProvider</a></li><li><a href="LEDInterface.html">LEDInterface</a></li><li><a href="Light.html">Light</a></li><li><a href="MomentarySwitch.html">MomentarySwitch</a></li><li><a href="MotionSensor.html">MotionSensor</a></li><li><a href="Motor.html">Motor</a></li><li><a href="Opener.html">Opener</a></li><li><a href="PiBrellaInterface.html">PiBrellaInterface</a></li><li><a href="PiFaceGPIO.html">PiFaceGPIO</a></li><li><a href="PiFaceInterface.html">PiFaceInterface</a></li><li><a href="Pin.html">Pin</a></li><li><a href="PowerInterface.html">PowerInterface</a></li><li><a href="RaspiGpio.html">RaspiGpio</a></li><li><a href="RCSwitchInterface.html">RCSwitchInterface</a></li><li><a href="Relay.html">Relay</a></li><li><a href="Sensor.html">Sensor</a></li><li><a href="SprinklerController.html">SprinklerController</a></li><li><a href="SprinklerZone.html">SprinklerZone</a></li><li><a href="StepperMotor.html">StepperMotor</a></li><li><a href="Switch.html">Switch</a></li><li><a href="TemperatureSensor.html">TemperatureSensor</a></li><li><a href="ToggleSwitch.html">ToggleSwitch</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ADDRESS_BITS_PER_WORD">ADDRESS_BITS_PER_WORD</a></li><li><a href="global.html#AddressCode">AddressCode</a></li><li><a href="global.html#BaudRates">BaudRates</a></li><li><a href="global.html#BCM2835PwmClockDivider">BCM2835PwmClockDivider</a></li><li><a href="global.html#BITS_PER_WORD">BITS_PER_WORD</a></li><li><a href="global.html#BoardRevision">BoardRevision</a></li><li><a href="global.html#BoardType">BoardType</a></li><li><a href="global.html#ButtonState">ButtonState</a></li><li><a href="global.html#C_MAP">C_MAP</a></li><li><a href="global.html#ChannelCode">ChannelCode</a></li><li><a href="global.html#checkRange">checkRange</a></li><li><a href="global.html#ClockType">ClockType</a></li><li><a href="global.html#close">close</a></li><li><a href="global.html#DisplayEntryModes">DisplayEntryModes</a></li><li><a href="global.html#DisplayOnOffControl">DisplayOnOffControl</a></li><li><a href="global.html#dispose">dispose</a></li><li><a href="global.html#FireplaceState">FireplaceState</a></li><li><a href="global.html#fromWordArray">fromWordArray</a></li><li><a href="global.html#FunctionSetFlags">FunctionSetFlags</a></li><li><a href="global.html#getButton">getButton</a></li><li><a href="global.html#getEventMessage">getEventMessage</a></li><li><a href="global.html#getExitCode">getExitCode</a></li><li><a href="global.html#getFailureCause">getFailureCause</a></li><li><a href="global.html#getLevel">getLevel</a></li><li><a href="global.html#getNewState">getNewState</a></li><li><a href="global.html#getNewTemp">getNewTemp</a></li><li><a href="global.html#getOldState">getOldState</a></li><li><a href="global.html#getOldTemp">getOldTemp</a></li><li><a href="global.html#getOutput">getOutput</a></li><li><a href="global.html#getPID">getPID</a></li><li><a href="global.html#getPinAddress">getPinAddress</a></li><li><a href="global.html#getSensor">getSensor</a></li><li><a href="global.html#getState">getState</a></li><li><a href="global.html#getSteps">getSteps</a></li><li><a href="global.html#getSwitchGroupAddress">getSwitchGroupAddress</a></li><li><a href="global.html#getTemperatureChange">getTemperatureChange</a></li><li><a href="global.html#getTimestamp">getTimestamp</a></li><li><a href="global.html#getZone">getZone</a></li><li><a href="global.html#GpioPins">GpioPins</a></li><li><a href="global.html#ImageEncoding">ImageEncoding</a></li><li><a href="global.html#isClosed">isClosed</a></li><li><a href="global.html#isDisposed">isDisposed</a></li><li><a href="global.html#isFourBitMode">isFourBitMode</a></li><li><a href="global.html#isHandled">isHandled</a></li><li><a href="global.html#isLocked">isLocked</a></li><li><a href="global.html#isMotionDetected">isMotionDetected</a></li><li><a href="global.html#isOn">isOn</a></li><li><a href="global.html#isOpen">isOpen</a></li><li><a href="global.html#isPressed">isPressed</a></li><li><a href="global.html#isReleased">isReleased</a></li><li><a href="global.html#isState">isState</a></li><li><a href="global.html#LcdCommands">LcdCommands</a></li><li><a href="global.html#LcdTextAlignment">LcdTextAlignment</a></li><li><a href="global.html#lightIsOn">lightIsOn</a></li><li><a href="global.html#MotorState">MotorState</a></li><li><a href="global.html#numberOfTrailingZeros">numberOfTrailingZeros</a></li><li><a href="global.html#onPulseStart">onPulseStart</a></li><li><a href="global.html#onPulseStop">onPulseStop</a></li><li><a href="global.html#onRelayStateChanged">onRelayStateChanged</a></li><li><a href="global.html#open">open</a></li><li><a href="global.html#OpenerState">OpenerState</a></li><li><a href="global.html#PiFaceLED">PiFaceLED</a></li><li><a href="global.html#PiFacePins">PiFacePins</a></li><li><a href="global.html#PiFaceRelay">PiFaceRelay</a></li><li><a href="global.html#PiFaceSwitch">PiFaceSwitch</a></li><li><a href="global.html#PinMode">PinMode</a></li><li><a href="global.html#PinPullResistance">PinPullResistance</a></li><li><a href="global.html#PinState">PinState</a></li><li><a href="global.html#PowerState">PowerState</a></li><li><a href="global.html#pulse">pulse</a></li><li><a href="global.html#PwmChannel">PwmChannel</a></li><li><a href="global.html#PwmClockDivider">PwmClockDivider</a></li><li><a href="global.html#PwmMode">PwmMode</a></li><li><a href="global.html#RCProtocol">RCProtocol</a></li><li><a href="global.html#RCSwitchDevNum">RCSwitchDevNum</a></li><li><a href="global.html#RelayState">RelayState</a></li><li><a href="global.html#send">send</a></li><li><a href="global.html#SensorState">SensorState</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#SwitchState">SwitchState</a></li><li><a href="global.html#TemperatureScale">TemperatureScale</a></li><li><a href="global.html#TimeUnit">TimeUnit</a></li><li><a href="global.html#TM1638LedColor">TM1638LedColor</a></li><li><a href="global.html#toggle">toggle</a></li><li><a href="global.html#util">util</a></li><li><a href="global.html#valueOf">valueOf</a></li><li><a href="global.html#wordIndex">wordIndex</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.3</a> on Mon Oct 05 2015 17:09:47 GMT-0400 (Eastern Daylight Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
