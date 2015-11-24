@@ -28,11 +28,11 @@
  */
 
 module.exports = {
-  'imageEncoding' : require('./ImageEncoding.js'),
-  'captureDoneEvent' : require('./CaptureDoneEvent.js'),
-  'captureOutputEvent' : require('./CaptureOutputEvent.js'),
-  'captureStartEvent' : require('./CaptureStartEvent.js'),
-  'captureUtils' : require('./CaptureUtils.js'),
-  'stillCaptureSettings' : require('./StillCaptureSettings.js'),
-  'piCameraDevice' : require('./PiCameraDevice.js')
+  ImageEncoding : require('./ImageEncoding.js'),
+  CaptureDoneEvent : require('./CaptureDoneEvent.js'),
+  CaptureOutputEvent : require('./CaptureOutputEvent.js'),
+  CaptureStartEvent : require('./CaptureStartEvent.js'),
+  CaptureUtils : require('./CaptureUtils.js'),
+  CtillCaptureSettings : require('./StillCaptureSettings.js'),
+  PiCameraDevice : require('./PiCameraDevice.js')
 };

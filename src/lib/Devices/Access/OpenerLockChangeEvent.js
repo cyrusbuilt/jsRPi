@@ -21,6 +21,8 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+var util = require('util');
+
 /**
  * @classdesc The event that gets raised when an opener lock changes state.
  * @param {Boolean} locked Set true if locked.
@@ -28,15 +30,18 @@
  * @event
  */
 function OpenerLockChangeEvent(locked) {
-  var _isLocked = locked || false;
+  	var _isLocked = locked;
+	if (util.isNullOrUndefined(_isLocked)) {
+		_isLocked = false;
+	}
 
-  /**
-   * Gets a flag indicating whether or not the opener is locked.
-   * @return {Boolean} true if locked; Otherwise, false.
-   */
-  this.isLocked = function() {
-    return _isLocked;
-  };
+  	/**
+    * Gets a flag indicating whether or not the opener is locked.
+    * @return {Boolean} true if locked; Otherwise, false.
+    */
+  	this.isLocked = function() {
+    	return _isLocked;
+  	};
 }
 
 OpenerLockChangeEvent.prototype.constructor = OpenerLockChangeEvent;

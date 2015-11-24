@@ -29,7 +29,7 @@
  */
 
 module.exports = {
-  'garageDoorOpener' : require('./GarageDoorOpener.js'),
-  'garageDoorOpenerBase' : require('./GarageDoorOpenerBase.js'),
-  'garageDoorOpenerDevice' : require('./GarageDoorOpenerDevice.js')
+  GarageDoorOpener : require('./GarageDoorOpener.js'),
+  GarageDoorOpenerBase : require('./GarageDoorOpenerBase.js'),
+  GarageDoorOpenerDevice : require('./GarageDoorOpenerDevice.js')
 };

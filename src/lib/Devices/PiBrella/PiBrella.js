@@ -29,9 +29,9 @@
  */
 
 module.exports = {
-  'pibrellaInput' : require('./PiBrellaInput.js'),
-  'pibrellaOutput' : require('./PiBrellaOutput.js'),
-  'pibrellaInterface' : require('./PiBrellaInterface.js'),
-  'pibrellaBase' : require('./PiBrellaBase.js'),
-  'pibrellaDevice' : require('./PiBrellaDevice.js')
+  PiBrellaInput : require('./PiBrellaInput.js'),
+  PiBrellaOutput : require('./PiBrellaOutput.js'),
+  PiBrellaInterface : require('./PiBrellaInterface.js'),
+  PiBrellaBase : require('./PiBrellaBase.js'),
+  PibrellaDevice : require('./PiBrellaDevice.js')
 };

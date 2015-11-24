@@ -29,6 +29,6 @@
  */
 
 module.exports = {
-  'buzzer' : require('./Buzzer.js'),
-  'buzzerComponent' : require('./BuzzerComponent.js')
+  Buzzer : require('./Buzzer.js'),
+  BuzzerComponent : require('./BuzzerComponent.js')
 };

@@ -50,7 +50,7 @@ function TM1638(data, clock, strobe, active, intensity) {
  * to hex).
  */
 TM1638.prototype.setDisplayToHexNumber = function(number) {
-  TM16XXBase.prototype.setDisplayToString.call(this, "0x" + number.toString(16));
+  TM16XXBase.prototype.setDisplayToString("0x" + number.toString(16));
 };
 
 /**
@@ -63,28 +63,28 @@ TM1638.prototype.setDisplayToHexNumber = function(number) {
  */
 TM1638.prototype.setDisplayToDecNumberAt = function(number, dots, startPos, leadingZeros) {
   if (number > 99999999) {
-    TM16XXBase.prototype.setDisplayToError.call(this);
+    TM16XXBase.prototype.setDisplayToError();
   }
   else {
     var digit = 0;
     var pos = 0;
     var ldot = false;
-    var displays = TM16XXBase.prototype._getDisplays.call(this);
+    var displays = TM16XXBase.prototype._getDisplays();
     for (var i = 0; i < (displays - startPos); i++) {
       pos = (displays - i - 1);
       ldot = ((dots & (1 << i)) !== 0);
       if (number !== 0) {
         digit = (number % 10);
-        TM16XXBase.prototype.setDisplayDigit.call(this, digit, pos, ldot);
+        TM16XXBase.prototype.setDisplayDigit(digit, pos, ldot);
         number /= 10;
       }
       else {
         if (leadingZeros) {
           digit = 0;
-          TM16XXBase.prototype.setDisplayDigit.call(this, digit, pos, ldot);
+          TM16XXBase.prototype.setDisplayDigit(digit, pos, ldot);
         }
         else {
-          TM16XXBase.prototype.clearDisplayDigit.call(this, pos, ldot);
+          TM16XXBase.prototype.clearDisplayDigit(pos, ldot);
         }
       }
     }
@@ -114,7 +114,7 @@ TM1638.prototype.sendChar = function(pos, data, dot) {
   var one = StringUtils.convertStringToByte("10000000");
   var zero = StringUtils.convertStringToByte("00000000");
   var ldata = (data | (dot ? one : zero));
-  TM16XXBase.prototype.sendData.call(this, address, ldata);
+  TM16XXBase.prototype.sendData(address, ldata);
 };
 
 /**
@@ -131,7 +131,7 @@ TM1638.prototype.setDisplayToSignedDecNumber = function(number, dots, leadingZer
   else {
     number = -number;
     if (number > 9999999) {
-      TM16XXBase.prototype.setDisplayToError.call(this);
+      TM16XXBase.prototype.setDisplayToError();
     }
     else {
       self.setDisplayToDecNumberAt(number, dots, 1, leadingZeros);
@@ -149,12 +149,12 @@ TM1638.prototype.setDisplayToBinNumber = function(number, dots) {
   var digit = 0;
   var pos = 0;
   var ldot = false;
-  var displays = TM16XXBase.prototype._getDisplays.call(this);
+  var displays = TM16XXBase.prototype._getDisplays();
   for (var i = 0; i < displays; i++) {
     digit = ((number & (1 << i)) === 0 ? 0 : 1);
     pos = (displays - i - 1);
     ldot = ((dots & (1 << i)) !== 0);
-    TM16XXBase.prototype.setDisplayDigit.call(this, digit, pos, ldot);
+    TM16XXBase.prototype.setDisplayDigit(digit, pos, ldot);
   }
 };
 
@@ -165,7 +165,7 @@ TM1638.prototype.setDisplayToBinNumber = function(number, dots) {
  * color of.
  */
 TM1638.prototype.setLed = function(color, pos) {
-  TM16XXBase.prototype.sendData.call(this, ((pos << 1) + 1), color);
+  TM16XXBase.prototype.sendData(((pos << 1) + 1), color);
 };
 
 /**
@@ -175,11 +175,11 @@ TM1638.prototype.setLed = function(color, pos) {
  */
 TM1638.prototype.getPushButtons = function() {
   var keys = 0;
-  var strobe = TM16XXBase.prototype._getStrobe.call(this);
+  var strobe = TM16XXBase.prototype._getStrobe();
   strobe.write(PinState.High);
-  TM16XXBase.prototype.send.call(this, 0x42);
+  TM16XXBase.prototype.send(0x42);
   for (var i = 0; i < 4; i++) {
-    keys |= (TM16XXBase.prototype.receive.call(this) << i);
+    keys |= (TM16XXBase.prototype.receive() << i);
   }
 
   strobe.write(PinState.Low);

@@ -22,6 +22,7 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+var util = require('util');
 var SwitchState = require('./SwitchState.js');
 
 /**
@@ -32,8 +33,15 @@ var SwitchState = require('./SwitchState.js');
  * @event
  */
 function SwitchStateChangeEvent(oldState, newState) {
-  var _oldState = oldState || SwitchState.Off;
-  var _newState = newState || SwitchState.Off;
+  var _oldState = oldState;
+  if (util.isNullOrUndefined(_oldState)) {
+    _oldState = SwitchState.Off;
+  }
+
+  var _newState = newState;
+  if (util.isNullOrUndefined(_newState)) {
+    _newState = SwitchState.Off;
+  }
 
   /**
    * Gets the old state.

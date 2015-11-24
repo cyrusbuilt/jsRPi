@@ -30,14 +30,12 @@
  */
 function Size(width, height) {
   /**
-   * The object width.
-   * @property {Number}
+   * @property {Number} The object width.
    */
   this.width = width || 0;
 
   /**
-   * The object height.
-   * @property {Number}
+   * @property {Number} The object height.
    */
   this.height = height || 0;
 }

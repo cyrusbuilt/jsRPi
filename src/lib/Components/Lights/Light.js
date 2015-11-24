@@ -71,13 +71,13 @@ Light.prototype.onLightStateChange = function(lightChangeEvent) {};
  * @type {String}
  * @const
  */
-Light.LIGHT_STATE_CHANGED = "lightStateChanged";
+Light.EVENT_STATE_CHANGED = "lightStateChanged";
 
 /**
  * The name of the light level changed event.
  * @type {String}
  * @const
  */
-Light.LIGHT_LEVEL_CHANGED = "lightLevelChanged";
+Light.EVENT_LEVEL_CHANGED = "lightLevelChanged";
 
 module.exports = Light;

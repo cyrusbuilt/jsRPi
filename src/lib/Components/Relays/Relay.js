@@ -142,10 +142,10 @@ Relay.OPEN_STATE = PinState.Low;
 Relay.CLOSED_STATE = PinState.High;
 
 /**
- * The default pulse time (500ms [.5s]).
+ * The default pulse time (500ms [.2s]).
  * @type {Number}
  * @const
  */
-Relay.DEFAULT_PULSE_MILLISECONDS = 500;
+Relay.DEFAULT_PULSE_MILLISECONDS = 200;
 
 module.exports = Relay;

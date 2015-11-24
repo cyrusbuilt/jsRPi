@@ -49,6 +49,7 @@ var executeCommand = function(command) {
   var args = "";
   var cmdLine = command.split(" ");
   if (cmdLine.length > 1) {
+    command = cmdLine[0];
     for (var i = 1; i <= (cmdLine.length - 1); i++) {
       args += cmdLine[i] + " ";
     }
@@ -59,13 +60,18 @@ var executeCommand = function(command) {
   }
 
   var result = [];
-  var cmdSpawn = exec.spawnSync(command, args);
+  var cmdSpawn = exec.spawnSync(command, args.split(" "));
   if (cmdSpawn.status === 0) {
-    if (cmdSpawn.stdout !== null) {
-      result = cmdSpawn.stdout.split("\n");
+    if (!util.isNullOrUndefined(cmdSpawn.stdout)) {
+      if (typeof cmdSpawn.stdout === 'string') {
+        result = cmdSpawn.stdout.split("\n");
+      }
+      else {
+        result = cmdSpawn.stdout.toString().split("\n");
+      }
     }
   }
   return result;
 };
 
-module.exports = executeCommand;
+module.exports.executeCommand = executeCommand;

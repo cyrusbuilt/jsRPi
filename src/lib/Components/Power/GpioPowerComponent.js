@@ -56,37 +56,133 @@ function GpioPowerComponent(pin, onState, offState) {
   }
 
   var self = this;
+  var _base = new PowerBase();
   var _output = pin;
   var _onState = onState || PinState.High;
   var _offState = offState || PinState.Low;
 
+  /**
+   * Internal handler for the output pin state change event. This dispatches the
+   * power state change event based on the state of the pin.
+   * @param  {PinStateChangeEvent} e The state change event.
+   * @private
+   */
   var onOutputStateChanged = function(e) {
-    if (e.newState() === _onState) {
-      PowerBase.prototype.onPowerStateChanged.call(this, new PowerStateChangeEvent(PowerState.Off, PowerState.On));
+    if (e.getNewState() === _onState) {
+      _base.onPowerStateChanged(new PowerStateChangeEvent(PowerState.Off, PowerState.On));
     }
     else {
-      PowerBase.prototype.onPowerStateChanged.call(this, new PowerStateChangeEvent(PowerState.On, PowerState.Off));
+      _base.onPowerStateChanged(new PowerStateChangeEvent(PowerState.On, PowerState.Off));
     }
   };
 
   _output.on(Gpio.EVENT_STATE_CHANGED, onOutputStateChanged);
 
   /**
+   * Component name property.
+   * @property {String}
+   */
+  this.componentName = _base.componentName;
+
+  /**
+   * Tag property.
+   * @property {Object}
+   */
+  this.tag = _base.tag;
+
+  /**
+   * Gets the property collection.
+   * @return {Array} A custom property collection.
+   * @override
+   */
+  this.getPropertyCollection = function() {
+    return _base.getPropertyCollection();
+  };
+
+  /**
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  this.hasProperty = function(key) {
+    return _base.hasProperty(key);
+  };
+
+  /**
+   * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   */
+  this.setProperty = function(key, value) {
+    _base.setProperty(key, value);
+  };
+
+  /**
+   * Determines whether or not this instance has been disposed.
+   * @return {Boolean} true if disposed; Otherwise, false.
+   * @override
+   */
+  this.isDisposed = function() {
+    return _base.isDisposed();
+  };
+
+  /**
    * Releases all resources used by the GpioBase object.
    * @override
    */
   this.dispose = function() {
-    if (PowerBase.prototype.isDisposed.call(this)) {
+    if (_base.isDisposed()) {
       return;
     }
 
-    self.removeAllListeners();
     if (!util.isNullOrUndefined(_output)) {
       _output.dispose();
       _output = undefined;
     }
 
-    PowerBase.prototype.dispose.call(this);
+    _base.dispose();
+  };
+
+  /**
+   * Removes all event listeners.
+   * @override
+   */
+  this.removeAllListeners = function() {
+    if (!_base.isDisposed()) {
+      _base.removeAllListeners();
+    }
+  };
+
+  /**
+   * Attaches a listener (callback) for the specified event name.
+   * @param  {String}   evt      The name of the event.
+   * @param  {Function} callback The callback function to execute when the
+   * event is raised.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.on = function(evt, callback) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("PowerBase");
+    }
+    _base.on(evt, callback);
+  };
+
+  /**
+   * Emits the specified event.
+   * @param  {String} evt  The name of the event to emit.
+   * @param  {Object} args The object that provides arguments to the event.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.emit = function(evt, args) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("PowerBase");
+    }
+    _base.emit(evt, args);
   };
 
   /**
@@ -116,7 +212,7 @@ function GpioPowerComponent(pin, onState, offState) {
    * @override
    */
   this.setState = function(state) {
-    if (PowerBase.prototype.isDisposed.call(this)) {
+    if (_base.isDisposed()) {
       throw new ObjectDisposedException("GpioPowerComponent");
     }
 
@@ -127,14 +223,59 @@ function GpioPowerComponent(pin, onState, offState) {
     switch (state) {
       case PowerState.Off:
         _output.write(_offState);
+        _base.setState(state);
         break;
       case PowerState.On:
         _output.write(_onState);
+        _base.setState(state);
         break;
       default:
         var badState = PowerUtils.getPowerStateName(state);
         throw new InvalidOperationException("Cannot set power state: " + badState);
     }
+  };
+
+  /**
+   * Fires the power state changed event.
+   * @param  {PowerStateChangeEvent} stateChangeEvent The event info object.
+   * @override
+   */
+  this.onPowerStateChanged = function(stateChangeEvent) {
+    _base.onPowerStateChanged(stateChangeEvent);
+  };
+
+  /**
+   * Checks to see if the component is on.
+   * @return {Boolean} true if on; Otherwise, false.
+   * @override
+   */
+  this.isOn = function() {
+    return (self.getState() === PowerState.On);
+  };
+
+  /**
+   * Checks to see if the component is off.
+   * @return {Boolean} true if off; Otherwise, false.
+   * @override
+   */
+  this.isOff = function() {
+    return (self.getState() === PowerState.Off);
+  };
+
+  /**
+   * Turns the component on.
+   * @override
+   */
+  this.turnOn = function() {
+    self.setState(PowerState.On);
+  };
+
+  /**
+   * Turns the component off.
+   * @override
+   */
+  this.turnOff = function() {
+    self.setState(PowerState.Off);
   };
 }
 

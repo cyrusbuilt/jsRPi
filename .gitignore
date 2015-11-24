@@ -38,3 +38,4 @@ obj/
 
 # ignore build output
 dist/*.js
+build/

@@ -28,7 +28,7 @@
  */
 
 module.exports = {
-  'lcd' : require('./Lcd.js'),
-  'lcdTextAlignment' : require('./LcdTextAlignment.js'),
-  'lcdBase' : require('./LcdBase.js')
+  Lcd : require('./Lcd.js'),
+  LcdTextAlignment : require('./LcdTextAlignment.js'),
+  LcdBase : require('./LcdBase.js')
 };

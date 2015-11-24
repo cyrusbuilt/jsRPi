@@ -145,7 +145,7 @@ function GpioStandard(pin, mode, initialValue) {
       }
       else {
         // Set the direction on the pin and update the exported list.
-        fs.writeFile(pinPath + "/direction", m);
+        fs.writeFileSync(pinPath + "/direction", m);
         pins[pin] = mode;
         return;
       }
@@ -156,11 +156,11 @@ function GpioStandard(pin, mode, initialValue) {
 
     // Export.
     if (!fs.existsSync(pinPath)) {
-      fs.writeSync(IO_PATH + "export", pinnum);
+      fs.writeFileSync(IO_PATH + "export", pinnum);
     }
 
     // Set I/O direction.
-    fs.writeSync(pinPath + "/direction", m);
+    fs.writeFileSync(pinPath + "/direction", m);
 
     // Update the pin.
     pins[pin] = mode;
@@ -195,7 +195,7 @@ function GpioStandard(pin, mode, initialValue) {
     self._internal_ExportPin(pin, PinMode.OUT, gpioNum, pinName);
     var val = value.toString();
     var path = IO_PATH + "gpio" + gpioNum + "/value";
-    fs.writeSync(path, val);
+    fs.writeFileSync(path, val);
   };
 
   /**
@@ -217,7 +217,7 @@ function GpioStandard(pin, mode, initialValue) {
    * @private
    */
   this._internal_UnexportPin = function(pin, gpioNum) {
-    fs.writeSync(IO_PATH + "unexport", gpioNum);
+    fs.writeFileSync(IO_PATH + "unexport", gpioNum);
     var idx = _.indexBy(this.getExportedPins(), pin)[0];
     self.getExportedPins().splice(idx, 1);
   };
@@ -283,15 +283,6 @@ function GpioStandard(pin, mode, initialValue) {
   };
 
   /**
-   * Fires the pin state change event.
-   * @param  {PinStateChangeEvent} psce The event object.
-   * @override
-   */
-  this.onPinStateChange = function(psce) {
-    GpioBase.prototype.onPinStateChange.call(this, psce);
-  };
-
-  /**
    * Write a value to the pin.
    * @param  {PinState} ps The pin state value to write to the pin.
    * @override
@@ -316,7 +307,7 @@ function GpioStandard(pin, mode, initialValue) {
 
     self._write(self.getInnerPin(), PinState.High);
     self.onPinStateChange(new PinStateChangeEvent(self.state, PinState.High));
-    GpioBase.prototype.pulse.call(self, millis);
+    self.pulse(millis);
     self._write(self.getInnerPin(), PinState.Low);
     self.onPinStateChange(new PinStateChangeEvent(self.state, PinState.Low));
   };
@@ -358,7 +349,8 @@ function GpioStandard(pin, mode, initialValue) {
         var cmd = "gpio unexport " + self.getInnerPin().value.toString();
         ExecUtils.executeCommand(cmd);
     }
-    GpioBase.prototype.write.call(self, PinState.Low);
+
+    self.write(PinState.Low);
     GpioBase.prototype.dispose.call(self);
   };
 }

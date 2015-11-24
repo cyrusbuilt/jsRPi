@@ -29,11 +29,11 @@
  */
 
 module.exports = {
-  'sprinklerZone' : require('./SprinklerZone.js'),
-  'sprinklerController' : require('./SprinklerController.js'),
-  'zoneStateChangeEvent' : require('./ZoneStateChangeEvent.js'),
-  'sprinklerZoneBase' : require('./SprinklerZoneBase.js'),
-  'sprinklerControllerBase' : require('./SprinklerControllerBase.js'),
-  'sprinklerZoneDevice' : require('./SprinklerZoneDevice.js'),
-  'sprinklerControllerDevice' : require('./SprinklerControllerDevice.js')
+  SprinklerZone : require('./SprinklerZone.js'),
+  SprinklerController : require('./SprinklerController.js'),
+  ZoneStateChangeEvent : require('./ZoneStateChangeEvent.js'),
+  SprinklerZoneBase : require('./SprinklerZoneBase.js'),
+  SprinklerControllerBase : require('./SprinklerControllerBase.js'),
+  SprinklerZoneDevice : require('./SprinklerZoneDevice.js'),
+  SprinklerControllerDevice : require('./SprinklerControllerDevice.js')
 };

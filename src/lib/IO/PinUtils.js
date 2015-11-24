@@ -27,9 +27,11 @@
  * @fileOverview Contains utility methods for working with pins.
  *
  * @module PinUtils
+ * @requires util
  * @requires PinMode
  */
 
+var util = require('util');
 var PinMode = require("./PinMode.js");
 
 /**
@@ -38,7 +40,7 @@ var PinMode = require("./PinMode.js");
  * @return {String}       The mode name.
  */
 var getPinModeName = function(mode) {
-  if ((mode === undefined) || (mode == null)) {
+  if (util.isNullOrUndefined(mode)) {
     return "";
   }
 

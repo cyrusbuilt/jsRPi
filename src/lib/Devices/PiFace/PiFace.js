@@ -29,10 +29,10 @@
  */
 
 module.exports = {
-  'pifaceSwitch' : require('./PiFaceSwitch.js'),
-  'pifaceRelay' : require('./PiFaceRelay.js'),
-  'pifaceLED' : require('./PiFaceLED.js'),
-  'pifaceInterface' : require('./pifaceInterface'),
-  'pifaceBase' : require('./PiFaceBase.js'),
-  'pifaceDevice' : require('./PiFaceDevice.js')
+  PiFaceSwitch : require('./PiFaceSwitch.js'),
+  PiFaceRelay : require('./PiFaceRelay.js'),
+  PiFaceLED : require('./PiFaceLED.js'),
+  PiFaceInterface : require('./PiFaceInterface'),
+  PiFaceBase : require('./PiFaceBase.js'),
+  PiFaceDevice : require('./PiFaceDevice.js')
 };

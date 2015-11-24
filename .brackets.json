@@ -1,0 +1,13 @@
+{
+    "closeBrackets": true,
+    "tabSize": 3,
+    "useTabChar": true,
+    "spaceUnits": 3,
+    "showLineNumbers": true,
+    "language": {
+        "javascript": {
+            "linting.prefer": "JSHint",
+            "linting.usePreferredOnly": true
+        }
+    }
+}

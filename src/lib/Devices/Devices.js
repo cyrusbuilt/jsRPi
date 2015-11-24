@@ -28,15 +28,15 @@
  */
 
 module.exports = {
-  'device' : require('./Device.js'),
-  'deviceBase' : require('./DeviceBase.js'),
-  'access' : require('./Access/Access.js'),
-  'fireplace' : require('./FirePlace/FirePlace.js'),
-  'garage' : require('./Garage/Garage.js'),
-  'gate' : require('./Gate/Gate.js'),
-  'pibrella' : require('./PiBrella/PiBrella.js'),
-  'picamera' : require('./PiCamera/PiCamera.js'),
-  'piface' : require('./PiFace/PiFace.js'),
-  'rcswitch' : require('./RCSwitch/RCSwitch.js'),
-  'sprinkler' : require('./Sprinkler/Sprinkler.js')
+  Device : require('./Device.js'),
+  DeviceBase : require('./DeviceBase.js'),
+  Access : require('./Access/Access.js'),
+  Fireplace : require('./FirePlace/FirePlace.js'),
+  Garage : require('./Garage/Garage.js'),
+  Gate : require('./Gate/Gate.js'),
+  PiBrella : require('./PiBrella/PiBrella.js'),
+  PiCamera : require('./PiCamera/PiCamera.js'),
+  PiFace : require('./PiFace/PiFace.js'),
+  RCSwitch : require('./RCSwitch/RCSwitch.js'),
+  Sprinkler : require('./Sprinkler/Sprinkler.js')
 };

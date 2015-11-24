@@ -29,11 +29,11 @@
  */
 
 module.exports = {
-  'displayEntryMode' : require('./DisplayEntryModes.js'),
-  'displayOnOffControl' : require('./DisplayOnOffControl.js'),
-  'functionSetFlags' : require('./FunctionSetFlags.js'),
-  'gpioLcdTransferProviderStandard' : require('./GpioLcdTransferProviderStandard.js'),
-  'lcdCommands' : require('./LcdCommands.js'),
-  'lcdModule' : require('./LcdModule.js'),
-  'lcdTransferProvider' : require('./LcdTransferProvider.js')
+  DisplayEntryMode : require('./DisplayEntryModes.js'),
+  DisplayOnOffControl : require('./DisplayOnOffControl.js'),
+  FunctionSetFlags : require('./FunctionSetFlags.js'),
+  GpioLcdTransferProviderStandard : require('./GpioLcdTransferProviderStandard.js'),
+  LcdCommands : require('./LcdCommands.js'),
+  LcdModule : require('./LcdModule.js'),
+  LcdTransferProvider : require('./LcdTransferProvider.js')
 };

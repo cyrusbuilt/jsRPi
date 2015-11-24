@@ -22,6 +22,8 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+var util = require('util');
+
 /**
  * Button event arguments class.
  * @param {Button} button The button associated with this event.
@@ -44,7 +46,7 @@ function ButtonEvent(button) {
    * @return {Button} true if the button is pressed; Otherwise, false.
    */
   this.isPressed = function() {
-    if (_button == null) {
+    if (util.isNullOrUndefined(_button)) {
       return false;
     }
     return _button.isPressed();
@@ -55,7 +57,7 @@ function ButtonEvent(button) {
    * @return {Boolean} true if released; Otherwise, false.
    */
   this.isReleased = function() {
-    if (_button == null) {
+    if (util.isNullOrUndefined(_button)) {
       return false;
     }
     return _button.isReleased();
@@ -68,7 +70,7 @@ function ButtonEvent(button) {
    * Otherwise, false.
    */
   this.isState = function(state) {
-    if (_button == null) {
+    if (util.isNullOrUndefined(_button)) {
       return false;
     }
     return _button.isState(state);

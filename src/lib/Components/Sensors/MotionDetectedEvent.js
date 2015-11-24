@@ -21,6 +21,8 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+var util = require('util');
+
 /**
  * @classdesc The event that gets raised when motion is detected.
  * @param {Boolean} motion    Set true if motion was detected.
@@ -29,8 +31,15 @@
  * @event
  */
 function MotionDetectedEvent(motion, timestamp) {
-  var _motionDetected = motion || false;
-  var _timestamp = timestamp || new Date();
+  var _motionDetected = motion;
+  if (util.isNullOrUndefined(_motionDetected)) {
+    _motionDetected = false;
+  }
+
+  var _timestamp = timestamp;
+  if (util.isNullOrUndefined(_timestamp)) {
+    _timestamp = new Date();
+  }
 
   /**
    * Gets whether or not motion was detected.

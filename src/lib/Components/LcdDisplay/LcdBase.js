@@ -23,7 +23,6 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 var inherits = require('util').inherits;
-var extend = require('extend');
 var ComponentBase = require('../ComponentBase.js');
 var Lcd = require('./Lcd.js');
 var StringUtils = require('../../StringUtils.js');
@@ -39,8 +38,111 @@ var sb = require('string-builder');
  */
 function LcdBase() {
   Lcd.call(this);
-  ComponentBase.call(this);
+
   var self = this;
+  var _base = new ComponentBase();
+
+  /**
+   * Component name property.
+   * @property {String}
+   */
+  this.componentName = _base.componentName;
+
+  /**
+   * Tag property.
+   * @property {Object}
+   */
+  this.tag = _base.tag;
+
+  /**
+   * Gets the property collection.
+   * @return {Array} A custom property collection.
+   * @override
+   */
+  this.getPropertyCollection = function() {
+    return _base.getPropertyCollection();
+  };
+
+  /**
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  this.hasProperty = function(key) {
+    return _base.hasProperty(key);
+  };
+
+  /**
+   * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   */
+  this.setProperty = function(key, value) {
+    _base.setProperty(key, value);
+  };
+
+  /**
+   * Determines whether or not the current instance has been disposed.
+   * @return {Boolean} true if disposed; Otherwise, false.
+   * @override
+   */
+  this.isDisposed = function() {
+    return _base.isDisposed();
+  };
+
+  /**
+   * Gets the property collection.
+   * @return {Array} A custom property collection.
+   * @override
+   */
+  this.getPropertyCollection = function() {
+    return _base.getPropertyCollection();
+  };
+
+  /**
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  this.hasProperty = function(key) {
+    return _base.hasProperty(key);
+  };
+
+  /**
+   * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   */
+  this.setProperty = function(key, value) {
+    _base.setProperty(key, value);
+  };
+
+  /**
+   * Returns the string representation of this object. In this case, it simply
+   * returns the component name.
+   * @return {String} The name of this component.
+   */
+  this.toString = function() {
+    return _base.toString();
+  };
+
+  /**
+   * Releases all managed resources used by this instance.
+   * @override
+   */
+  this.dispose = function() {
+    if (_base.isDisposed()) {
+      return;
+    }
+
+    _base.dispose();
+  };
 
   /**
    * Validates the index of the specified row.
@@ -268,4 +370,4 @@ function LcdBase() {
 
 LcdBase.prototype.constructor = Lcd;
 inherits(LcdBase, Lcd);
-module.exports = extend(true, LcdBase, ComponentBase);
+module.exports = LcdBase;

@@ -29,11 +29,11 @@
  */
 
 module.exports = {
-  'openerState' : require('./OpenerState.js'),
-  'openerLockedException' : require('./OpenerLockedException.js'),
-  'openerStateChangeEvent' : require('./OpenerStateChangeEvent.js'),
-  'openerLockChangeEvent' : require('./OpenerLockChangeEvent.js'),
-  'opener' : require('./Opener.js'),
-  'openerBase' : require('./OpenerBase.js'),
-  'openerDevice' : require('./OpenerDevice.js')
+  OpenerState : require('./OpenerState.js'),
+  OpenerLockedException : require('./OpenerLockedException.js'),
+  OpenerStateChangeEvent : require('./OpenerStateChangeEvent.js'),
+  OpenerLockChangeEvent : require('./OpenerLockChangeEvent.js'),
+  Opener : require('./Opener.js'),
+  OpenerBase : require('./OpenerBase.js'),
+  OpenerDevice : require('./OpenerDevice.js')
 };

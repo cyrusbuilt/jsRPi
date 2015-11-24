@@ -30,10 +30,10 @@
  */
 
 module.exports = {
-  'addressCode' : require('./AddressCode.js'),
-  'channelCode' : require('./ChannelCode.js'),
-  'rcProtocol' : require('./RCProtocol.js'),
-  'rcSwitchDevNum' : require('./RCSwitchDevNum.js'),
-  'rcSwitchInterface' : require('./RCSwitchInterface.js'),
-  'rcSwitchDevice' : require('./RCSwitchDevice.js')
+  AddressCode : require('./AddressCode.js'),
+  ChannelCode : require('./ChannelCode.js'),
+  RCProtocol : require('./RCProtocol.js'),
+  RCSwitchDevNum : require('./RCSwitchDevNum.js'),
+  RCSwitchInterface : require('./RCSwitchInterface.js'),
+  RCSwitchDevice : require('./RCSwitchDevice.js')
 };

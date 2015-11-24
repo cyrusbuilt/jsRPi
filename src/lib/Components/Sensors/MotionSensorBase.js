@@ -23,11 +23,11 @@
 
 var util = require('util');
 var inherits = require('util').inherits;
-var extend = require('extend');
 var MotionSensor = require('./MotionSensor.js');
 var ComponentBase = require('../ComponentBase.js');
 var EventEmitter = require('events').EventEmitter;
 var ArgumentNullException = require('../../ArgumentNullException.js');
+var ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
  * @classdesc Base class for motion sensor abstraction components.
@@ -40,25 +40,86 @@ var ArgumentNullException = require('../../ArgumentNullException.js');
  */
 function MotionSensorBase(pin) {
   MotionSensor.call(this);
-  ComponentBase.call(this);
-  EventEmitter.call(this);
 
   if (util.isNullOrUndefined(pin)) {
     throw new ArgumentNullException("'pin' cannot be null or undefined.");
   }
 
   var self = this;
+  var _base = new ComponentBase();
+  var _emitter = new EventEmitter();
   var _lastMotion = null;
   var _lastInactive = null;
   var _pin = pin;
   _pin.provision();
 
   /**
+   * Component name property.
+   * @property {String}
+   */
+  this.componentName = _base.componentName;
+
+  /**
+   * Tag property.
+   * @property {Object}
+   */
+  this.tag = _base.tag;
+
+  /**
+   * Gets the property collection.
+   * @return {Array} A custom property collection.
+   * @override
+   */
+  this.getPropertyCollection = function() {
+    return _base.getPropertyCollection();
+  };
+
+  /**
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  this.hasProperty = function(key) {
+    return _base.hasProperty(key);
+  };
+
+  /**
+   * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   */
+  this.setProperty = function(key, value) {
+    _base.setProperty(key, value);
+  };
+
+  /**
+   * Determines whether or not this instance has been disposed.
+   * @return {Boolean} true if disposed; Otherwise, false.
+   * @override
+   */
+  this.isDisposed = function() {
+    return _base.isDisposed();
+  };
+
+  /**
+   * Removes all event listeners.
+   * @override
+   */
+  this.removeAllListeners = function() {
+    if (!_base.isDisposed()) {
+      _emitter.removeAllListeners();
+    }
+  };
+
+  /**
    * Releases all resources used by the MotionSensorBase object.
    * @override
    */
   this.dispose = function() {
-    if (ComponentBase.prototype.isDisposed.call(this)) {
+    if (_base.isDisposed()) {
       return;
     }
 
@@ -67,7 +128,38 @@ function MotionSensorBase(pin) {
       _pin = undefined;
     }
 
-    ComponentBase.prototype.dispose.call(this);
+    _emitter.removeAllListeners();
+    _emitter = undefined;
+    _base.dispose();
+  };
+
+  /**
+   * Attaches a listener (callback) for the specified event name.
+   * @param  {String}   evt      The name of the event.
+   * @param  {Function} callback The callback function to execute when the
+   * event is raised.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.on = function(evt, callback) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("MotionSensorBase");
+    }
+    _emitter.on(evt, callback);
+  };
+
+  /**
+   * Emits the specified event.
+   * @param  {String} evt  The name of the event to emit.
+   * @param  {Object} args The object that provides arguments to the event.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.emit = function(evt, args) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("MotionSensorBase");
+    }
+    _emitter.emit(evt, args);
   };
 
   /**
@@ -103,7 +195,7 @@ function MotionSensorBase(pin) {
    * @override
    */
   this.toString = function() {
-    return ComponentBase.prototype.componentName;
+    return self.componentName;
   };
 
   /**
@@ -112,6 +204,10 @@ function MotionSensorBase(pin) {
    * @override
    */
   this.onMotionStateChanged = function(motionDetectedEvent) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("MotionSensorBase");
+    }
+
     if (motionDetectedEvent.isMotionDetected()) {
       _lastMotion = new Date();
     }
@@ -119,13 +215,15 @@ function MotionSensorBase(pin) {
       _lastInactive = new Date();
     }
 
+    var e = _emitter;
+    var evt = motionDetectedEvent;
     process.nextTick(function() {
-      self.emit(MotionSensor.EVENT_MOTION_STATE_CHANGED, motionDetectedEvent);
-    });
+      e.emit(MotionSensor.EVENT_MOTION_STATE_CHANGED, evt);
+    }.bind(this));
   };
 }
 
 MotionSensorBase.prototype.constructor = MotionSensorBase;
 inherits(MotionSensorBase, MotionSensor);
 
-module.exports = extend(true, MotionSensorBase, ComponentBase, EventEmitter);
+module.exports = MotionSensorBase;

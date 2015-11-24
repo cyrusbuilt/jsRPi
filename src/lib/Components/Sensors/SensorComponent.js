@@ -44,9 +44,152 @@ function SensorComponent(pin) {
 
   var OPEN_STATE = PinState.Low;
   var self = this;
+  var _base = new SensorBase(pin);
   var _isPolling = false;
   var _controlTimer = null;
   var _lastState = SensorState.Open;
+
+  /**
+   * Component name property.
+   * @property {String}
+   */
+  this.componentName = _base.componentName;
+
+  /**
+   * Tag property.
+   * @property {Object}
+   */
+  this.tag = _base.tag;
+
+  /**
+   * Gets the property collection.
+   * @return {Array} A custom property collection.
+   * @override
+   */
+  this.getPropertyCollection = function() {
+    return _base.getPropertyCollection();
+  };
+
+  /**
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  this.hasProperty = function(key) {
+    return _base.hasProperty(key);
+  };
+
+  /**
+   * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   */
+  this.setProperty = function(key, value) {
+    _base.setProperty(key, value);
+  };
+
+  /**
+   * Determines whether or not this instance has been disposed.
+   * @return {Boolean} true if disposed; Otherwise, false.
+   * @override
+   */
+  this.isDisposed = function() {
+    return _base.isDisposed();
+  };
+
+  /**
+   * Removes all event listeners.
+   * @override
+   */
+  this.removeAllListeners = function() {
+    if (!_base.isDisposed()) {
+      _base.removeAllListeners();
+    }
+  };
+
+  /**
+   * Attaches a listener (callback) for the specified event name.
+   * @param  {String}   evt      The name of the event.
+   * @param  {Function} callback The callback function to execute when the
+   * event is raised.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.on = function(evt, callback) {
+    _base.on(evt, callback);
+  };
+
+  /**
+   * Emits the specified event.
+   * @param  {String} evt  The name of the event to emit.
+   * @param  {Object} args The object that provides arguments to the event.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.emit = function(evt, args) {
+    _base.emit(evt, args);
+  };
+
+  /**
+   * Gets the state of the sensor.
+   * @return {SensorState} The state of the sensor.
+   */
+  this.getState = function() {
+    if (_base.getPin().state() === OPEN_STATE) {
+      return SensorState.Open;
+    }
+    return SensorState.Closed;
+  };
+
+  /**
+   * Checks to see if the sensor is in the specified state.
+   * @param  {SensorState} state The state to check.
+   * @return {Boolean}       true if the sensor is in the specified state;
+   * Otherwise, false.
+   * @override
+   */
+  this.isState = function(state) {
+    return (self.getState() === state);
+  };
+
+  /**
+   * Gets a value indicating whether this sensor is open.
+   * @return {Boolean} true if open; Otherwise, false.
+   * @override
+   */
+  this.isOpen = function() {
+    return self.isState(SensorState.Open);
+  };
+
+  /**
+   * Gets a value indicating whether this sensor is closed.
+   * @return {Boolean} true if closed; Otherwise, false.
+   * @override
+   */
+  this.isClosed = function() {
+    return self.isState(SensorState.Closed);
+  };
+
+  /**
+   * Gets the pin being used to sample sensor data.
+   * @return {Gpio} The pin being used to sample sensor data.
+   */
+  this.getPin = function() {
+    return _base.getPin();
+  };
+
+  /**
+   * Fires the sensor state change event.
+   * @param  {SensorStateChangeEvent} stateChangeEvent The state change event
+   * object.
+   * @override
+   */
+  this.onSensorStateChange = function(stateChangeEvent) {
+    _base.onSensorStateChange(stateChangeEvent);
+  };
 
   /**
    * Executes the poll cycle.
@@ -54,11 +197,12 @@ function SensorComponent(pin) {
    */
   var executePoll = function() {
     if (_isPolling) {
-      if (self.getState() === _lastState) {
+      var newState = self.getState();
+      if (newState !== _lastState) {
         var oldState = _lastState;
-        _lastState = self.getState();
-        var evt = new SensorStateChangeEvent(self, oldState, self.getState());
-        SensorBase.prototype.onSensorStateChange.call(this, evt);
+        _lastState = newState;
+        var evt = new SensorStateChangeEvent(self, oldState, newState);
+        _base.onSensorStateChange(evt);
       }
     }
   };
@@ -69,20 +213,25 @@ function SensorComponent(pin) {
    */
   var backgroundExecutePoll = function() {
     if (!_isPolling) {
-      _controlTimer = setInterval(executePoll, 500);
       _isPolling = true;
+      _controlTimer = setInterval(executePoll, 200);
     }
   };
 
   /**
-   * Polls the input pin status every 500ms until stopped.
+   * Polls the input pin status every 500ms until stopped. IMPORTANT:
+   * poll cycles occur at 200ms intervals. If you attach a poll event handler,
+   * make sure you do not call interruptPoll() before the first interval elapses
+   * or the event may never fire which could lead to a permanent wait state. It
+   * is recommended to use the setTimeout() function (or equivalent) with a
+   * timeout value > 200 to call the interruptPoll() method.
    */
   this.poll = function() {
-    if (SensorBase.prototype.isDisposed.call(this)) {
+    if (_base.isDisposed()) {
       throw new ObjectDisposedException('SensorComponent');
     }
 
-    if (SensorBase.prototype.getPin.call(this).mode() !== PinMode.IN) {
+    if (_base.getPin().mode() !== PinMode.IN) {
       throw new InvalidOperationException("The specified pin is not configured" +
                   " as an input pin, which is required to read sensor data.");
     }
@@ -107,17 +256,6 @@ function SensorComponent(pin) {
   };
 
   /**
-   * Gets the state of the sensor.
-   * @return {SensorState} The state of the sensor.
-   */
-  this.getState = function() {
-    if (SensorComponent.prototype.getPin.call(this).state() === OPEN_STATE) {
-      return SensorState.Open;
-    }
-    return SensorState.Closed;
-  };
-
-  /**
    * Checks to see if this instance is currently polling.
    * @return {Boolean} true if polling; Otherwise, false.
    */
@@ -130,13 +268,23 @@ function SensorComponent(pin) {
    * @override
    */
   this.dispose = function() {
-    if (SensorBase.prototype.isDisposed.call(this)) {
+    if (_base.isDisposed()) {
       return;
     }
 
     self.interruptPoll();
     self.removeAllListeners();
-    SensorBase.prototype.dispose.call(this);
+    _base.dispose();
+  };
+
+  /**
+   * Converts the current instance to it's string representation. This method
+   * simply returns the component name.
+   * @return {String} The component name.
+   * @override
+   */
+  this.toString = function() {
+    return self.componentName;
   };
 }
 

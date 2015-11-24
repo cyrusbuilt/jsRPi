@@ -47,6 +47,7 @@ var RELEASED_STATE = PinState.Low;
  */
 function ButtonComponent(pin) {
   ButtonBase.call(this);
+  var _base = new ButtonBase();
 
   if (util.isNullOrUndefined(pin)) {
     throw new ArgumentNullException("'pin' param cannot be null or undefined.");
@@ -60,7 +61,8 @@ function ButtonComponent(pin) {
    */
   var onPinStateChanged = function(psce) {
     if (psce.getNewState() !== psce.getOldState()) {
-      ButtonBase.prototype.onStateChanged.call(this, new ButtonEvent(self));
+      _base._setState(psce.getNewState());
+      _base.onStateChanged(new ButtonEvent(self));
     }
   };
 
@@ -70,6 +72,65 @@ function ButtonComponent(pin) {
   _pin.on(Gpio.EVENT_STATE_CHANGED, onPinStateChanged);
   var _isPolling = false;
   var _pollTimer = null;
+
+	/**
+	 * Gets the underlying pin the button is attached to.
+	 * @returns {Gpio} The underlying pin.
+	 */
+	this.getPin = function() {
+		return _pin;
+	};
+	
+  /**
+   * Component name property.
+   * @property {String}
+   */
+  this.componentName = _base.componentName;
+
+  /**
+   * Tag property.
+   * @property {Object}
+   */
+  this.tag = _base.tag;
+
+  /**
+   * Gets the property collection.
+   * @return {Array} A custom property collection.
+   * @override
+   */
+  this.getPropertyCollection = function() {
+    return _base.getPropertyCollection();
+  };
+
+  /**
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  this.hasProperty = function(key) {
+    return _base.hasProperty(key);
+  };
+
+  /**
+   * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   */
+  this.setProperty = function(key, value) {
+    _base.setProperty(key, value);
+  };
+
+  /**
+   * Determines whether or not the current instance has been disposed.
+   * @return {Boolean} true if disposed; Otherwise, false.
+   * @override
+   */
+  this.isDisposed = function() {
+    return _base.isDisposed();
+  };
 
   /**
    * Gets the button state.
@@ -120,7 +181,7 @@ function ButtonComponent(pin) {
    * that has not been configured as an input.
    */
   this.poll = function() {
-    if (ButtonBase.prototype.isDisposed.call(this)) {
+    if (self.isDisposed()) {
       throw new ObjectDisposedException('ButtonComponent');
     }
 
@@ -157,7 +218,30 @@ function ButtonComponent(pin) {
    * @override
    */
   this.toString = function() {
-    return self.name;
+    return self.componentName;
+  };
+
+  /**
+   * Attaches a listener (callback) for the specified event name.
+   * @param  {String}   evt      The name of the event.
+   * @param  {Function} callback The callback function to execute when the
+   * event is raised.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.on = function(evt, callback) {
+    _base.on(evt, callback);
+  };
+
+  /**
+   * Emits the specified event.
+   * @param  {String} evt  The name of the event to emit.
+   * @param  {Object} args The object that provides arguments to the event.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.emit = function(evt, args) {
+    _base.emit(evt, args);
   };
 
   /**
@@ -165,16 +249,17 @@ function ButtonComponent(pin) {
    * @override
    */
   this.dispose = function() {
-    if (ButtonBase.prototype.isDisposed.call(this)) {
+    if (self.isDisposed()) {
       return;
     }
 
     self.interruptPoll();
-    if (!util.isNullOrUndefined(_pin)) {
-      _pin.dispose();
-      _pin = undefined;
+    if (!util.isNullOrUndefined(self._pin)) {
+      self._pin.dispose();
+      self._pin = undefined;
     }
-    ButtonBase.prototype.dispose.call(this);
+
+    _base.dispose();
   };
 }
 

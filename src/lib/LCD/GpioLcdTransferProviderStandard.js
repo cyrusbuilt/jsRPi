@@ -61,8 +61,7 @@ function GpioLcdTransferProviderStandard(d0, d1, d2, d3, d4, d5, d6, d7,
   var _fourBitMode = fourBitMode || true;
   var _isDisposed = false;
   if ((rs === GpioPins.GPIO_NONE) ||
-      (rs == null) ||
-      (rs === undefined)) {
+      (util.isNullOrUndefined(rs))) {
       throw new IllegalArgumentException("'rs' param must be a GpioPins member" +
                                           " other than GpioPins.GPIO_NONE.");
   }

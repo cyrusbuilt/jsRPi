@@ -23,10 +23,10 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 module.exports = {
-  'powerState' : require('./PowerState.js'),
-  'powerStateChangeEvent' : require('./PowerStateChangeEvent.js'),
-  'powerInterface' : require('./PowerInterface.js'),
-  'powerUtils' : require('./PowerUtils.js'),
-  'powerBase' : require('./PowerBase.js'),
-  'gpioPowerComponent' : require('./GpioPowerComponent.js')
+  PowerState : require('./PowerState.js'),
+  PowerStateChangeEvent : require('./PowerStateChangeEvent.js'),
+  PowerInterface : require('./PowerInterface.js'),
+  PowerUtils : require('./PowerUtils.js'),
+  PowerBase : require('./PowerBase.js'),
+  GpioPowerComponent : require('./GpioPowerComponent.js')
 };

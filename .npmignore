@@ -1,6 +1,8 @@
-# Node for Visual Studio user files.
+# Node for Visual Studio user and project files.
 *.suo
 .ntvs_analysis.dat
+*.sln
+*.njsproj
 
 # Node for Visual Studio object output directory.
 obj/
@@ -20,3 +22,23 @@ obj/
 .npmignore
 node_modules
 dist/*.js
+
+# Modeclipse project file
+.project
+
+# JSHint config file.
+.jshintrc
+
+# Brackets project file.
+.brackets.json
+
+# Shell utility scripts
+*.cmd
+*.bat
+*.sh
+
+# WebPack config file
+webpack.config.js
+
+# Grunt build script
+Gruntfile.js

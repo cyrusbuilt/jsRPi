@@ -69,17 +69,12 @@ function ComponentBase(props) {
 
   /**
    * Sets the value of the specified property. If the property does not already exist
-	 * in the property collection, it will be added.
+	* in the property collection, it will be added.
    * @param  {String} key   The property name (key).
    * @param  {String} value The value to assign to the property.
    */
   this.setProperty = function(key, value) {
-    if (self.hasProperty(key)) {
       _props[key] = value;
-    }
-    else {
-      _props.push([key, value]);
-    }
   };
 
   /**

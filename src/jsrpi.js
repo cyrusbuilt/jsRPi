@@ -1,7 +1,7 @@
 "use strict";
 //
 //  jsrpi.js
-//  Version 0.1.0 ALPHA
+//  Version 0.1.2 ALPHA
 //
 //  Author:
 //       Chris Brunner <cyrusbuilt at gmail dot com>
@@ -27,26 +27,26 @@
  * @module jsrpi
  */
 
-var JSRPI_FRAMEWORK_VER = '0.1.0';
+var JSRPI_FRAMEWORK_VER = '0.1.2';
 
 module.exports = {
-  getFrameworkVersion : function() { return JSRPI_FRAMEWORK_VER; },
-  'argumentNullException' : require('./lib/ArgumentNullException.js'),
-  'bcm2835pwmClockDivider' : require('./lib/BCM2835PWMClockDivider.js'),
-  'bitset' : require('./lib/BitSet.js'),
-  'boardRevision' : require('./lib/BoardRevision.js'),
-  'execUtils' : require('./lib/ExecUtils.js'),
-  'illegalArgumentException' : require('./lib/IllegalArgumentException.js'),
-  'invalidOperationException' : require('./lib/InvalidOperationException.js'),
-  'notImplementedException' : require('./lib/NotImplementedException.js'),
-  'objectDisposedException' : require('./lib/ObjectDisposedException.js'),
-  'size' : require('./lib/Size.js'),
-  'stringUtils' : require('./lib/StringUtils.js'),
-  'sensors' : require('./lib/Sensors/Sensors.js'),
-  'piSystem' : require('./lib/PiSystem/PiSystem.js'),
-  'led' : require('./lib/LED/LED.js'),
-  'lcd' : require('./lib/LCD/LCD.js'),
-  'io' : require('./lib/IO/IO.js'),
-  'components' : require('./lib/Components/Components.js'),
-  'devices' : require('./lib/Devices/Devices.js')
+  getFrameworkVersion: function() { return JSRPI_FRAMEWORK_VER; },
+  ArgumentNullException: require('./lib/ArgumentNullException.js'),
+  BCM2835PWMClockDivider: require('./lib/BCM2835PWMClockDivider.js'),
+  BitSet: require('./lib/BitSet.js'),
+  BoardRevision: require('./lib/BoardRevision.js'),
+  ExecUtils: require('./lib/ExecUtils.js'),
+  IllegalArgumentException: require('./lib/IllegalArgumentException.js'),
+  InvalidOperationException: require('./lib/InvalidOperationException.js'),
+  NotImplementedException: require('./lib/NotImplementedException.js'),
+  ObjectDisposedException: require('./lib/ObjectDisposedException.js'),
+  Size: require('./lib/Size.js'),
+  StringUtils: require('./lib/StringUtils.js'),
+  Sensors: require('./lib/Sensors/Sensors.js'),
+  PiSystem: require('./lib/PiSystem/PiSystem.js'),
+  LED: require('./lib/LED/LED.js'),
+  LCD: require('./lib/LCD/LCD.js'),
+  IO: require('./lib/IO/IO.js'),
+  Components: require('./lib/Components/Components.js'),
+  Devices: require('./lib/Devices/Devices.js')
 };

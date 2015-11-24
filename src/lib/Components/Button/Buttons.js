@@ -28,9 +28,9 @@
  */
 
 module.exports = {
-  'button' : require('./Button.js'),
-  'buttonBase' : require('./ButtonBase.js'),
-  'buttonComponent' : require('./ButtonComponent.js'),
-  'buttonEvent' : require('./ButtonEvent.js'),
-  'buttonState' : require('./ButtonState.js')
+  Button : require('./Button.js'),
+  ButtonBase : require('./ButtonBase.js'),
+  ButtonComponent : require('./ButtonComponent.js'),
+  ButtonEvent : require('./ButtonEvent.js'),
+  ButtonState : require('./ButtonState.js')
 };

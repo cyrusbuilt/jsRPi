@@ -29,12 +29,12 @@
  */
 
 module.exports = {
-  'fireplaceState' : require('./FireplaceState.js'),
-  'fireplaceStateChangedEvent' : require('./FireplaceStateChangedEvent.js'),
-  'fireplaceTimeoutEvent' : require('./FireplaceTimeoutEvent.js'),
-  'fireplacePilotLightEvent' : require('./FireplacePilotLightEvent.js'),
-  'fireplacePilotLightException' : require('./FireplacePilotLightException.js'),
-  'fireplaceInterface' : require('./FireplaceInterface.js'),
-  'fireplaceBase' : require('./FireplaceBase.js'),
-  'fireplaceDevice' : require('./FireplaceDevice.js')
+  FireplaceState : require('./FireplaceState.js'),
+  FireplaceStateChangedEvent : require('./FireplaceStateChangedEvent.js'),
+  FireplaceTimeoutEvent : require('./FireplaceTimeoutEvent.js'),
+  FireplacePilotLightEvent : require('./FireplacePilotLightEvent.js'),
+  FireplacePilotLightException : require('./FireplacePilotLightException.js'),
+  FireplaceInterface : require('./FireplaceInterface.js'),
+  FireplaceBase : require('./FireplaceBase.js'),
+  FireplaceDevice : require('./FireplaceDevice.js')
 };

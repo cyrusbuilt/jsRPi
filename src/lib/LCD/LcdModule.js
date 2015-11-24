@@ -22,6 +22,7 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+var util = require('util');
 var inherits = require('util').inherits;
 var Disposable = require('../Disposable.js');
 var LcdTransferProvider = require('./LcdTransferProvider.js');
@@ -53,8 +54,7 @@ function LcdModule(provider) {
   Disposable.call(this);
 
   // **** Begin main constructor logic ****
-  if ((provider == null) ||
-      (provider === undefined) ||
+  if ((util.isNullOrUndefined(provider)) ||
       (!(provider instanceof LcdTransferProvider))) {
     throw new IllegalArgumentException("'provider' param must be an LcdTransferProvider.");
   }
@@ -463,7 +463,7 @@ function LcdModule(provider) {
       return;
     }
 
-    if ((_provider != null) && (_provider !== undefined)) {
+    if (!util.isNullOrUndefined(_provider)) {
       _provider.dispose();
       _provider = undefined;
     }

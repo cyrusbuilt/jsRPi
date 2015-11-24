@@ -29,13 +29,13 @@
  */
 
 module.exports = {
-  'sensor' : require('./Sensor.js'),
-  'sensorState' : require('./SensorState.js'),
-  'sensorStateChangeEvent' : require('./SensorStateChangeEvent.js'),
-  'motionDetectedEvent' : require('./MotionDetectedEvent.js'),
-  'MotionSensor' : require('./MotionSensor.js'),
-  'sensorBase' : require('./SensorBase.js'),
-  'sensorComponent' : require('./SensorComponent.js'),
-  'motionSensorBase' : require('./MotionSensorBase.js'),
-  'motionSensorComponent' : require('./MotionSensorComponent.js')
+  Sensor : require('./Sensor.js'),
+  SensorState : require('./SensorState.js'),
+  SensorStateChangeEvent : require('./SensorStateChangeEvent.js'),
+  MotionDetectedEvent : require('./MotionDetectedEvent.js'),
+  MotionSensor : require('./MotionSensor.js'),
+  SensorBase : require('./SensorBase.js'),
+  SensorComponent : require('./SensorComponent.js'),
+  MotionSensorBase : require('./MotionSensorBase.js'),
+  MotionSensorComponent : require('./MotionSensorComponent.js')
 };

@@ -22,6 +22,7 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+var util = require('util');
 var PowerState = require('./PowerState.js');
 
 /**
@@ -32,8 +33,15 @@ var PowerState = require('./PowerState.js');
  * @event
  */
 function PowerStateChangeEvent(oldState, newState) {
-  var _oldState = oldState || PowerState.Unknown;
-  var _newState = newState || PowerState.Unknown;
+  var _oldState = oldState;
+  if (util.isNullOrUndefined(_oldState)) {
+    _oldState = PowerState.Unknown;
+  }
+
+  var _newState = newState;
+  if (util.isNullOrUndefined(_newState)) {
+    _newState = PowerState.Unknown;
+  }
 
   /**
    * Gets the old state.

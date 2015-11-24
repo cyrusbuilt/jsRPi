@@ -29,5 +29,5 @@
  */
 
 module.exports = {
-  'baudRates' : require('./BaudRates.js')
+  BaudRates : require('./BaudRates.js')
 };

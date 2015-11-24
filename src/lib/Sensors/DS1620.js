@@ -177,17 +177,17 @@ function DS1620(clock, data, reset) {
       return;
     }
 
-    if (_clock != null) {
+    if (!util.isNullOrUndefined(_clock)) {
       _clock.dispose();
       _clock = undefined;
     }
 
-    if (_data != null) {
+    if (!util.isNullOrUndefined(_data)) {
       _data.dispose();
       _data = undefined;
     }
 
-    if (_reset != null) {
+    if (!util.isNullOrUndefined(_reset)) {
       _reset.dispose();
       _reset = undefined;
     }

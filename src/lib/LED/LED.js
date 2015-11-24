@@ -29,7 +29,7 @@
  */
 
 module.exports = {
-  'tm16xxBase' : require('./TM16XXBase.js'),
-  'tm1638' : require('./TM1638.js'),
-  'tm1638LedColor' : require('./TM1638LedColor.js')
+  TM16xxBase : require('./TM16XXBase.js'),
+  TM1638 : require('./TM1638.js'),
+  TM1638LedColor : require('./TM1638LedColor.js')
 };

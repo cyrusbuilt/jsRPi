@@ -101,4 +101,25 @@ Motor.prototype.isState = function(state) { return false; };
  */
 Motor.EVENT_STATE_CHANGED = "motorStateChanged";
 
+/**
+ * The name of the motor stopped event.
+ * @type {String}
+ * @const
+ */
+Motor.EVENT_STOPPED = "motorStopped";
+
+/**
+ * The name of the motor forward movement event.
+ * @type {String}
+ * @const
+ */
+Motor.EVENT_FORWARD = "motorForward";
+
+/**
+ * The name of the motor reverse movement event.
+ * @type {String}
+ * @const
+ */
+Motor.EVENT_REVERSE = "motorReverse";
+
 module.exports = Motor;

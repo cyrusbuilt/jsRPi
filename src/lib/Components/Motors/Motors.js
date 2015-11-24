@@ -29,12 +29,12 @@
  */
 
 module.exports = {
-  'motorState' : require('./MotorState.js'),
-  'motor' : require('./Motor.js'),
-  'motorStateChangeEvent' : require('./MotorStateChangeEvent.js'),
-  'motorRotateEvent' : require('./MotorRotateEvent.js'),
-  'stepperMotor' : require('./StepperMotor.js'),
-  'motorBase' : require('./MotorBase.js'),
-  'stepperMotorBase' : require('./StepperMotorBase.js'),
-  'StepperMotorComponent' : require('./StepperMotorComponent.js')
+  MotorState : require('./MotorState.js'),
+  Mmotor : require('./Motor.js'),
+  MotorStateChangeEvent : require('./MotorStateChangeEvent.js'),
+  MotorRotateEvent : require('./MotorRotateEvent.js'),
+  StepperMotor : require('./StepperMotor.js'),
+  MotorBase : require('./MotorBase.js'),
+  StepperMotorBase : require('./StepperMotorBase.js'),
+  StepperMotorComponent : require('./StepperMotorComponent.js')
 };

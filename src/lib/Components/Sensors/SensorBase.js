@@ -23,12 +23,12 @@
 
 var util = require('util');
 var inherits = require('util').inherits;
-var extend = require('extend');
 var Sensor = require('./Sensor.js');
 var SensorState = require('./SensorState.js');
 var ComponentBase = require('../ComponentBase.js');
 var EventEmitter = require('events').EventEmitter;
 var ArgumentNullException = require('../../ArgumentNullException.js');
+var ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
  * @classdesc Base class for sensor abstraction components.
@@ -41,32 +41,133 @@ var ArgumentNullException = require('../../ArgumentNullException.js');
  */
 function SensorBase(pin) {
   Sensor.call(this);
-  ComponentBase.call(this);
-  EventEmitter.call(this);
 
   if (util.isNullOrUndefined(pin)) {
     throw new ArgumentNullException("'pin' cannot be null or undefined.");
   }
 
   var self = this;
+  var _base = new ComponentBase();
+  var _emitter = new EventEmitter();
+  var _state = SensorState.Open;
   var _pin = pin;
   _pin.provision();
+
+  /**
+   * Component name property.
+   * @property {String}
+   */
+  this.componentName = _base.componentName;
+
+  /**
+   * Tag property.
+   * @property {Object}
+   */
+  this.tag = _base.tag;
+
+  /**
+   * Gets the property collection.
+   * @return {Array} A custom property collection.
+   * @override
+   */
+  this.getPropertyCollection = function() {
+    return _base.getPropertyCollection();
+  };
+
+  /**
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  this.hasProperty = function(key) {
+    return _base.hasProperty(key);
+  };
+
+  /**
+   * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   */
+  this.setProperty = function(key, value) {
+    _base.setProperty(key, value);
+  };
+
+  /**
+   * Determines whether or not this instance has been disposed.
+   * @return {Boolean} true if disposed; Otherwise, false.
+   * @override
+   */
+  this.isDisposed = function() {
+    return _base.isDisposed();
+  };
 
   /**
    * Releases all resources used by the SensorBase object.
    * @override
    */
   this.dispose = function() {
-    if (ComponentBase.prototype.isDisposed.call(this)) {
+    if (_base.isDisposed()) {
       return;
     }
 
-    if (_pin != null) {
+    if (!util.isNullOrUndefined(_pin)) {
       _pin.dispose();
       _pin = undefined;
     }
 
-    ComponentBase.prototype.dispose.call(this);
+    _emitter.removeAllListeners();
+    _emitter = undefined;
+    _base.dispose();
+  };
+
+  /**
+   * Removes all event listeners.
+   * @override
+   */
+  this.removeAllListeners = function() {
+    if (!_base.isDisposed()) {
+      _emitter.removeAllListeners();
+    }
+  };
+
+  /**
+   * Attaches a listener (callback) for the specified event name.
+   * @param  {String}   evt      The name of the event.
+   * @param  {Function} callback The callback function to execute when the
+   * event is raised.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.on = function(evt, callback) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("SensorBase");
+    }
+    _emitter.on(evt, callback);
+  };
+
+  /**
+   * Emits the specified event.
+   * @param  {String} evt  The name of the event to emit.
+   * @param  {Object} args The object that provides arguments to the event.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.emit = function(evt, args) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("SensorBase");
+    }
+    _emitter.emit(evt, args);
+  };
+
+  /**
+   * Gets the state of the sensor.
+   * @return {SensorState} The state of the sensor.
+   */
+  this.getState = function() {
+    return _state;
   };
 
   /**
@@ -110,12 +211,19 @@ function SensorBase(pin) {
    * Fires the sensor state change event.
    * @param  {SensorStateChangeEvent} stateChangeEvent The state change event
    * object.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
   this.onSensorStateChange = function(stateChangeEvent) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("SensorBase");
+    }
+
+    var e = _emitter;
+    var evt = stateChangeEvent;
     process.nextTick(function() {
-      self.emit(Sensor.EVENT_STATE_CHANGED, stateChangeEvent);
-    });
+      e.emit(Sensor.EVENT_STATE_CHANGED, evt);
+    }.bind(this));
   };
 
   /**
@@ -125,11 +233,11 @@ function SensorBase(pin) {
    * @override
    */
   this.toString = function() {
-    return ComponentBase.prototype.componentName;
+    return self.componentName;
   };
 }
 
 SensorBase.prototype.constructor = SensorBase;
 inherits(SensorBase, Sensor);
 
-module.exports = extend(true, SensorBase, ComponentBase, EventEmitter);
+module.exports = SensorBase;

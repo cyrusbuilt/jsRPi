@@ -29,11 +29,11 @@
  */
 
 module.exports = {
-  'temperatureScale' : require('./TemperatureScale.js'),
-  'tempScaleUtils' : require('./TempScaleUtils.js'),
-  'temperatureConversion' : require('./TemperatureConversion.js'),
-  'temperatureChangeEvent' : require('./TemperatureChangeEvent.js'),
-  'temperatureSensor' : require('./TemperatureSensor.js'),
-  'temperatureSensorBase' : require('./TemperatureSensorBase.js'),
-  'temperatureSensorComponent' : require('./TemperatureSensorComponent.js')
+  TemperatureScale : require('./TemperatureScale.js'),
+  TempScaleUtils : require('./TempScaleUtils.js'),
+  TemperatureConversion : require('./TemperatureConversion.js'),
+  TemperatureChangeEvent : require('./TemperatureChangeEvent.js'),
+  TemperatureSensor : require('./TemperatureSensor.js'),
+  TemperatureSensorBase : require('./TemperatureSensorBase.js'),
+  TemperatureSensorComponent : require('./TemperatureSensorComponent.js')
 };

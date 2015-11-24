@@ -151,7 +151,7 @@ function StillCaptureSettings() {
     fname += "." + CaptureUtils.getEncodingFileExtension(self.encoding);
     fname = path.join(self.outputFile.getDirectoryName(), fname);
     self.outputFile = new FileInfo(fname);
-    args += " --output " + self.outputFile.getFullName();
+    args += ' --output "' + self.outputFile.getFullName() + '"';
 
     if (self.verbose) {
       args += " --verbose";

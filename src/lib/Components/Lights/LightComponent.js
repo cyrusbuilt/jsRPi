@@ -30,6 +30,7 @@ var PinMode = require('../../IO/PinMode.js');
 var LightStateChangeEvent = require('./LightStateChangeEvent.js');
 var ArgumentNullException = require('../../ArgumentNullException.js');
 var InvalidOperationException = require('../../InvalidOperationException.js');
+var ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 var ON_STATE = PinState.High;
 var OFF_STATE = PinState.Low;
@@ -49,15 +50,67 @@ function LightComponent(pin) {
   }
 
   var self = this;
+  var _base = new LightBase();
   var _pin = pin;
   _pin.provision();
+
+  /**
+   * Component name property.
+   * @property {String}
+   */
+  this.componentName = _base.componentName;
+
+  /**
+   * Tag property.
+   * @property {Object}
+   */
+  this.tag = _base.tag;
+
+  /**
+   * Gets the property collection.
+   * @return {Array} A custom property collection.
+   * @override
+   */
+  this.getPropertyCollection = function() {
+    return _base.getPropertyCollection();
+  };
+
+  /**
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  this.hasProperty = function(key) {
+    return _base.hasProperty(key);
+  };
+
+  /**
+   * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   */
+  this.setProperty = function(key, value) {
+    _base.setProperty(key, value);
+  };
+
+  /**
+   * Determines whether or not this instance has been disposed.
+   * @return {Boolean} true if disposed; Otherwise, false.
+   * @override
+   */
+  this.isDisposed = function() {
+    return _base.isDisposed();
+  };
 
   /**
    * Releases all resources used by the GpioBase object.
    * @override
    */
   this.dispose = function() {
-    if (LightBase.prototype.isDisposed.call(this)) {
+    if (_base.isDisposed()) {
       return;
     }
 
@@ -66,8 +119,57 @@ function LightComponent(pin) {
       _pin = undefined;
     }
 
-    self.removeAllListeners();
-    LightBase.prototype.dispose.call(this);
+    _base.removeAllListeners();
+    _base.dispose();
+  };
+
+  /**
+   * Removes all event listeners.
+   * @override
+   */
+  this.removeAllListeners = function() {
+    if (!_base.isDisposed()) {
+      _base.removeAllListeners();
+    }
+  };
+
+  /**
+   * Attaches a listener (callback) for the specified event name.
+   * @param  {String}   evt      The name of the event.
+   * @param  {Function} callback The callback function to execute when the
+   * event is raised.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.on = function(evt, callback) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("LightComponent");
+    }
+    _base.on(evt, callback);
+  };
+
+  /**
+   * Emits the specified event.
+   * @param  {String} evt  The name of the event to emit.
+   * @param  {Object} args The object that provides arguments to the event.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.emit = function(evt, args) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("LightComponent");
+    }
+    _base.emit(evt, args);
+  };
+
+  /**
+   * Fires the light state change event.
+   * @param  {LightStateChangeEvent} lightChangeEvent The state change event
+   * object.
+   * @override
+   */
+  this.onLightStateChange = function(lightChangeEvent) {
+    _base.onLightStateChange(lightChangeEvent);
   };
 
   /**
@@ -90,7 +192,7 @@ function LightComponent(pin) {
 
     if (_pin.state() !== ON_STATE) {
       _pin.write(PinState.High);
-      LightBase.prototype.onLightStateChange.call(this, new LightStateChangeEvent(true));
+      _base.onLightStateChange(new LightStateChangeEvent(true));
     }
   };
 
@@ -105,7 +207,7 @@ function LightComponent(pin) {
 
     if (_pin.state() !== OFF_STATE) {
       _pin.write(PinState.Low);
-      LightBase.prototype.onLightStateChange.call(this, new LightStateChangeEvent(false));
+      _base.onLightStateChange(new LightStateChangeEvent(false));
     }
   };
  }

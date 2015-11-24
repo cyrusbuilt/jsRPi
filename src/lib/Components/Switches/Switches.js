@@ -23,15 +23,15 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 module.exports = {
-  'switchState' : require('./SwitchState.js'),
-  'switchStateChangeEvent' : require('./SwitchStateChangeEvent.js'),
-  'switch' : require('./Switch.js'),
-  'toggleSwitch' : require('./ToggleSwitch.js'),
-  'momentarySwitch' : require('./MomentarySwitch.js'),
-  'switchBase' : require('./SwitchBase.js'),
-  'toggleSwitchBase' : require('./ToggleSwitchBase.js'),
-  'momentarySwitchBase' : require('./MomentarySwitchBase.js'),
-  'switchComponent' : require('./SwitchComponent.js'),
-  'toggleSwitchComponent.js' : require('./ToggleSwitchComponent.js'),
-  'momentarySwitchComponent' : require('./MomentarySwitchComponent.js')
+  SwitchState : require('./SwitchState.js'),
+  SwitchStateChangeEvent : require('./SwitchStateChangeEvent.js'),
+  Switch : require('./Switch.js'),
+  ToggleSwitch : require('./ToggleSwitch.js'),
+  MomentarySwitch : require('./MomentarySwitch.js'),
+  SwitchBase : require('./SwitchBase.js'),
+  ToggleSwitchBase : require('./ToggleSwitchBase.js'),
+  MomentarySwitchBase : require('./MomentarySwitchBase.js'),
+  SwitchComponent : require('./SwitchComponent.js'),
+  ToggleSwitchComponent : require('./ToggleSwitchComponent.js'),
+  MomentarySwitchComponent : require('./MomentarySwitchComponent.js')
 };

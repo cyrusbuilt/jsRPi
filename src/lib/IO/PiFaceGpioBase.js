@@ -24,14 +24,15 @@
 
 var util = require('util');
 var inherits = require('util').inherits;
-var extend = require('extend');
 var PiFacePins = require('./PiFacePins.js');
 var PinState = require('./PinState.js');
 var PiFaceGPIO = require('./PiFaceGPIO.js');
 var PinMode = require('./PinMode.js');
+var Gpio = require('./Gpio.js');
 var IllegalArgumentException = require('../IllegalArgumentException.js');
 var ArgumentNullException = require('../ArgumentNullException.js');
 var EventEmitter = require('events').EventEmitter;
+var ObjectDisposedException = require('../ObjectDisposedException.js');
 
 
 /**
@@ -40,15 +41,14 @@ var EventEmitter = require('events').EventEmitter;
  * @param {PinState} initialValue The initial value of the pin.
  * @constructor
  * @implements {PiFaceGPIO}
- * @extends {EventEmitter}
  */
 function PiFaceGpioBase(pin, initialValue, name) {
     PiFaceGPIO.call(this);
-    EventEmitter.call(this);
 
     /**
      * Instance variables.
      */
+    this._emitter = new EventEmitter();
     var _isDisposed = false;
     var _state = PinState.Low;
     var _innerPin = PiFacePins.None;
@@ -97,10 +97,19 @@ function PiFaceGpioBase(pin, initialValue, name) {
             break;
     }
 
-    _initValue = initialValue || PinState.Low;
+    _initValue = initialValue;
+    if (util.isNullOrUndefined(_initValue)) {
+      _initValue = PinState.Low;
+    }
     _state = _initValue;
 
     // Instance methods and getters/setters.
+	
+	/**
+	 * Gets or sets the name of the pin.
+	 * @property {String} The name of the pin.
+	 */
+	this.pinName = name || pin.name;
 
     /**
      * Releases all resources used by the PiFaceGpioBase object.
@@ -111,12 +120,13 @@ function PiFaceGpioBase(pin, initialValue, name) {
             return;
         }
 
-        self.removeAllListeners();
+        self._emitter.removeAllListeners();
         _exportedPins = null;
         _innerPin = PiFacePins.None;
         _mode = PinMode.IN;
         self.pinName = null;
         self.tag = null;
+        self._emitter = undefined;
         _isDisposed = true;
     };
 
@@ -127,6 +137,51 @@ function PiFaceGpioBase(pin, initialValue, name) {
      */
     this.isDisposed = function () {
         return _isDisposed;
+    };
+
+    /**
+     * Attaches a listener (callback) for the specified event name.
+     * @param  {String}   evt      The name of the event.
+     * @param  {Function} callback The callback function to execute when the
+     * event is raised.
+     * @throws {ObjectDisposedException} if this instance has been disposed.
+     */
+    this.on = function(evt, callback) {
+      if (_isDisposed) {
+        throw new ObjectDisposedException("GpioBase");
+      }
+      self._emitter.on(evt, callback);
+    };
+
+    /**
+     * Emits the specified event.
+     * @param  {String} evt  The name of the event to emit.
+     * @param  {Object} args The object that provides arguments to the event.
+     * @throws {ObjectDisposedException} if this instance has been disposed.
+     */
+    this.emit = function(evt, args) {
+      if (_isDisposed) {
+        throw new ObjectDisposedException("GpioBase");
+      }
+      self._emitter.emit(evt, args);
+    };
+
+    /**
+     * Fires the pin state change event.
+     * @param  {PinStateChangeEvent} psce The event object.
+     * @throws {ObjectDisposedException} if this instance has been disposed.
+     * @protected
+     */
+    this.onPinStateChange = function(psce) {
+      if (_isDisposed) {
+        throw new ObjectDisposedException("GpioBase");
+      }
+
+      var e = self._emitter;
+      var l_psce = psce;
+      process.nextTick(function() {
+        e.emit(Gpio.EVENT_STATE_CHANGED, l_psce);
+      }.bind(this));
     };
 
     /**
@@ -141,6 +196,7 @@ function PiFaceGpioBase(pin, initialValue, name) {
     /**
      * Gets the state of the pin.
      * @return {PinState} The state of the pin.
+     * @throws {ObjectDisposedException} if this instance has been disposed.
      * @override
      */
     this.state = function() {
@@ -150,15 +206,24 @@ function PiFaceGpioBase(pin, initialValue, name) {
 
     /**
      * Exports (caches) the pin.
+     * @throws {ObjectDisposedException} if this instance has been disposed.
      */
     this.export = function() {
+      if (_isDisposed) {
+        throw new ObjectDisposedException("GpioBase");
+      }
       _exportedPins.push(this);
     };
 
     /**
      * Unexports (removes from cache) the pin.
+     * @throws {ObjectDisposedException} if this instance has been disposed.
      */
     this.unexport = function() {
+      if (_isDisposed) {
+        throw new ObjectDisposedException("GpioBase");
+      }
+
       var index = _exportedPins.indexOf(this);
       if (index > -1) {
         _exportedPins.splice(index, 1);
@@ -177,10 +242,18 @@ function PiFaceGpioBase(pin, initialValue, name) {
     /**
      * Sets the mode for the pin.
      * @param  {PinMode} mode The mode to set the pin to.
+     * @throws {ObjectDisposedException} if this instance has been disposed.
      * @protected
      */
     this.setMode = function(mode) {
-      mode = mode || PinMode.TRI;
+      if (_isDisposed) {
+        throw new ObjectDisposedException("GpioBase");
+      }
+
+      if (util.isNullOrUndefined(mode)) {
+        mode = PinMode.TRI;
+      }
+
       if (_mode !== mode) {
         _mode = mode;
         // If we're changing modes, we'll need to reprovision the pin.
@@ -243,17 +316,6 @@ function PiFaceGpioBase(pin, initialValue, name) {
     };
 
     /**
-     * Fires the pin state change event.
-     * @param  {PinStateChangeEvent} psce The event object.
-     * @protected
-     */
-    this.onPinStateChange = function(psce) {
-      process.nextTick(function() {
-        self.emit(PiFaceGPIO.EVENT_STATE_CHANGED, psce);
-      });
-    };
-
-    /**
      * Gets the GPIO pin number.
      * @param  {GpioPins} pin The GPIO pin.
      * @return {Number}       The GPIO pin number.
@@ -266,24 +328,35 @@ function PiFaceGpioBase(pin, initialValue, name) {
     /**
      * Write a value to the pin.
      * @param  {PinState} ps The pin state value to write to the pin.
+     * @throws {ObjectDisposedException} if this instance has been disposed.
      * @override
      */
     this.write = function(value) {
+      if (_isDisposed) {
+        throw new ObjectDisposedException("GpioBase");
+      }
       _state = value;
     };
 
     /**
      * Pulse the pin output for the specified number of milliseconds.
      * @param  {Number} millis The number of milliseconds to wait between states.
+     * @throws {ObjectDisposedException} if this instance has been disposed.
      * @override
      */
     this.pulse = function(millis) {
+      if (_isDisposed) {
+        throw new ObjectDisposedException("GpioBase");
+      }
+
       self.write(PinState.High);
-      setTimeout(self.write(PinState.Low), millis);
+      setTimeout(function() {
+        self.write(PinState.Low);
+      }, millis);
     };
 }
 
 PiFaceGpioBase.prototype.constructor = PiFaceGpioBase;
 inherits(PiFaceGpioBase, PiFaceGPIO);
 
-module.exports = extend(true, PiFaceGpioBase, EventEmitter);
+module.exports = PiFaceGpioBase;

@@ -28,7 +28,7 @@
  */
 
 module.exports = {
-  'gateOpener' : require('./GateOpener.js'),
-  'gateOpenerBase' : require('./GateOpenerBase.js'),
-  'gateOpenerDevice' : require('./GateOpenerDevice.js')
+  GateOpener : require('./GateOpener.js'),
+  GateOpenerBase : require('./GateOpenerBase.js'),
+  GateOpenerDevice : require('./GateOpenerDevice.js')
 };

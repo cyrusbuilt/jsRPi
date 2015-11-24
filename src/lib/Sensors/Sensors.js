@@ -28,6 +28,6 @@
  */
 
 module.exports = {
-  'ds1620' : require('./DS1620.js'),
-  'ds1620Interface' : require('./DS1620Interface.js')
+  DS1620 : require('./DS1620.js'),
+  DS1620Interface : require('./DS1620Interface.js')
 };

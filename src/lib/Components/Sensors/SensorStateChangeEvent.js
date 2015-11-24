@@ -21,6 +21,7 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+var util = require('util');
 var SensorState = require('./SensorState.js');
 var Sensor = require('./Sensor.js');
 
@@ -34,8 +35,15 @@ var Sensor = require('./Sensor.js');
  */
 function SensorStateChangeEvent(sensor, oldState, newState) {
   var _sensor = sensor;
-  var _oldState = oldState || SensorState.Open;
-  var _newState = newState || SensorState.Open;
+  var _oldState = oldState;
+  if (util.isNullOrUndefined(_oldState)) {
+    _oldState = SensorState.Open;
+  }
+
+  var _newState = newState;
+  if (util.isNullOrUndefined(_newState)) {
+    _newState = SensorState.Open;
+  }
 
   /**
    * Gets the sensor that changed state.

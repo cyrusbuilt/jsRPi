@@ -25,6 +25,7 @@ var util = require('util');
 var fs = require('fs');
 var path = require('path');
 var ArgumentNullException = require('../ArgumentNullException.js');
+var IOException = require('./IOException.js');
 
 /**
  * @classdesc A file object. This represents a file specifically, and not a
@@ -98,9 +99,16 @@ function FileInfo(filePath) {
 
   /**
    * Deletes this file.
+   * @throws {IOException} if an error occurred while trying to delete the file
+   * (such as if the file does not exist).
    */
   this.delete = function() {
-    fs.unlinkSync(_fullPath);
+    try {
+      fs.unlinkSync(_fullPath);
+    }
+    catch (e) {
+      throw new IOException(e.message);
+    }
   };
 
   /**
@@ -122,7 +130,7 @@ function FileInfo(filePath) {
    */
   this.getFileNameWithoutExtension = function() {
     var extLen = path.extname(_name).length;
-    return _name.substring(0, _name.length - (extLen + 1));
+    return _name.substring(0, _name.length - extLen);
   };
 
   /**

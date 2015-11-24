@@ -51,7 +51,6 @@
 
 var util = require('util');
 var inherits = require('util').inherits;
-var extend = require('extend');
 var DeviceBase = require('../DeviceBase.js');
 var RCSwitchInterface = require('./RCSwitchInterface.js');
 var RCProtocol = require('./RCProtocol.js');
@@ -62,6 +61,10 @@ var PinMode = require('../../IO/PinMode.js');
 var PinState = require('../../IO/PinState.js');
 var ArgumentNullException = require('../../ArgumentNullException.js');
 var IllegalArgumentException = require('../../IllegalArgumentException.js');
+var ObjectDisposedException = require('../../ObjectDisposedException.js');
+
+
+// TODO Need unit tests for this class.
 
 var DEF_PROT1_PULSE_LEN = 350;
 var DEF_PROT2_PULSE_LEN = 650;
@@ -76,51 +79,52 @@ var PROTOCOL2_SYNC_LOW_PULSES = 10;
  * @private
  */
 var dec2BinWzeroFill = function(dec, bitLength) {
-  var bin = new Array(64);
-  var i = 0;
+  	var bin = new Array(64);
+   var i = 0;
 
-  while (dec > 0) {
-    bin[32 + i++] = ((dec &amp; 1) > 0) ? '1' : '0';
-    dec = dec >> 1;
-  }
+  	while (dec > 0) {
+    	bin[32 + i++] = ((dec &amp; 1) > 0) ? '1' : '0';
+    	dec = dec >> 1;
+	}
 
-  for (var j = 0; j &lt; bitLength; j++) {
-    if (j >= bitLength - i) {
-      bin[j] = bin[31 + i - (j - (bitLength - i))];
-    }
-    else {
-      bin[j] = '\0';
-    }
-  }
+  	for (var j = 0; j &lt; bitLength; j++) {
+    	if (j >= bitLength - i) {
+      	bin[j] = bin[31 + i - (j - (bitLength - i))];
+    	}
+    	else {
+      	bin[j] = '\0';
+    	}
+  	}
 
-  bin[bitLength] = '\0';
-  return bin;
+  	bin[bitLength] = '\0';
+  	return bin;
 };
 
 /**
  * Convenience method for converting a string like "11011" to a BitSet.
  * @param  {String} addressString The a string containing the address bits in
  * sequence.
- * @return {BitSet}               A bitset containing the address that can b
- * used for swithing devices on or off.
+ * @return {BitSet} A bitset containing the address that can be
+ * used for switching devices on or off.
  * @throws {ArgumentNullException} if addressString is null or undefined;
  * @throws {IllegalArgumentException} if addressString does not contain exactly
  * 5 bits (characters).
+ * @private
  */
 var getSwitchGroupAddress = function(addressString) {
-  if (util.isNullOrUndefined(addressString)) {
-    throw new ArgumentNullException("'addressString' param cannot be null or undefined.");
-  }
+	if (util.isNullOrUndefined(addressString)) {
+    	throw new ArgumentNullException("'addressString' param cannot be null or undefined.");
+  	}
 
-  if (addressString.length !== 5) {
-    throw new IllegalArgumentException("address must consist of exactly 5 bits!");
-  }
+  	if (addressString.length !== 5) {
+    	throw new IllegalArgumentException("address must consist of exactly 5 bits!");
+  	}
 
-  var bits = new BitSet(5);
-  for (var i = 0; i &lt; 5; i++) {
-    bits.set(i, addressString[i] === '1');
-  }
-  return bits;
+  	var bits = new BitSet(5);
+  	for (var i = 0; i &lt; 5; i++) {
+    	bits.set(i, addressString[i] === '1');
+  	}
+  	return bits;
 };
 
 /**
@@ -135,186 +139,275 @@ var getSwitchGroupAddress = function(addressString) {
  * @extends {DeviceBase}
  */
 function RCSwitchDevice(transmitPin) {
-  RCSwitchInterface.call(this);
-  DeviceBase.call(this);
+  	RCSwitchInterface.call(this);
 
-  if (util.isNullOrUndefined(transmitPin)) {
-    throw new ArgumentNullException("'transmitPin' param cannot be null or undefined.");
-  }
+  	if (util.isNullOrUndefined(transmitPin)) {
+    	throw new ArgumentNullException("'transmitPin' param cannot be null or undefined.");
+  	}
 
-  if (transmitPin.mode() !== PinMode.OUT) {
-    throw new IllegalArgumentException("The specified pin is not an output.");
-  }
+  	if (transmitPin.mode() !== PinMode.OUT) {
+    	throw new IllegalArgumentException("The specified pin is not an output.");
+  	}
 
-  var self = this;
-  var _txPin = transmitPin;
-  _txPin.write(PinState.Low);
-  var _protocol = RCProtocol.P1;
-  this.pulseLength = DEF_PROT1_PULSE_LEN;
-  this.repeatTransmit = 0;
+  	var self = this;
+	var _base = new DeviceBase();
+  	var _txPin = transmitPin;
+  	_txPin.write(PinState.Low);
+  	var _protocol = RCProtocol.P1;
+	
+	/**
+ 	 * Gets or sets the length of the pulse.
+ 	 * @property {Number}
+	 * @override
+ 	 */
+  	this.pulseLength = DEF_PROT1_PULSE_LEN;
+  	
+	/**
+ 	 * Gets or sets the transmit repitions.
+ 	 * @property {Number}
+	 * @override
+ 	 */
+	this.repeatTransmit = 0;
+	
+	/**
+ 	 * Device name property.
+    * @property {String}
+    */
+	this.deviceName = _base.deviceName;
+	
+	/**
+ 	 * Tag property.
+ 	 * @property {Object}
+ 	 */
+	this.tag = _base.tag;
 
-  /**
-   * Releases all managed resources used by this instance.
-   * @override
-   */
-  this.dispose = function() {
-    if (DeviceBase.prototype.isDisposed.call(this)) {
-      return;
-    }
+  	/**
+    * Determines whether or not the current instance has been disposed.
+    * @return {Boolean} true if disposed; Otherwise, false.
+    * @override
+    */
+  	this.isDisposed = function() {
+    	return _base.isDisposed();
+  	};
 
-    if (!util.isNullOrUndefined(_txPin)) {
-      _txPin.dispose();
-      _txPin = undefined;
-    }
+  	/**
+    * Gets the property collection.
+    * @return {Array} A custom property collection.
+    * @throws {ObjectDisposedException} if this instance has been disposed.                
+    * @override
+    */
+  	this.getPropertyCollection = function() {
+		if (_base.isDisposed()) {
+			throw new ObjectDisposedException("RCSwitchDevice");
+		}
+    	return _base.getPropertyCollection();
+  	};
 
-    DeviceBase.prototype.dispose.call(this);
-  };
+  	/**
+    * Checks to see if the property collection contains the specified key.
+    * @param  {String}  key The key name of the property to check for.
+    * @return {Boolean} true if the property collection contains the key;
+    * Otherwise, false.
+    * @override
+    */
+  	this.hasProperty = function(key) {
+		if (_base.isDisposed()) {
+			return false;	
+		}
+    	return _base.hasProperty(key);
+  	};
 
-  /**
-   * Gets the operating protocol.
-   * @return {RCProtocol} The operating protocol.
-   * @override
-   */
-  this.getProtocol = function() {
-    return _protocol;
-  };
+  	/**
+    * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+    * @param  {String} key   The property name (key).
+    * @param  {String} value The value to assign to the property.
+    * @throws {ObjectDisposedException} if this instance has been disposed.                       
+    */
+  	this.setProperty = function(key, value) {
+		if (_base.isDisposed()) {
+			throw new ObjectDisposedException("RCSwitchDevice");
+		}
+      _base.setProperty(key, value);
+  	};
 
-  /**
-   * Sets the operating protocol.
-   * @param  {RCProtocol} protocol The protocol to set. If the value is set to
-   * less than or equal to zero, then the default pulse length value for the
-   * specified protocol will be set.
-   * @override
-   */
-  this.setProtocol = function(protocol) {
-    _protocol = protocol;
-    if (self.pulseLength &lt;= 0) {
-      switch (_protocol) {
-        case RCProtocol.P1:
-          self.pulseLength = DEF_PROT1_PULSE_LEN;
-          break;
-        case RCProtocol.P2:
-          self.pulseLength = DEF_PROT2_PULSE_LEN;
-          break;
-        default:
-          break;
-      }
-    }
-  };
+  	/**
+    * Returns the string representation of this object. In this case, it simply
+    * returns the component name.
+    * @return {String} The name of this component.
+    */
+  	this.toString = function() {
+    	return self.deviceName;
+  	};
 
-  /**
-   * Trasmits the specified number of high and low pulses.
-   * @param  {Number} highPulses The number of high pulses.
-   * @param  {Number} lowPulses  The number of low pulses.
-   * @private
-   */
-  var transmit = function(highPulses, lowPulses) {
-    if (!util.isNullOrUndefined(_txPin)) {
-      _txPin.write(PinState.High);
-      CoreUtils.sleepMicroseconds(self.pulseLength * highPulses);
-      _txPin.write(PinState.Low);
-      CoreUtils.sleepMicroseconds(self.pulseLength * lowPulses);
-    }
-  };
 
-  /**
-   * Sends a "Sync" bit.
+  	/**
+    * Releases all managed resources used by this instance.
+    * @override
+    */
+  	this.dispose = function() {
+    	if (_base.isDisposed()) {
+      	return;
+    	}
+
+    	if (!util.isNullOrUndefined(_txPin)) {
+      	_txPin.dispose();
+      	_txPin = undefined;
+    	}
+
+    	_base.dispose();
+  	};
+
+  	/**
+    * Gets the operating protocol.
+    * @return {RCProtocol} The operating protocol.
+    * @override
+    */
+  	this.getProtocol = function() {
+    	return _protocol;
+  	};
+
+  	/**
+    * Sets the operating protocol.
+    * @param  {RCProtocol} protocol The protocol to set. If the value is set to
+    * less than or equal to zero, then the default pulse length value for the
+    * specified protocol will be set.
+    * @throws {ObjectDisposedException} if this instance has been disposed.
+    * @override
+    */
+  	this.setProtocol = function(protocol) {
+		if (_base.isDisposed()) {
+			throw new ObjectDisposedException("RCSwitchDevice");
+		}
+		
+    	_protocol = protocol;
+    	if (self.pulseLength &lt;= 0) {
+      	switch (_protocol) {
+        		case RCProtocol.P1:
+          		self.pulseLength = DEF_PROT1_PULSE_LEN;
+          		break;
+        		case RCProtocol.P2:
+          		self.pulseLength = DEF_PROT2_PULSE_LEN;
+          		break;
+        		default:
+          		break;
+      	}
+    	}
+  	};
+
+  	/**
+    * Trasmits the specified number of high and low pulses.
+    * @param  {Number} highPulses The number of high pulses.
+    * @param  {Number} lowPulses  The number of low pulses.
+    * @private
+    */
+  	var transmit = function(highPulses, lowPulses) {
+    	if (!util.isNullOrUndefined(_txPin)) {
+      	_txPin.write(PinState.High);
+      	CoreUtils.sleepMicroseconds(self.pulseLength * highPulses);
+      	_txPin.write(PinState.Low);
+      	CoreUtils.sleepMicroseconds(self.pulseLength * lowPulses);
+    	}
+  	};
+
+  	/**
+    * Sends a "Sync" bit.
 	 *                       _
 	 * Waveform Protocol 1: | |_______________________________
 	 *                       _
 	 * Waveform Protocol 2: | |__________
 	 * @private
-   */
-  var sendSync = function() {
-    switch (_protocol) {
-      case RCProtocol.P1:
-        transmit(1, PROTOCOL1_SYNC_LOW_PULSES);
-        break;
-      case RCProtocol.P2:
-        transmit(1, PROTOCOL2_SYNC_LOW_PULSES);
-        break;
-      default:
-        break;
-    }
-  };
+    */
+  	var sendSync = function() {
+    	switch (_protocol) {
+      	case RCProtocol.P1:
+        		transmit(1, PROTOCOL1_SYNC_LOW_PULSES);
+        		break;
+      	case RCProtocol.P2:
+        		transmit(1, PROTOCOL2_SYNC_LOW_PULSES);
+        		break;
+      	default:
+        		break;
+    	}
+  	};
 
-  /**
-   * Sends a tri-state "0" bit.
+  	/**
+    * Sends a tri-state "0" bit.
 	 *            _     _
 	 * Waveform: | |___| |___
-   * @private
-   */
-  var sendT0 = function() {
-    transmit(1, 3);
-    transmit(1, 3);
-  };
+    * @private
+    */
+  	var sendT0 = function() {
+    	transmit(1, 3);
+    	transmit(1, 3);
+  	};
 
-  /**
-   * Sends a tri-state "1" bit.&lt;br/>&lt;br/>
+  	/**
+    * Sends a tri-state "1" bit.&lt;br/>&lt;br/>
 	 *            ___   ___
 	 * Waveform: |   |_|   |_
-   * @private
-   */
-  var sendT1 = function() {
-    transmit(3, 1);
-    transmit(3, 1);
-  };
+    * @private
+    */
+  	var sendT1 = function() {
+    	transmit(3, 1);
+    	transmit(3, 1);
+  	};
 
-  /**
-   * Sends a tri-state "F" bit.
+  	/**
+    * Sends a tri-state "F" bit.
 	 *            _     ___
 	 * Waveform: | |___|   |_
-   * @private
-   */
-  var sendTF = function() {
-    transmit(1, 3);
-    transmit(3, 1);
-  };
+    * @private
+    */
+  	var sendTF = function() {
+    	transmit(1, 3);
+    	transmit(3, 1);
+  	};
 
-  /**
-   * Sends a "0" bit.
+  	/**
+    * Sends a "0" bit.
 	 *                       _
 	 * Waveform Protocol 1: | |___
 	 *                       _
 	 * Waveform Protocol 2: | |__
-   * @private
-   */
-  var send0 = function() {
-    switch (_protocol) {
-      case RCProtocol.P1:
-        transmit(1, 3);
-        break;
-      case RCProtocol.P2:
-        transmit(1, 2);
-        break;
-      default:
-        break;
-    }
-  };
+    * @private
+    */
+  	var send0 = function() {
+    	switch (_protocol) {
+      	case RCProtocol.P1:
+        		transmit(1, 3);
+        		break;
+      	case RCProtocol.P2:
+        		transmit(1, 2);
+        		break;
+      	default:
+        		break;
+    	}
+  	};
 
-  /**
-   * Sends a "1" bit.&lt;br/>&lt;br/>
+  	/**
+    * Sends a "1" bit.&lt;br/>&lt;br/>
 	 *                       ___
 	 * Waveform Protocol 1: |   |_
 	 *                       __
 	 * Waveform Protocol 2: |  |_
-   * @private
-   */
-  var send1 = function() {
-    switch (_protocol) {
-      case RCProtocol.P1:
-        transmit(3, 1);
-        break;
-      case RCProtocol.P2:
-        transmit(2, 1);
-        break;
-      default:
-        break;
-    }
-  };
+    * @private
+    */
+  	var send1 = function() {
+    	switch (_protocol) {
+      	case RCProtocol.P1:
+        		transmit(3, 1);
+        		break;
+      	case RCProtocol.P2:
+        		transmit(2, 1);
+        		break;
+      	default:
+        		break;
+    	}
+  	};
 
-  /**
-   * Returns a 13 character array, representing the code word to be sent.
+  	/**
+    * Returns a 13 character array, representing the code word to be sent.
 	 * A code word consists of 9 address bits, 3 data bits, and on sync bit
 	 * but in our case, only the first 8 address bits and the last 2 data
 	 * bits are used. A code bit can have 4 different states: "F" (floating),
@@ -323,51 +416,51 @@ function RCSwitchDevice(transmitPin) {
 	 * | 4 bits address (switch group) | 4 bits address (switch number) | 1 bit address (not used, so never mind) | 1 bit address (not used, so never mind) | 2 data bits (on|off) | 1 sync bit |
 	 * | 1=0FFF 2=F0FF 3=FF0F 4=FFF0   | 1=0FFF 2=F0FF 3=FF0F 4=FFF0    | F | F | on=FF off=F0 | S |
 	 * +-------------------------------+--------------------------------+-----------------------------------------+-----------------------------------------+----------------------+------------+
-   * @param  {BitSet} groupAddress A bitset containing 5 bits that represent the
-   * switch group address.
-   * @param  {ChannelCode} chan     The channel (switch) to manipulate.
-   * @param  {Boolean} status       Whether to switch on (true) or off (false).
-   * @return {String}               If successful, a 13 character array
-   * containing the code word; Otherwise, a single-character array containing
-   * only a null-character.
-   */
-  var getCodeWordA = function(groupAddress, chan, status) {
-    status = status || false;
-    var returnPos = 0;
-    var word = new Array(13);
-    var code = ["FFFFF", "0FFFF", "F0FFF", "FF0FF", "FFF0F", "FFFF0"];
-    if ((chan &lt; 1) || (chan > 5)) {
-      return "\0";
-    }
+    * @param  {BitSet} groupAddress A bitset containing 5 bits that represent the
+    * switch group address.
+    * @param  {ChannelCode} chan The channel (switch) to manipulate.
+    * @param  {Boolean} status Whether to switch on (true) or off (false).
+    * @return {String} If successful, a 13 character array containing
+    * the code word; Otherwise, a single-character array containing
+    * only a null-character.
+    */
+  	var getCodeWordA = function(groupAddress, chan, status) {
+    	status = status || false;
+    	var returnPos = 0;
+    	var word = new Array(13);
+    	var code = ["FFFFF", "0FFFF", "F0FFF", "FF0FF", "FFF0F", "FFFF0"];
+    	if ((chan &lt; 1) || (chan > 5)) {
+      	return "\0";
+    	}
 
-    for (var i = 0; i &lt; 5; i++) {
-      if (!groupAddress.get(i)) {
-        word[returnPos++] = 'F';
-      }
-      else {
-        word[returnPos++] = '0';
-      }
-    }
+    	for (var i = 0; i &lt; 5; i++) {
+      	if (!groupAddress.get(i)) {
+        		word[returnPos++] = 'F';
+			}
+      	else {
+        		word[returnPos++] = '0';
+      	}
+		}
 
-    for (var j = 0; j &lt; 5; j++) {
-      word[returnPos++] = code[chan][j];
-    }
+    	for (var j = 0; j &lt; 5; j++) {
+      	word[returnPos++] = code[chan][j];
+    	}
 
-    if (status) {
-      word[returnPos++] = '0';
-      word[returnPos++] = 'F';
-    }
-    else {
-      word[returnPos++] = 'F';
-      word[returnPos++] = '0';
-    }
+    	if (status) {
+      	word[returnPos++] = '0';
+      	word[returnPos++] = 'F';
+    	}
+    	else {
+      	word[returnPos++] = 'F';
+      	word[returnPos++] = '0';
+    	}
 
-    word[returnPos] = '\0';
-    return word.join("");
-  };
+    	word[returnPos] = '\0';
+    	return word.join("");
+  	};
 
-  /**
-   * Returns a 13 character array, representing the code word to be sent.
+  	/**
+    * Returns a 13 character array, representing the code word to be sent.
 	 * A code word consists of 9 address bits, 3 data bits, and on sync bit
 	 * but in our case, only the first 8 address bits and the last 2 data
 	 * bits are used. A code bit can have 4 different states: "F" (floating),
@@ -376,176 +469,190 @@ function RCSwitchDevice(transmitPin) {
 	 * | 4 bits address (switch group) | 4 bits address (switch number) | 1 bit address (not used, so never mind) | 1 bit address (not used, so never mind) | 2 data bits (on|off) | 1 sync bit |
 	 * | 1=0FFF 2=F0FF 3=FF0F 4=FFF0   | 1=0FFF 2=F0FF 3=FF0F 4=FFF0    | F | F | on=FF off=F0 | S |
 	 * +-------------------------------+--------------------------------+-----------------------------------------+-----------------------------------------+----------------------+------------+
-   * @param  {BitSet} address The switch group (address).
-   * @param  {ChannelCode} chan    The channel (switch) to manipulate.
-   * @param  {Boolean} status  Whether to switch on (true) or off (false).
-   * @return {String}          A single-character array containing only a
-   * null-character.
-   */
-  var getCodeWordB = function(address, chan, status) {
-    status = status || false;
-    var returnPos = 0;
-    var word = new Array(13);
-    var code = ["FFFF", "0FFF", "F0FF", "FF0F", "FFF0"];
-    if ((address &lt; 1) || (address > 4) || (chan &lt; 1) || (chan > 4)) {
-      return "\0";
-    }
+    * @param  {BitSet}      address The switch group (address).
+    * @param  {ChannelCode} chan    The channel (switch) to manipulate.
+    * @param  {Boolean}     status  Whether to switch on (true) or off (false).
+    * @return {String}      A single-character array containing only a
+    * null-character.
+    */
+  	var getCodeWordB = function(address, chan, status) {
+    	if (util.isNullOrUndefined(status)) {
+			status = false;
+		}
+    	
+		var returnPos = 0;
+    	var word = new Array(13);
+    	var code = ["FFFF", "0FFF", "F0FF", "FF0F", "FFF0"];
+    	if ((address &lt; 1) || (address > 4) || (chan &lt; 1) || (chan > 4)) {
+      	return "\0";
+    	}
 
-    for (var i = 0; i &lt; 4; i++) {
-      word[returnPos++] = code[address][i];
-    }
+    	for (var i = 0; i &lt; 4; i++) {
+      	word[returnPos++] = code[address][i];
+    	}
 
-    for (var j = 0; j &lt; 4; j++) {
-      word[returnPos++] = code[chan][j];
-    }
+    	for (var j = 0; j &lt; 4; j++) {
+      	word[returnPos++] = code[chan][j];
+    	}
 
-    word[returnPos++] = 'F';
-    word[returnPos++] = 'F';
-    word[returnPos++] = 'F';
-    if (status) {
-      word[returnPos++] = 'F';
-    }
-    else {
-      word[returnPos++] = '0';
-    }
+    	word[returnPos++] = 'F';
+    	word[returnPos++] = 'F';
+    	word[returnPos++] = 'F';
+    	if (status) {
+      	word[returnPos++] = 'F';
+    	}
+    	else {
+      	word[returnPos++] = '0';
+    	}
 
-    word[returnPos] = '\0';
-    return word.join("");
-  };
+    	word[returnPos] = '\0';
+    	return word.join("");
+  	};
 
-  /**
-   * Transmits the specified code word to the device.
-   * @param  {Array} codeWord A character array that is the code word to transmit.
-   */
-  this.send = function(codeWord) {
-    var j = 0;
-    for (var i = 0; i &lt; self.repeatTransmit; i++) {
-      j = 0;
-      while (codeWord[j] !== '\0') {
-        switch (codeWord[j]) {
-          case '0':
-            send0();
-            break;
-          case '1':
-            send1();
-            break;
-          default:
-            break;
-        }
-        j++;
-      }
-      sendSync();
-    }
-  };
+  	/**
+    * Transmits the specified code word to the device.
+    * @param  {Array} codeWord A character array that is the code word to transmit.
+    * @throws {ObjectDisposedException} if this instance has been disposed.
+    */
+  	this.send = function(codeWord) {
+		if (_base.isDisposed()) {
+			throw new ObjectDisposedException("RCSwitchDevice");
+		}
+		
+    	var j = 0;
+    	for (var i = 0; i &lt; self.repeatTransmit; i++) {
+      	j = 0;
+      	while (codeWord[j] !== '\0') {
+        		switch (codeWord[j]) {
+          		case '0':
+            		send0();
+            		break;
+          		case '1':
+            		send1();
+            		break;
+          		default:
+            		break;
+        		}
+        		j++;
+      	}
+      	sendSync();
+    	}
+  	};
 
-  /**
-   * Transmits the specified code word to the device.
-   * @param  {Number} code   A long represents the bits of the address.
-   * @param  {Number} length The length of bits (count) to send.
-   */
-  this.sendCode = function(code, length) {
-    self.send(dec2BinWzeroFill(code, length));
-  };
+  	/**
+    * Transmits the specified code word to the device.
+    * @param  {Number} code   A long represents the bits of the address.
+    * @param  {Number} length The length of bits (count) to send.
+    * @throws {ObjectDisposedException} if this instance has been disposed.                        
+    */
+  	this.sendCode = function(code, length) {
+    	self.send(dec2BinWzeroFill(code, length));
+  	};
 
-  /**
-   * Sends a code word.
-   * @param  {Array} codeWord A character array making up the code word to send.
-   */
-  this.sendTriState = function(codeWord) {
-    var j = 0;
-    for (var i = 0; i &lt; self.repeatTransmit; i++) {
-      j = 0;
-      while (codeWord[j] !== '\0') {
-        switch (codeWord[j]) {
-          case '0':
-            sendT0();
-            break;
-          case 'F':
-            sendTF();
-            break;
-          case '1':
-            sendT1();
-            break;
-          default:
-            break;
-        }
-        j++;
-      }
-      sendSync();
-    }
-  };
+  	/**
+    * Sends a code word.
+    * @param  {Array} codeWord A character array making up the code word to send.
+    * @throws {ObjectDisposedException} if this instance has been disposed.                         
+    */
+  	this.sendTriState = function(codeWord) {
+    	var j = 0;
+    	for (var i = 0; i &lt; self.repeatTransmit; i++) {
+      	j = 0;
+      	while (codeWord[j] !== '\0') {
+        		switch (codeWord[j]) {
+          		case '0':
+            		sendT0();
+            		break;
+          		case 'F':
+            		sendTF();
+            		break;
+          		case '1':
+            		sendT1();
+            		break;
+          		default:
+            		break;
+        		}
+        		j++;
+      	}
+      	sendSync();
+    	}
+  	};
 
-  /**
-   * Switch a remote switch on (Type A with 10 pole DIP switches).
-   * @param  {BitSet} switchGroupAddress Code of the switch group (refers to DIP
-   * switches 1 - 5, where "1" = on and "0" = off, if all DIP switches are on
-   * it's "11111").
-   * @param  {RCSwitchDevNum} device             The switch device number.
-   * @throws {ArgumentNullException} if switchGroupAddress is null or undefined.
-   * @throws {IllegalArgumentException} if switchGroupAddress contains more than
-   * 5 bits.
-   */
-  this.switchOnA = function(switchGroupAddress, device) {
-    if (util.isNullOrUndefined(switchGroupAddress)) {
-      throw new ArgumentNullException("'switchGroupAddress' param cannot be null or empty.");
-    }
+  	/**
+    * Switch a remote switch on (Type A with 10 pole DIP switches).
+    * @param  {BitSet} switchGroupAddress Code of the switch group (refers to DIP
+    * switches 1 - 5, where "1" = on and "0" = off, if all DIP switches are on
+    * it's "11111").
+    * @param  {RCSwitchDevNum} device The switch device number.
+    * @throws {ArgumentNullException} if switchGroupAddress is null or undefined.
+    * @throws {IllegalArgumentException} if switchGroupAddress contains more than
+    * 5 bits.
+    * @throws {ObjectDisposedException} if this instance has been disposed.
+    */
+  	this.switchOnA = function(switchGroupAddress, device) {
+    	if (util.isNullOrUndefined(switchGroupAddress)) {
+      	throw new ArgumentNullException("'switchGroupAddress' param cannot be null or empty.");
+    	}
 
-    if (switchGroupAddress.length() > 5) {
-      throw new IllegalArgumentException("Cannot accept a switch group address with more than 5 bits.");
-    }
+    	if (switchGroupAddress.length() > 5) {
+      	throw new IllegalArgumentException("Cannot accept a switch group address with more than 5 bits.");
+    	}
 
-    if (device === RCSwitchDevNum.None) {
-      return;
-    }
+    	if (device === RCSwitchDevNum.None) {
+      	return;
+    	}
 
-    var state = getCodeWordA(switchGroupAddress, device, true);
-    self.sendTriState(state.split(''));
-  };
+    	var state = getCodeWordA(switchGroupAddress, device, true);
+    	self.sendTriState(state.split(''));
+  	};
 
-  /**
-   * Switch a remote switch off (Type A with 10 pole DIP switches).
-   * @param  {BitSet} switchGroupAddress Code of the switch group (refers to DIP
-   * switches 1 - 5, where "1" = on and "0" = off, if all DIP switches are on
-   * it's "11111").
-   * @param  {RCSwitchDevNum} device             The switch device number.
-   * @throws {ArgumentNullException} if switchGroupAddress is null or undefined.
-   * @throws {IllegalArgumentException} if switchGroupAddress contains more than
-   * 5 bits.
-   */
-  this.switchOffA = function(switchGroupAddress, device) {
-    if (util.isNullOrUndefined(switchGroupAddress)) {
-      throw new ArgumentNullException("'switchGroupAddress' param cannot be null or empty.");
-    }
+  	/**
+    * Switch a remote switch off (Type A with 10 pole DIP switches).
+    * @param  {BitSet} switchGroupAddress Code of the switch group (refers to DIP
+    * switches 1 - 5, where "1" = on and "0" = off, if all DIP switches are on
+    * it's "11111").
+    * @param  {RCSwitchDevNum} device The switch device number.
+    * @throws {ArgumentNullException} if switchGroupAddress is null or undefined.
+    * @throws {IllegalArgumentException} if switchGroupAddress contains more than
+    * 5 bits.
+    * @throws {ObjectDisposedException} if this instance has been disposed.
+    */
+  	this.switchOffA = function(switchGroupAddress, device) {
+    	if (util.isNullOrUndefined(switchGroupAddress)) {
+      	throw new ArgumentNullException("'switchGroupAddress' param cannot be null or empty.");
+    	}
 
-    if (switchGroupAddress.length() > 5) {
-      throw new IllegalArgumentException("Cannot accept a switch group address with more than 5 bits.");
-    }
+    	if (switchGroupAddress.length() > 5) {
+      	throw new IllegalArgumentException("Cannot accept a switch group address with more than 5 bits.");
+    	}
 
-    if (device === RCSwitchDevNum.None) {
-      return;
-    }
+    	if (device === RCSwitchDevNum.None) {
+      	return;
+    	}
 
-    var state = getCodeWordA(switchGroupAddress, device, false);
-    self.sendTriState(state.split(''));
-  };
+    	var state = getCodeWordA(switchGroupAddress, device, false);
+    	self.sendTriState(state.split(''));
+  	};
 
-  /**
-   * Switch a remote switch on (Type B with two rotary/sliding switches).
-   * @param  {AddressCode} address The address of the switch group.
-   * @param  {ChannelCode} channel The channel (switch) itself.
-   */
-  this.switchOnB = function(address, channel) {
-    self.sendTriState(getCodeWordB(address, channel, true).split(''));
-  };
+  	/**
+    * Switch a remote switch on (Type B with two rotary/sliding switches).
+    * @param  {AddressCode} address The address of the switch group.
+    * @param  {ChannelCode} channel The channel (switch) itself.
+    * @throws {ObjectDisposedException} if this instance has been disposed.                              
+    */
+  	this.switchOnB = function(address, channel) {
+    	self.sendTriState(getCodeWordB(address, channel, true).split(''));
+  	};
 
-  /**
-   * Switch a remote switch off (Type B with two rotary/sliding switches).
-   * @param  {AddressCode} address The address of the switch group.
-   * @param  {ChannelCode} channel The channel (switch) itself.
-   */
-  this.switchOffB = function(address, channel) {
-    self.sendTriState(getCodeWordB(address, channel, true).split(''));
-  };
+  	/**
+    * Switch a remote switch off (Type B with two rotary/sliding switches).
+    * @param  {AddressCode} address The address of the switch group.
+    * @param  {ChannelCode} channel The channel (switch) itself.
+    * @throws {ObjectDisposedException} if this instance has been disposed.                              
+    */
+  	this.switchOffB = function(address, channel) {
+    	self.sendTriState(getCodeWordB(address, channel, true).split(''));
+  	};
 }
 
 RCSwitchDevice.prototype.constructor = RCSwitchDevice;
@@ -567,7 +674,7 @@ RCSwitchDevice.DEFAULT_PROTOCOL2_PULSE_LENGTH = DEF_PROT2_PULSE_LEN;
  * Convenience method for converting a string like "11011" to a BitSet.
  * @param  {String} addressString The a string containing the address bits in
  * sequence.
- * @return {BitSet}               A bitset containing the address that can b
+ * @return {BitSet} A bitset containing the address that can b
  * used for swithing devices on or off.
  * @throws {ArgumentNullException} if addressString is null or undefined;
  * @throws {IllegalArgumentException} if addressString does not contain exactly
@@ -575,7 +682,7 @@ RCSwitchDevice.DEFAULT_PROTOCOL2_PULSE_LENGTH = DEF_PROT2_PULSE_LEN;
  */
 RCSwitchDevice.getSwitchGroupAddress = getSwitchGroupAddress;
 
-module.exports = extend(true, RCSwitchDevice, DeviceBase);
+module.exports = RCSwitchDevice;
 </code></pre>
         </article>
     </section>
@@ -586,13 +693,13 @@ module.exports = extend(true, RCSwitchDevice, DeviceBase);
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-Access.html">Access</a></li><li><a href="module-Buttons.html">Buttons</a></li><li><a href="module-Buzzers.html">Buzzers</a></li><li><a href="module-CaptureUtils.html">CaptureUtils</a></li><li><a href="module-Components.html">Components</a></li><li><a href="module-CoreUtils.html">CoreUtils</a></li><li><a href="module-ExecUtils.html">ExecUtils</a></li><li><a href="module-FirePlace.html">FirePlace</a></li><li><a href="module-Garage.html">Garage</a></li><li><a href="module-Gate.html">Gate</a></li><li><a href="module-IO.html">IO</a></li><li><a href="module-jsrpi.html">jsrpi</a></li><li><a href="module-LCD.html">LCD</a></li><li><a href="module-LcdDisplay.html">LcdDisplay</a></li><li><a href="module-LED.html">LED</a></li><li><a href="module-Lights.html">Lights</a></li><li><a href="module-Motors.html">Motors</a></li><li><a href="module-NetworkInfo.html">NetworkInfo</a></li><li><a href="module-PiBrella.html">PiBrella</a></li><li><a href="module-PiBrellaInput.html">PiBrellaInput</a></li><li><a href="module-PiBrellaOutput.html">PiBrellaOutput</a></li><li><a href="module-PiCamera.html">PiCamera</a></li><li><a href="module-PiFace.html">PiFace</a></li><li><a href="module-PiFacePinFactory.html">PiFacePinFactory</a></li><li><a href="module-PinUtils.html">PinUtils</a></li><li><a href="module-PiSystem.html">PiSystem</a></li><li><a href="module-PowerUtils.html">PowerUtils</a></li><li><a href="module-RCSwtich.html">RCSwtich</a></li><li><a href="module-Relays.html">Relays</a></li><li><a href="module-RelayUtils.html">RelayUtils</a></li><li><a href="module-Sensors.html">Sensors</a></li><li><a href="module-Serial.html">Serial</a></li><li><a href="module-Sprinkler.html">Sprinkler</a></li><li><a href="module-StringUtils.html">StringUtils</a></li><li><a href="module-SystemInfo.html">SystemInfo</a></li><li><a href="module-Temperature.html">Temperature</a></li><li><a href="module-TemperatureConversion.html">TemperatureConversion</a></li><li><a href="module-TempScaleUtils.html">TempScaleUtils</a></li></ul><h3>Classes</h3><ul><li><a href="ArgumentNullException.html">ArgumentNullException</a></li><li><a href="BitSet.html">BitSet</a></li><li><a href="ButtonBase.html">ButtonBase</a></li><li><a href="ButtonComponent.html">ButtonComponent</a></li><li><a href="BuzzerComponent.html">BuzzerComponent</a></li><li><a href="ComponentBase.html">ComponentBase</a></li><li><a href="DeviceBase.html">DeviceBase</a></li><li><a href="DimmableLightBase.html">DimmableLightBase</a></li><li><a href="DimmableLightComponent.html">DimmableLightComponent</a></li><li><a href="DS1620.html">DS1620</a></li><li><a href="FileInfo.html">FileInfo</a></li><li><a href="FireplaceBase.html">FireplaceBase</a></li><li><a href="FireplaceDevice.html">FireplaceDevice</a></li><li><a href="FireplacePilotLightException.html">FireplacePilotLightException</a></li><li><a href="GarageDoorOpenerBase.html">GarageDoorOpenerBase</a></li><li><a href="GarageDoorOpenerDevice.html">GarageDoorOpenerDevice</a></li><li><a href="GateOpenerBase.html">GateOpenerBase</a></li><li><a href="GateOpenerDevice.html">GateOpenerDevice</a></li><li><a href="GpioBase.html">GpioBase</a></li><li><a href="GpioLcdTransferProviderStandard.html">GpioLcdTransferProviderStandard</a></li><li><a href="GpioPowerComponent.html">GpioPowerComponent</a></li><li><a href="GpioStandard.html">GpioStandard</a></li><li><a href="IllegalArgumentException.html">IllegalArgumentException</a></li><li><a href="InvalidOperationException.html">InvalidOperationException</a></li><li><a href="InvalidPinModeException.html">InvalidPinModeException</a></li><li><a href="IOException.html">IOException</a></li><li><a href="LcdBase.html">LcdBase</a></li><li><a href="LcdComponent.html">LcdComponent</a></li><li><a href="LcdModule.html">LcdModule</a></li><li><a href="LEDBase.html">LEDBase</a></li><li><a href="LEDComponent.html">LEDComponent</a></li><li><a href="LightBase.html">LightBase</a></li><li><a href="LightComponent.html">LightComponent</a></li><li><a href="MomentarySwitchBase.html">MomentarySwitchBase</a></li><li><a href="MomentarySwitchComponent.html">MomentarySwitchComponent</a></li><li><a href="MotionSensorBase.html">MotionSensorBase</a></li><li><a href="MotionSensorComponent.html">MotionSensorComponent</a></li><li><a href="MotorBase.html">MotorBase</a></li><li><a href="NotImplementedException.html">NotImplementedException</a></li><li><a href="ObjectDisposedException.html">ObjectDisposedException</a></li><li><a href="OpenerBase.html">OpenerBase</a></li><li><a href="OpenerDevice.html">OpenerDevice</a></li><li><a href="OpenerLockedException.html">OpenerLockedException</a></li><li><a href="PiBrellaBase.html">PiBrellaBase</a></li><li><a href="PiBrellaDevice.html">PiBrellaDevice</a></li><li><a href="PiCameraDevice.html">PiCameraDevice</a></li><li><a href="PiFaceBase.html">PiFaceBase</a></li><li><a href="PiFaceDevice.html">PiFaceDevice</a></li><li><a href="PiFaceGpioBase.html">PiFaceGpioBase</a></li><li><a href="PiFaceGpioDigital.html">PiFaceGpioDigital</a></li><li><a href="PowerBase.html">PowerBase</a></li><li><a href="RCSwitchDevice.html">RCSwitchDevice</a></li><li><a href="RelayBase.html">RelayBase</a></li><li><a href="RelayComponent.html">RelayComponent</a></li><li><a href="SensorBase.html">SensorBase</a></li><li><a href="SensorComponent.html">SensorComponent</a></li><li><a href="Size.html">Size</a></li><li><a href="SprinklerControllerBase.html">SprinklerControllerBase</a></li><li><a href="SprinklerControllerDevice.html">SprinklerControllerDevice</a></li><li><a href="SprinklerZoneBase.html">SprinklerZoneBase</a></li><li><a href="SprinklerZoneDevice.html">SprinklerZoneDevice</a></li><li><a href="StepperMotorBase.html">StepperMotorBase</a></li><li><a href="StepperMotorComponent.html">StepperMotorComponent</a></li><li><a href="StillCaptureSettings.html">StillCaptureSettings</a></li><li><a href="SwitchBase.html">SwitchBase</a></li><li><a href="SwitchComponent.html">SwitchComponent</a></li><li><a href="TemperatureSensorBase.html">TemperatureSensorBase</a></li><li><a href="TemperatureSensorComponent.html">TemperatureSensorComponent</a></li><li><a href="TM16XXBase.html">TM16XXBase</a></li><li><a href="TM1638.html">TM1638</a></li><li><a href="ToggleSwitchBase.html">ToggleSwitchBase</a></li><li><a href="ToggleSwitchComponent.html">ToggleSwitchComponent</a></li></ul><h3>Events</h3><ul><li><a href="global.html#event:ButtonEvent">ButtonEvent</a></li><li><a href="global.html#event:CaptureDoneEvent">CaptureDoneEvent</a></li><li><a href="global.html#event:CaptureOutputEvent">CaptureOutputEvent</a></li><li><a href="global.html#event:CaptureStartEvent">CaptureStartEvent</a></li><li><a href="global.html#event:FireplacePilotLightEvent">FireplacePilotLightEvent</a></li><li><a href="global.html#event:FireplaceStateChangedEvent">FireplaceStateChangedEvent</a></li><li><a href="global.html#event:FireplaceTimeoutEvent">FireplaceTimeoutEvent</a></li><li><a href="global.html#event:LightLevelChangeEvent">LightLevelChangeEvent</a></li><li><a href="global.html#event:LightStateChangeEvent">LightStateChangeEvent</a></li><li><a href="global.html#event:MotionDetectedEvent">MotionDetectedEvent</a></li><li><a href="global.html#event:MotorRotateEvent">MotorRotateEvent</a></li><li><a href="global.html#event:MotorStateChangeEvent">MotorStateChangeEvent</a></li><li><a href="global.html#event:OpenerLockChangeEvent">OpenerLockChangeEvent</a></li><li><a href="global.html#event:OpenerStateChangeEvent">OpenerStateChangeEvent</a></li><li><a href="global.html#event:PinPollFailEvent">PinPollFailEvent</a></li><li><a href="global.html#event:PinStateChangeEvent">PinStateChangeEvent</a></li><li><a href="global.html#event:PowerStateChangeEvent">PowerStateChangeEvent</a></li><li><a href="global.html#event:RelayStateChangeEvent">RelayStateChangeEvent</a></li><li><a href="global.html#event:SensorStateChangeEvent">SensorStateChangeEvent</a></li><li><a href="global.html#event:SwitchStateChangeEvent">SwitchStateChangeEvent</a></li><li><a href="global.html#event:TemperatureChangeEvent">TemperatureChangeEvent</a></li><li><a href="global.html#event:UnrecognizedPinFoundEvent">UnrecognizedPinFoundEvent</a></li><li><a href="global.html#event:ZoneStateChangeEvent">ZoneStateChangeEvent</a></li></ul><h3>Interfaces</h3><ul><li><a href="Button.html">Button</a></li><li><a href="Buzzer.html">Buzzer</a></li><li><a href="Component.html">Component</a></li><li><a href="Device.html">Device</a></li><li><a href="DimmableLight.html">DimmableLight</a></li><li><a href="Disposable.html">Disposable</a></li><li><a href="DS1620Interface.html">DS1620Interface</a></li><li><a href="FireplaceInterface.html">FireplaceInterface</a></li><li><a href="GarageDoorOpener.html">GarageDoorOpener</a></li><li><a href="GateOpener.html">GateOpener</a></li><li><a href="Gpio.html">Gpio</a></li><li><a href="Lcd.html">Lcd</a></li><li><a href="LcdTransferProvider.html">LcdTransferProvider</a></li><li><a href="LEDInterface.html">LEDInterface</a></li><li><a href="Light.html">Light</a></li><li><a href="MomentarySwitch.html">MomentarySwitch</a></li><li><a href="MotionSensor.html">MotionSensor</a></li><li><a href="Motor.html">Motor</a></li><li><a href="Opener.html">Opener</a></li><li><a href="PiBrellaInterface.html">PiBrellaInterface</a></li><li><a href="PiFaceGPIO.html">PiFaceGPIO</a></li><li><a href="PiFaceInterface.html">PiFaceInterface</a></li><li><a href="Pin.html">Pin</a></li><li><a href="PowerInterface.html">PowerInterface</a></li><li><a href="RaspiGpio.html">RaspiGpio</a></li><li><a href="RCSwitchInterface.html">RCSwitchInterface</a></li><li><a href="Relay.html">Relay</a></li><li><a href="Sensor.html">Sensor</a></li><li><a href="SprinklerController.html">SprinklerController</a></li><li><a href="SprinklerZone.html">SprinklerZone</a></li><li><a href="StepperMotor.html">StepperMotor</a></li><li><a href="Switch.html">Switch</a></li><li><a href="TemperatureSensor.html">TemperatureSensor</a></li><li><a href="ToggleSwitch.html">ToggleSwitch</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ADDRESS_BITS_PER_WORD">ADDRESS_BITS_PER_WORD</a></li><li><a href="global.html#AddressCode">AddressCode</a></li><li><a href="global.html#BaudRates">BaudRates</a></li><li><a href="global.html#BCM2835PwmClockDivider">BCM2835PwmClockDivider</a></li><li><a href="global.html#BITS_PER_WORD">BITS_PER_WORD</a></li><li><a href="global.html#BoardRevision">BoardRevision</a></li><li><a href="global.html#BoardType">BoardType</a></li><li><a href="global.html#ButtonState">ButtonState</a></li><li><a href="global.html#C_MAP">C_MAP</a></li><li><a href="global.html#ChannelCode">ChannelCode</a></li><li><a href="global.html#checkRange">checkRange</a></li><li><a href="global.html#ClockType">ClockType</a></li><li><a href="global.html#close">close</a></li><li><a href="global.html#DisplayEntryModes">DisplayEntryModes</a></li><li><a href="global.html#DisplayOnOffControl">DisplayOnOffControl</a></li><li><a href="global.html#dispose">dispose</a></li><li><a href="global.html#FireplaceState">FireplaceState</a></li><li><a href="global.html#fromWordArray">fromWordArray</a></li><li><a href="global.html#FunctionSetFlags">FunctionSetFlags</a></li><li><a href="global.html#getButton">getButton</a></li><li><a href="global.html#getEventMessage">getEventMessage</a></li><li><a href="global.html#getExitCode">getExitCode</a></li><li><a href="global.html#getFailureCause">getFailureCause</a></li><li><a href="global.html#getLevel">getLevel</a></li><li><a href="global.html#getNewState">getNewState</a></li><li><a href="global.html#getNewTemp">getNewTemp</a></li><li><a href="global.html#getOldState">getOldState</a></li><li><a href="global.html#getOldTemp">getOldTemp</a></li><li><a href="global.html#getOutput">getOutput</a></li><li><a href="global.html#getPID">getPID</a></li><li><a href="global.html#getPinAddress">getPinAddress</a></li><li><a href="global.html#getSensor">getSensor</a></li><li><a href="global.html#getState">getState</a></li><li><a href="global.html#getSteps">getSteps</a></li><li><a href="global.html#getSwitchGroupAddress">getSwitchGroupAddress</a></li><li><a href="global.html#getTemperatureChange">getTemperatureChange</a></li><li><a href="global.html#getTimestamp">getTimestamp</a></li><li><a href="global.html#getZone">getZone</a></li><li><a href="global.html#GpioPins">GpioPins</a></li><li><a href="global.html#ImageEncoding">ImageEncoding</a></li><li><a href="global.html#isClosed">isClosed</a></li><li><a href="global.html#isDisposed">isDisposed</a></li><li><a href="global.html#isFourBitMode">isFourBitMode</a></li><li><a href="global.html#isHandled">isHandled</a></li><li><a href="global.html#isLocked">isLocked</a></li><li><a href="global.html#isMotionDetected">isMotionDetected</a></li><li><a href="global.html#isOn">isOn</a></li><li><a href="global.html#isOpen">isOpen</a></li><li><a href="global.html#isPressed">isPressed</a></li><li><a href="global.html#isReleased">isReleased</a></li><li><a href="global.html#isState">isState</a></li><li><a href="global.html#LcdCommands">LcdCommands</a></li><li><a href="global.html#LcdTextAlignment">LcdTextAlignment</a></li><li><a href="global.html#lightIsOn">lightIsOn</a></li><li><a href="global.html#MotorState">MotorState</a></li><li><a href="global.html#numberOfTrailingZeros">numberOfTrailingZeros</a></li><li><a href="global.html#onPulseStart">onPulseStart</a></li><li><a href="global.html#onPulseStop">onPulseStop</a></li><li><a href="global.html#onRelayStateChanged">onRelayStateChanged</a></li><li><a href="global.html#open">open</a></li><li><a href="global.html#OpenerState">OpenerState</a></li><li><a href="global.html#PiFaceLED">PiFaceLED</a></li><li><a href="global.html#PiFacePins">PiFacePins</a></li><li><a href="global.html#PiFaceRelay">PiFaceRelay</a></li><li><a href="global.html#PiFaceSwitch">PiFaceSwitch</a></li><li><a href="global.html#PinMode">PinMode</a></li><li><a href="global.html#PinPullResistance">PinPullResistance</a></li><li><a href="global.html#PinState">PinState</a></li><li><a href="global.html#PowerState">PowerState</a></li><li><a href="global.html#pulse">pulse</a></li><li><a href="global.html#PwmChannel">PwmChannel</a></li><li><a href="global.html#PwmClockDivider">PwmClockDivider</a></li><li><a href="global.html#PwmMode">PwmMode</a></li><li><a href="global.html#RCProtocol">RCProtocol</a></li><li><a href="global.html#RCSwitchDevNum">RCSwitchDevNum</a></li><li><a href="global.html#RelayState">RelayState</a></li><li><a href="global.html#send">send</a></li><li><a href="global.html#SensorState">SensorState</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#SwitchState">SwitchState</a></li><li><a href="global.html#TemperatureScale">TemperatureScale</a></li><li><a href="global.html#TimeUnit">TimeUnit</a></li><li><a href="global.html#TM1638LedColor">TM1638LedColor</a></li><li><a href="global.html#toggle">toggle</a></li><li><a href="global.html#util">util</a></li><li><a href="global.html#valueOf">valueOf</a></li><li><a href="global.html#wordIndex">wordIndex</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-Access.html">Access</a></li><li><a href="module-Buttons.html">Buttons</a></li><li><a href="module-Buzzers.html">Buzzers</a></li><li><a href="module-CaptureUtils.html">CaptureUtils</a></li><li><a href="module-Components.html">Components</a></li><li><a href="module-CoreUtils.html">CoreUtils</a></li><li><a href="module-ExecUtils.html">ExecUtils</a></li><li><a href="module-FirePlace.html">FirePlace</a></li><li><a href="module-Garage.html">Garage</a></li><li><a href="module-Gate.html">Gate</a></li><li><a href="module-IO.html">IO</a></li><li><a href="module-jsrpi.html">jsrpi</a></li><li><a href="module-LCD.html">LCD</a></li><li><a href="module-LcdDisplay.html">LcdDisplay</a></li><li><a href="module-LED.html">LED</a></li><li><a href="module-Lights.html">Lights</a></li><li><a href="module-Motors.html">Motors</a></li><li><a href="module-NetworkInfo.html">NetworkInfo</a></li><li><a href="module-PiBrella.html">PiBrella</a></li><li><a href="module-PiBrellaInput.html">PiBrellaInput</a></li><li><a href="module-PiBrellaOutput.html">PiBrellaOutput</a></li><li><a href="module-PiCamera.html">PiCamera</a></li><li><a href="module-PiFace.html">PiFace</a></li><li><a href="module-PiFacePinFactory.html">PiFacePinFactory</a></li><li><a href="module-PinUtils.html">PinUtils</a></li><li><a href="module-PiSystem.html">PiSystem</a></li><li><a href="module-PowerUtils.html">PowerUtils</a></li><li><a href="module-RCSwtich.html">RCSwtich</a></li><li><a href="module-Relays.html">Relays</a></li><li><a href="module-RelayUtils.html">RelayUtils</a></li><li><a href="module-Sensors.html">Sensors</a></li><li><a href="module-Serial.html">Serial</a></li><li><a href="module-Sprinkler.html">Sprinkler</a></li><li><a href="module-StringUtils.html">StringUtils</a></li><li><a href="module-SystemInfo.html">SystemInfo</a></li><li><a href="module-Temperature.html">Temperature</a></li><li><a href="module-TemperatureConversion.html">TemperatureConversion</a></li><li><a href="module-TempScaleUtils.html">TempScaleUtils</a></li></ul><h3>Classes</h3><ul><li><a href="ArgumentNullException.html">ArgumentNullException</a></li><li><a href="BitSet.html">BitSet</a></li><li><a href="ButtonBase.html">ButtonBase</a></li><li><a href="ButtonComponent.html">ButtonComponent</a></li><li><a href="BuzzerComponent.html">BuzzerComponent</a></li><li><a href="ComponentBase.html">ComponentBase</a></li><li><a href="DeviceBase.html">DeviceBase</a></li><li><a href="DimmableLightBase.html">DimmableLightBase</a></li><li><a href="DimmableLightComponent.html">DimmableLightComponent</a></li><li><a href="DS1620.html">DS1620</a></li><li><a href="FileInfo.html">FileInfo</a></li><li><a href="FireplaceBase.html">FireplaceBase</a></li><li><a href="FireplaceDevice.html">FireplaceDevice</a></li><li><a href="FireplacePilotLightException.html">FireplacePilotLightException</a></li><li><a href="GarageDoorOpenerBase.html">GarageDoorOpenerBase</a></li><li><a href="GarageDoorOpenerDevice.html">GarageDoorOpenerDevice</a></li><li><a href="GateOpenerBase.html">GateOpenerBase</a></li><li><a href="GateOpenerDevice.html">GateOpenerDevice</a></li><li><a href="GpioBase.html">GpioBase</a></li><li><a href="GpioLcdTransferProviderStandard.html">GpioLcdTransferProviderStandard</a></li><li><a href="GpioPowerComponent.html">GpioPowerComponent</a></li><li><a href="GpioStandard.html">GpioStandard</a></li><li><a href="IllegalArgumentException.html">IllegalArgumentException</a></li><li><a href="InvalidOperationException.html">InvalidOperationException</a></li><li><a href="InvalidPinModeException.html">InvalidPinModeException</a></li><li><a href="IOException.html">IOException</a></li><li><a href="LcdBase.html">LcdBase</a></li><li><a href="LcdComponent.html">LcdComponent</a></li><li><a href="LcdModule.html">LcdModule</a></li><li><a href="LEDBase.html">LEDBase</a></li><li><a href="LEDComponent.html">LEDComponent</a></li><li><a href="LightBase.html">LightBase</a></li><li><a href="LightComponent.html">LightComponent</a></li><li><a href="MomentarySwitchBase.html">MomentarySwitchBase</a></li><li><a href="MomentarySwitchComponent.html">MomentarySwitchComponent</a></li><li><a href="MotionSensorBase.html">MotionSensorBase</a></li><li><a href="MotionSensorComponent.html">MotionSensorComponent</a></li><li><a href="MotorBase.html">MotorBase</a></li><li><a href="NotImplementedException.html">NotImplementedException</a></li><li><a href="ObjectDisposedException.html">ObjectDisposedException</a></li><li><a href="OpenerBase.html">OpenerBase</a></li><li><a href="OpenerDevice.html">OpenerDevice</a></li><li><a href="OpenerLockedException.html">OpenerLockedException</a></li><li><a href="PiBrellaBase.html">PiBrellaBase</a></li><li><a href="PiBrellaDevice.html">PiBrellaDevice</a></li><li><a href="PiCameraDevice.html">PiCameraDevice</a></li><li><a href="PiFaceBase.html">PiFaceBase</a></li><li><a href="PiFaceDevice.html">PiFaceDevice</a></li><li><a href="PiFaceGpioBase.html">PiFaceGpioBase</a></li><li><a href="PiFaceGpioDigital.html">PiFaceGpioDigital</a></li><li><a href="PowerBase.html">PowerBase</a></li><li><a href="RCSwitchDevice.html">RCSwitchDevice</a></li><li><a href="RelayBase.html">RelayBase</a></li><li><a href="RelayComponent.html">RelayComponent</a></li><li><a href="SensorBase.html">SensorBase</a></li><li><a href="SensorComponent.html">SensorComponent</a></li><li><a href="Size.html">Size</a></li><li><a href="SprinklerControllerBase.html">SprinklerControllerBase</a></li><li><a href="SprinklerControllerDevice.html">SprinklerControllerDevice</a></li><li><a href="SprinklerZoneBase.html">SprinklerZoneBase</a></li><li><a href="SprinklerZoneDevice.html">SprinklerZoneDevice</a></li><li><a href="StepperMotorBase.html">StepperMotorBase</a></li><li><a href="StepperMotorComponent.html">StepperMotorComponent</a></li><li><a href="StillCaptureSettings.html">StillCaptureSettings</a></li><li><a href="SwitchBase.html">SwitchBase</a></li><li><a href="SwitchComponent.html">SwitchComponent</a></li><li><a href="TemperatureSensorBase.html">TemperatureSensorBase</a></li><li><a href="TemperatureSensorComponent.html">TemperatureSensorComponent</a></li><li><a href="TM16XXBase.html">TM16XXBase</a></li><li><a href="TM1638.html">TM1638</a></li><li><a href="ToggleSwitchBase.html">ToggleSwitchBase</a></li><li><a href="ToggleSwitchComponent.html">ToggleSwitchComponent</a></li></ul><h3>Events</h3><ul><li><a href="global.html#event:ButtonEvent">ButtonEvent</a></li><li><a href="global.html#event:CaptureDoneEvent">CaptureDoneEvent</a></li><li><a href="global.html#event:CaptureOutputEvent">CaptureOutputEvent</a></li><li><a href="global.html#event:CaptureStartEvent">CaptureStartEvent</a></li><li><a href="global.html#event:FireplacePilotLightEvent">FireplacePilotLightEvent</a></li><li><a href="global.html#event:FireplaceStateChangedEvent">FireplaceStateChangedEvent</a></li><li><a href="global.html#event:FireplaceTimeoutEvent">FireplaceTimeoutEvent</a></li><li><a href="global.html#event:LightLevelChangeEvent">LightLevelChangeEvent</a></li><li><a href="global.html#event:LightStateChangeEvent">LightStateChangeEvent</a></li><li><a href="global.html#event:MotionDetectedEvent">MotionDetectedEvent</a></li><li><a href="global.html#event:MotorRotateEvent">MotorRotateEvent</a></li><li><a href="global.html#event:MotorStateChangeEvent">MotorStateChangeEvent</a></li><li><a href="global.html#event:OpenerLockChangeEvent">OpenerLockChangeEvent</a></li><li><a href="global.html#event:OpenerStateChangeEvent">OpenerStateChangeEvent</a></li><li><a href="global.html#event:PinPollFailEvent">PinPollFailEvent</a></li><li><a href="global.html#event:PinStateChangeEvent">PinStateChangeEvent</a></li><li><a href="global.html#event:PowerStateChangeEvent">PowerStateChangeEvent</a></li><li><a href="global.html#event:RelayStateChangeEvent">RelayStateChangeEvent</a></li><li><a href="global.html#event:SensorStateChangeEvent">SensorStateChangeEvent</a></li><li><a href="global.html#event:SwitchStateChangeEvent">SwitchStateChangeEvent</a></li><li><a href="global.html#event:TemperatureChangeEvent">TemperatureChangeEvent</a></li><li><a href="global.html#event:UnrecognizedPinFoundEvent">UnrecognizedPinFoundEvent</a></li><li><a href="global.html#event:ZoneStateChangeEvent">ZoneStateChangeEvent</a></li></ul><h3>Interfaces</h3><ul><li><a href="Button.html">Button</a></li><li><a href="Buzzer.html">Buzzer</a></li><li><a href="Component.html">Component</a></li><li><a href="Device.html">Device</a></li><li><a href="DimmableLight.html">DimmableLight</a></li><li><a href="Disposable.html">Disposable</a></li><li><a href="DS1620Interface.html">DS1620Interface</a></li><li><a href="FireplaceInterface.html">FireplaceInterface</a></li><li><a href="GarageDoorOpener.html">GarageDoorOpener</a></li><li><a href="GateOpener.html">GateOpener</a></li><li><a href="Gpio.html">Gpio</a></li><li><a href="Lcd.html">Lcd</a></li><li><a href="LcdTransferProvider.html">LcdTransferProvider</a></li><li><a href="LEDInterface.html">LEDInterface</a></li><li><a href="Light.html">Light</a></li><li><a href="MomentarySwitch.html">MomentarySwitch</a></li><li><a href="MotionSensor.html">MotionSensor</a></li><li><a href="Motor.html">Motor</a></li><li><a href="Opener.html">Opener</a></li><li><a href="PiBrellaInterface.html">PiBrellaInterface</a></li><li><a href="PiFaceGPIO.html">PiFaceGPIO</a></li><li><a href="PiFaceInterface.html">PiFaceInterface</a></li><li><a href="Pin.html">Pin</a></li><li><a href="PowerInterface.html">PowerInterface</a></li><li><a href="RaspiGpio.html">RaspiGpio</a></li><li><a href="RCSwitchInterface.html">RCSwitchInterface</a></li><li><a href="Relay.html">Relay</a></li><li><a href="Sensor.html">Sensor</a></li><li><a href="SprinklerController.html">SprinklerController</a></li><li><a href="SprinklerZone.html">SprinklerZone</a></li><li><a href="StepperMotor.html">StepperMotor</a></li><li><a href="Switch.html">Switch</a></li><li><a href="TemperatureSensor.html">TemperatureSensor</a></li><li><a href="ToggleSwitch.html">ToggleSwitch</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ADDRESS_BITS_PER_WORD">ADDRESS_BITS_PER_WORD</a></li><li><a href="global.html#AddressCode">AddressCode</a></li><li><a href="global.html#BaudRates">BaudRates</a></li><li><a href="global.html#BCM2835PwmClockDivider">BCM2835PwmClockDivider</a></li><li><a href="global.html#BITS_PER_WORD">BITS_PER_WORD</a></li><li><a href="global.html#BoardRevision">BoardRevision</a></li><li><a href="global.html#BoardType">BoardType</a></li><li><a href="global.html#ButtonState">ButtonState</a></li><li><a href="global.html#C_MAP">C_MAP</a></li><li><a href="global.html#ChannelCode">ChannelCode</a></li><li><a href="global.html#checkRange">checkRange</a></li><li><a href="global.html#ClockType">ClockType</a></li><li><a href="global.html#close">close</a></li><li><a href="global.html#DisplayEntryModes">DisplayEntryModes</a></li><li><a href="global.html#DisplayOnOffControl">DisplayOnOffControl</a></li><li><a href="global.html#dispose">dispose</a></li><li><a href="global.html#FireplaceState">FireplaceState</a></li><li><a href="global.html#fromWordArray">fromWordArray</a></li><li><a href="global.html#FunctionSetFlags">FunctionSetFlags</a></li><li><a href="global.html#getButton">getButton</a></li><li><a href="global.html#getEventMessage">getEventMessage</a></li><li><a href="global.html#getExitCode">getExitCode</a></li><li><a href="global.html#getFailureCause">getFailureCause</a></li><li><a href="global.html#getLevel">getLevel</a></li><li><a href="global.html#getNewState">getNewState</a></li><li><a href="global.html#getNewTemp">getNewTemp</a></li><li><a href="global.html#getOldState">getOldState</a></li><li><a href="global.html#getOldTemp">getOldTemp</a></li><li><a href="global.html#getOutput">getOutput</a></li><li><a href="global.html#getPID">getPID</a></li><li><a href="global.html#getPinAddress">getPinAddress</a></li><li><a href="global.html#getSensor">getSensor</a></li><li><a href="global.html#getState">getState</a></li><li><a href="global.html#getSteps">getSteps</a></li><li><a href="global.html#getTemperatureChange">getTemperatureChange</a></li><li><a href="global.html#getTimestamp">getTimestamp</a></li><li><a href="global.html#getZone">getZone</a></li><li><a href="global.html#GpioPins">GpioPins</a></li><li><a href="global.html#ImageEncoding">ImageEncoding</a></li><li><a href="global.html#isClosed">isClosed</a></li><li><a href="global.html#isDisposed">isDisposed</a></li><li><a href="global.html#isFourBitMode">isFourBitMode</a></li><li><a href="global.html#isHandled">isHandled</a></li><li><a href="global.html#isLocked">isLocked</a></li><li><a href="global.html#isMotionDetected">isMotionDetected</a></li><li><a href="global.html#isOn">isOn</a></li><li><a href="global.html#isOpen">isOpen</a></li><li><a href="global.html#isPressed">isPressed</a></li><li><a href="global.html#isReleased">isReleased</a></li><li><a href="global.html#isState">isState</a></li><li><a href="global.html#LcdCommands">LcdCommands</a></li><li><a href="global.html#LcdTextAlignment">LcdTextAlignment</a></li><li><a href="global.html#lightIsOn">lightIsOn</a></li><li><a href="global.html#MotorState">MotorState</a></li><li><a href="global.html#numberOfTrailingZeros">numberOfTrailingZeros</a></li><li><a href="global.html#onPulseStart">onPulseStart</a></li><li><a href="global.html#onPulseStop">onPulseStop</a></li><li><a href="global.html#onRelayStateChanged">onRelayStateChanged</a></li><li><a href="global.html#open">open</a></li><li><a href="global.html#OpenerState">OpenerState</a></li><li><a href="global.html#PiFaceLED">PiFaceLED</a></li><li><a href="global.html#PiFacePins">PiFacePins</a></li><li><a href="global.html#PiFaceRelay">PiFaceRelay</a></li><li><a href="global.html#PiFaceSwitch">PiFaceSwitch</a></li><li><a href="global.html#PinMode">PinMode</a></li><li><a href="global.html#PinPullResistance">PinPullResistance</a></li><li><a href="global.html#PinState">PinState</a></li><li><a href="global.html#PowerState">PowerState</a></li><li><a href="global.html#pulse">pulse</a></li><li><a href="global.html#PwmChannel">PwmChannel</a></li><li><a href="global.html#PwmClockDivider">PwmClockDivider</a></li><li><a href="global.html#PwmMode">PwmMode</a></li><li><a href="global.html#RCProtocol">RCProtocol</a></li><li><a href="global.html#RCSwitchDevNum">RCSwitchDevNum</a></li><li><a href="global.html#RelayState">RelayState</a></li><li><a href="global.html#send">send</a></li><li><a href="global.html#SensorState">SensorState</a></li><li><a href="global.html#setState">setState</a></li><li><a href="global.html#SwitchState">SwitchState</a></li><li><a href="global.html#TemperatureScale">TemperatureScale</a></li><li><a href="global.html#TimeUnit">TimeUnit</a></li><li><a href="global.html#TM1638LedColor">TM1638LedColor</a></li><li><a href="global.html#toggle">toggle</a></li><li><a href="global.html#util">util</a></li><li><a href="global.html#valueOf">valueOf</a></li><li><a href="global.html#wordIndex">wordIndex</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.3</a> on Mon Oct 05 2015 17:09:47 GMT-0400 (Eastern Daylight Time)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.3.3</a> on Sun Nov 22 2015 21:41:11 GMT-0500 (Eastern Standard Time)
 </footer>
 
 <script> prettyPrint(); </script>

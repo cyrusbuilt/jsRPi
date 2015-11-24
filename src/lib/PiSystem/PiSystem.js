@@ -29,10 +29,10 @@
  */
 
 module.exports = {
-  'boardType' : require('./BoardType.js'),
-  'clockType' : require('./ClockType.js'),
-  'coreUtils' : require('./CoreUtils.js'),
-  'networkInfo' : require('./NetworkInfo.js'),
-  'systemInfo' : require('./SystemInfo.js'),
-  'timeUnit' : require('./TimeUnit.js')
+  BoardType : require('./BoardType.js'),
+  ClockType : require('./ClockType.js'),
+  CoreUtils : require('./CoreUtils.js'),
+  NetworkInfo : require('./NetworkInfo.js'),
+  SystemInfo : require('./SystemInfo.js'),
+  TimeUnit : require('./TimeUnit.js')
 };

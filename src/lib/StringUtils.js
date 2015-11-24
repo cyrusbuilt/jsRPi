@@ -33,7 +33,7 @@
  */
 
 var util = require('util');
-var StringBuilder = require("string-builder");
+var sb = require("string-builder");
 var IllegalArgumentException = require("./IllegalArgumentException.js");
 
 /**
@@ -61,7 +61,7 @@ var create = function(c, length) {
     c = DEFAULT_PAD_CHAR;
   }
 
-  var sb = new StringBuilder();
+  sb.clear();
   for (var i = 0; i < length; i++) {
     sb.append(c);
   }
@@ -82,7 +82,7 @@ var padLeft = function(data, pad, length) {
     pad = DEFAULT_PAD_CHAR;
   }
 
-  var sb = new StringBuilder();
+  sb.clear();
   for (var i = 0; i < length; i++) {
     sb.append(pad);
   }
@@ -105,7 +105,7 @@ var padRight = function(data, pad, length) {
     pad = DEFAULT_PAD_CHAR;
   }
 
-  var sb = new StringBuilder();
+  sb.clear();
   sb.append(data);
   for (var i = 0; i < length; i++) {
     sb.append(pad);
@@ -128,10 +128,11 @@ var pad = function(data, pad, length) {
     pad = DEFAULT_PAD_CHAR;
   }
 
-  var sb = new StringBuilder();
-  sb.append(this.create(pad, length));
+  var p = create(pad, length);
+  sb.clear();
+  sb.append(p);
   sb.append(data);
-  sb.append(this.create(pad, length));
+  sb.append(p);
   return sb.toString();
 };
 
@@ -151,21 +152,19 @@ var padCenter = function(data, c, length) {
     throw new IllegalArgumentException("data param must be a string.");
   }
 
-  if ((c === undefined) || (c == null) || (c === EMPTY)) {
+  if ((util.isNullOrUndefined(c)) || (c === EMPTY)) {
     c = DEFAULT_PAD_CHAR;
   }
 
-  if (data.length < length) {
-    var needed = (length - data.length);
-    var padNeeded = (needed / 2);
+  if ((data.length > 2) && (length > 0)) {
+    var firstHalf = data.substring(0, (data.length / 2));
+    var secondHalf = data.substring((data.length / 2), data.length);
+    var pad = create(c, length);
 
-    var sb = new StringBuilder();
-    sb.append(this.create(c, padNeeded));
-    sb.append(data);
-    sb.append(this.create(c, padNeeded));
-
-    var remaining = (length - sb.toString().length);
-    sb.append(this.create(c, remaining));
+    sb.clear();
+    sb.append(firstHalf);
+    sb.append(pad);
+    sb.append(secondHalf);
     return sb.toString();
   }
   return data;
@@ -216,7 +215,7 @@ var trim = function(str) {
     return "";
   }
 
-  if (this.isNullOrEmpty(str)) {
+  if (isNullOrEmpty(str)) {
     return "";
   }
   return str.replace(/^\s+|\s+$/gm,'');

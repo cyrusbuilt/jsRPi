@@ -45,6 +45,7 @@ function LcdComponent(provider, rows, columns) {
   LcdBase.call(this);
 
   var self = this;
+  var _base = new LcdBase();
   var _module = provider || null;
   columns = columns || 0;
   rows = rows || 0;
@@ -61,11 +62,62 @@ function LcdComponent(provider, rows, columns) {
   _module.begin(columns, rows);
 
   /**
+   * Component name property.
+   * @property {String}
+   */
+  this.componentName = _base.componentName;
+
+  /**
+   * Tag property.
+   * @property {Object}
+   */
+  this.tag = _base.tag;
+
+  /**
+   * Gets the property collection.
+   * @return {Array} A custom property collection.
+   * @override
+   */
+  this.getPropertyCollection = function() {
+    return _base.getPropertyCollection();
+  };
+
+  /**
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  this.hasProperty = function(key) {
+    return _base.hasProperty(key);
+  };
+
+  /**
+   * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   */
+  this.setProperty = function(key, value) {
+    _base.setProperty(key, value);
+  };
+
+  /**
+   * Determines whether or not this instance has been disposed.
+   * @return {Boolean} true if disposed; Otherwise, false.
+   * @override
+   */
+  this.isDisposed = function() {
+    return _base.isDisposed();
+  };
+
+  /**
    * Releases all managed resources used by this instance.
    * @override
    */
   this.dispose = function() {
-    if (LcdBase.prototype.isDisposed.call(this)) {
+    if (LcdBase.prototype.isDisposed()) {
       return;
     }
 
@@ -74,7 +126,7 @@ function LcdComponent(provider, rows, columns) {
       _module.provider().dispose();
       _module = undefined;
     }
-    LcdBase.prototype.dispose.call(this);
+    LcdBase.prototype.dispose();
   };
 
   /**
@@ -106,7 +158,7 @@ function LcdComponent(provider, rows, columns) {
   this.setCursorPosition = function(row, column) {
     row = row || 0;
     column = column || 0;
-    LcdBase.prototype._validateCoordinates.call(this, row, column);
+    LcdBase.prototype._validateCoordinates(row, column);
     _module.setCursorPosition(column, row);
   };
 
@@ -140,7 +192,7 @@ function LcdComponent(provider, rows, columns) {
    * @override
    */
   this.toString = function() {
-    return LcdBase.prototype.componentName;
+    return self.componentName;
   };
 }
 

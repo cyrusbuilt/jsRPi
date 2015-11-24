@@ -36,4 +36,5 @@ function SprinklerControllerDevice() {
 
 SprinklerControllerDevice.prototype.constructor = SprinklerControllerDevice;
 inherits(SprinklerControllerDevice, SprinklerControllerBase);
+
 module.exports = SprinklerControllerDevice;

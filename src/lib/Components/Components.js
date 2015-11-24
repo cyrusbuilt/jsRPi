@@ -29,16 +29,16 @@
  */
 
 module.exports = {
-  'component' : require('./Component.js'),
-  'componentBase' : require('./ComponentBase.js'),
-  'buttons' : require('./Button/Buttons.js'),
-  'buzzers' : require('./Buzzers/Buzzers.js'),
-  'lcdDisplay' : require('./LcdDisplay/LcdDisplay.js'),
-  'lights' : require('./Lights/Lights.js'),
-  'motors' : require('./Motors/Motors.js'),
-  'power' : require('./Power/Power.js'),
-  'relays' : require('./Relays/Relays.js'),
-  'sensors' : require('./Sensors/Sensors.js'),
-  'switches' : require('./Switches/Switches.js'),
-  'temperature' : require('./Temperature/Temperature.js')
+  Component : require('./Component.js'),
+  ComponentBase : require('./ComponentBase.js'),
+  Buttons : require('./Button/Buttons.js'),
+  Buzzers : require('./Buzzers/Buzzers.js'),
+  LcdDisplay : require('./LcdDisplay/LcdDisplay.js'),
+  Lights : require('./Lights/Lights.js'),
+  Motors : require('./Motors/Motors.js'),
+  Power : require('./Power/Power.js'),
+  Relays : require('./Relays/Relays.js'),
+  Sensors : require('./Sensors/Sensors.js'),
+  Switches : require('./Switches/Switches.js'),
+  Temperature : require('./Temperature/Temperature.js')
 };

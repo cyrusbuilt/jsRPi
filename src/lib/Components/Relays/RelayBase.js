@@ -24,13 +24,13 @@
 
 var util = require('util');
 var inherits = require('util').inherits;
-var extend = require('extend');
 var ComponentBase = require('../ComponentBase.js');
 var Relay = require('./Relay.js');
 var RelayState = require('./RelayState.js');
 var ArgumentNullException = require('../../ArgumentNullException.js');
 var RelayStateChangeEvent = require('./RelayStateChangeEvent.js');
 var EventEmitter = require('events').EventEmitter;
+var ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
  * @classdesc Base class for relay abstraction components.
@@ -43,23 +43,75 @@ var EventEmitter = require('events').EventEmitter;
  */
 function RelayBase(pin) {
   Relay.call(this);
-  ComponentBase.call(this);
-  EventEmitter.call(this);
 
   if (util.isNullOrUndefined(pin)) {
     throw new ArgumentNullException("'pin' cannot be null or undefined.");
   }
 
   var self = this;
+  var _base = new ComponentBase();
+  var _emitter = new EventEmitter();
+  var _state = RelayState.Open;
   var _pin = pin;
   _pin.provision();
+
+  /**
+   * Component name property.
+   * @property {String}
+   */
+  this.componentName = _base.componentName;
+
+  /**
+   * Tag property.
+   * @property {Object}
+   */
+  this.tag = _base.tag;
+
+  /**
+   * Gets the property collection.
+   * @return {Array} A custom property collection.
+   * @override
+   */
+  this.getPropertyCollection = function() {
+    return _base.getPropertyCollection();
+  };
+
+  /**
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  this.hasProperty = function(key) {
+    return _base.hasProperty(key);
+  };
+
+  /**
+   * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   */
+  this.setProperty = function(key, value) {
+    _base.setProperty(key, value);
+  };
+
+  /**
+   * Determines whether or not this instance has been disposed.
+   * @return {Boolean} true if disposed; Otherwise, false.
+   * @override
+   */
+  this.isDisposed = function() {
+    return _base.isDisposed();
+  };
 
   /**
    * Releases all resources used by the GpioBase object.
    * @override
    */
   this.dispose = function() {
-    if (ComponentBase.prototype.isDisposed.call(this)) {
+    if (_base.isDisposed()) {
       return;
     }
 
@@ -68,8 +120,67 @@ function RelayBase(pin) {
       _pin = undefined;
     }
 
-    self.removeAllListeners();
-    ComponentBase.prototype.dispose.call(this);
+    _emitter.removeAllListeners();
+    _emitter = undefined;
+    _base.dispose();
+  };
+
+  /**
+   * Removes all event listeners.
+   * @override
+   */
+  this.removeAllListeners = function() {
+    if (!_base.isDisposed()) {
+      _emitter.removeAllListeners();
+    }
+  };
+
+  /**
+   * Attaches a listener (callback) for the specified event name.
+   * @param  {String}   evt      The name of the event.
+   * @param  {Function} callback The callback function to execute when the
+   * event is raised.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.on = function(evt, callback) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("RelayBase");
+    }
+    _emitter.on(evt, callback);
+  };
+
+  /**
+   * Emits the specified event.
+   * @param  {String} evt  The name of the event to emit.
+   * @param  {Object} args The object that provides arguments to the event.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  this.emit = function(evt, args) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("RelayBase");
+    }
+    _emitter.emit(evt, args);
+  };
+
+  /**
+   * Gets the relay state.
+   * @return {RelayState} The state of the relay.
+   */
+  this.getState = function() {
+    return _state;
+  };
+
+  /**
+   * Sets the state of the relay.
+   * @param  {RelayState} state the state to set.
+   */
+  this.setState = function(state) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("RelayBase");
+    }
+    _state = state;
   };
 
   /**
@@ -103,9 +214,15 @@ function RelayBase(pin) {
    * @override
    */
   this.onRelayStateChanged = function(relayStateChangeEvent) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("RelayBase");
+    }
+
+    var e = _emitter;
+    var evt = relayStateChangeEvent;
     process.nextTick(function() {
-      self.emit(Relay.EVENT_STATE_CHANGED, relayStateChangeEvent);
-    });
+      e.emit(Relay.EVENT_STATE_CHANGED, evt);
+    }.bind(this));
   };
 
   /**
@@ -113,9 +230,14 @@ function RelayBase(pin) {
    * @override
    */
   this.onPulseStart = function() {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("RelayBase");
+    }
+
+    var e = _emitter;
     process.nextTick(function() {
-      self.emit(Relay.EVENT_PULSE_START);
-    });
+      e.emit(Relay.EVENT_PULSE_START);
+    }.bind(this));
   };
 
   /**
@@ -123,9 +245,14 @@ function RelayBase(pin) {
    * @override
    */
   this.onPulseStop = function() {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("RelayBase");
+    }
+
+    var e = _emitter;
     process.nextTick(function() {
-      self.emit(Relay.EVENT_PULSE_STOPPED);
-    });
+      e.emit(Relay.EVENT_PULSE_STOPPED);
+    }.bind(this));
   };
 
   /**
@@ -188,11 +315,11 @@ function RelayBase(pin) {
    * @override
    */
   this.toString = function() {
-    return ComponentBase.prototype.componentName;
+    return self.componentName;
   };
 }
 
 RelayBase.prototype.constructor = RelayBase;
 inherits(RelayBase, Relay);
 
-module.exports = extend(true, RelayBase, ComponentBase, EventEmitter);
+module.exports = RelayBase;

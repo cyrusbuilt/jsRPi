@@ -21,6 +21,9 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+var util = require('util');
+
+
 /**
  * @classdesc The event that gets raised when a change in temperature occurs.
  * @param {Number} oldTemp The temperature value prior to the change event.
@@ -29,32 +32,39 @@
  * @event
  */
 function TemperatureChangeEvent(oldTemp, newTemp) {
-  var _oldTemp = oldTemp || 0;
-  var _newTemp = newTemp || 0;
+  	var _oldTemp = oldTemp;
+	if (util.isNullOrUndefined(_oldTemp)) {
+		_oldTemp = 0;	
+	}
+	
+  	var _newTemp = newTemp;
+	if (util.isNullOrUndefined(_newTemp)) {
+		_newTemp = 0;
+	}
 
-  /**
-   * Gets the previous temperature value.
-   * @return {Number} The previous temperature value.
-   */
-  this.getOldTemp = function() {
-    return _oldTemp;
-  };
+  	/**
+    * Gets the previous temperature value.
+    * @return {Number} The previous temperature value.
+    */
+  	this.getOldTemp = function() {
+    	return _oldTemp;
+  	};
 
-  /**
-   * Gets the current temperature value.
-   * @return {Number} The current temperature.
-   */
-  this.getNewTemp = function() {
-    return _newTemp;
-  };
+  	/**
+    * Gets the current temperature value.
+    * @return {Number} The current temperature.
+    */
+  	this.getNewTemp = function() {
+    	return _newTemp;
+  	};
 
-  /**
-   * Gets the temperature change.
-   * @return {Number} The change value (difference).
-   */
-  this.getTemperatureChange = function() {
-    return (_newTemp - _oldTemp);
-  };
+  	/**
+    * Gets the temperature change.
+    * @return {Number} The change value (difference).
+    */
+  	this.getTemperatureChange = function() {
+    	return (_newTemp - _oldTemp);
+  	};
 }
 
 TemperatureChangeEvent.prototype.constructor = TemperatureChangeEvent;

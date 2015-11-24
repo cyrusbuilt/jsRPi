@@ -29,10 +29,10 @@
  */
 
 module.exports = {
-  'relayState' : require('./RelayState.js'),
-  'relayUtils' : require('./RelayUtils.js'),
-  'relayStateChangeEvent' : require('./RelayStateChangeEvent'),
-  'relay' : require('./Relay.js'),
-  'relayBase' : require('./RelayBase.js'),
-  'relayComponent' : require('./RelayComponent.js')
+  RelayState : require('./RelayState.js'),
+  RelayUtils : require('./RelayUtils.js'),
+  RelayStateChangeEvent : require('./RelayStateChangeEvent'),
+  Relay : require('./Relay.js'),
+  RelayBase : require('./RelayBase.js'),
+  RelayComponent : require('./RelayComponent.js')
 };

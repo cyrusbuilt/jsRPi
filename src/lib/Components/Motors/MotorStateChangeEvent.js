@@ -22,6 +22,7 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+var util = require('util');
 var MotorState = require('./MotorState.js');
 
 /**
@@ -33,8 +34,15 @@ var MotorState = require('./MotorState.js');
  * @event
  */
 function MotorStateChangeEvent(oldState, newState) {
-  var _oldState = oldState || MotorState.Stop;
-  var _newState = newState || MotorState.Stop;
+  var _oldState = oldState;
+  if (util.isNullOrUndefined(_oldState)) {
+    _oldState = MotorState.Stop;
+  }
+
+  var _newState = newState;
+  if (util.isNullOrUndefined(_newState)) {
+    _newState = MotorState.Stop;
+  }
 
   /**
    * Gets the state the motor was in prior to the change.

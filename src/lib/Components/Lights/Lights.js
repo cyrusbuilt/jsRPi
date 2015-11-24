@@ -30,15 +30,15 @@
  */
 
 module.exports = {
-  'light' : require('./Light.js'),
-  'lightLevelChangeEvent' : require('./LightlevelChangeEvent.js'),
-  'lightStateChangeEvent' : require('./LightStateChangeEvent.js'),
-  'ledInterface' : require('./LEDInterface.js'),
-  'dimmableLight' : require('./DimmableLight.js'),
-  'dimmableLightBase' : require('./DimmableLightBase.js'),
-  'dimmableLightComponent' : require('./DimmableLightComponent.js'),
-  'lightBase' : require('./LightBase.js'),
-  'lightComponent' : require('./LightComponent.js'),
-  'ledBase' : require('./LEDBase.js'),
-  'ledComponent' : require('./LEDComponent.js')
+  Light : require('./Light.js'),
+  LightLevelChangeEvent : require('./LightLevelChangeEvent.js'),
+  LightStateChangeEvent : require('./LightStateChangeEvent.js'),
+  LedInterface : require('./LEDInterface.js'),
+  DimmableLight : require('./DimmableLight.js'),
+  DimmableLightBase : require('./DimmableLightBase.js'),
+  DimmableLightComponent : require('./DimmableLightComponent.js'),
+  LightBase : require('./LightBase.js'),
+  LightComponent : require('./LightComponent.js'),
+  LedBase : require('./LEDBase.js'),
+  LedComponent : require('./LEDComponent.js')
 };

@@ -32,79 +32,86 @@ var Device = require('./Device.js');
  * @implements {Device}
  */
 function DeviceBase(props) {
-  Device.call(this);
+  	Device.call(this);
 
-  var self = this;
-  var _props = props || [];
-  var _isDisposed = false;
+  	var self = this;
+  	var _props = props || [];
+  	var _isDisposed = false;
+	
+	/**
+ 	 * Device name property.
+    * @property {String}
+    */
+	this.deviceName = "";
+	
+	/**
+ 	 * Tag property.
+ 	 * @property {Object}
+ 	 */
+	this.tag = null;
 
-  /**
-   * Determines whether or not the current instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
-   * @override
-   */
-  this.isDisposed = function() {
-    return _isDisposed;
-  };
+  	/**
+    * Determines whether or not the current instance has been disposed.
+    * @return {Boolean} true if disposed; Otherwise, false.
+    * @override
+    */
+  	this.isDisposed = function() {
+    	return _isDisposed;
+  	};
 
-  /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
-   * @override
-   */
-  this.getPropertyCollection = function() {
-    return _props;
-  };
+  	/**
+    * Gets the property collection.
+    * @return {Array} A custom property collection.
+    * @override
+    */
+  	this.getPropertyCollection = function() {
+    	return _props;
+  	};
 
-  /**
-   * Checks to see if the property collection contains the specified key.
-   * @param  {String} key The key name of the property to check for.
-   * @return {Boolean}    true if the property collection contains the key;
-   * Otherwise, false.
-   * @override
-   */
-  this.hasProperty = function(key) {
-    return (key in _props);
-  };
+  	/**
+    * Checks to see if the property collection contains the specified key.
+    * @param  {String}  key The key name of the property to check for.
+    * @return {Boolean} true if the property collection contains the key;
+    * Otherwise, false.
+    * @override
+    */
+  	this.hasProperty = function(key) {
+    	return (key in _props);
+  	};
 
-  /**
-   * Sets the value of the specified property. If the property does not already exist
+  	/**
+    * Sets the value of the specified property. If the property does not already exist
 	 * in the property collection, it will be added.
-   * @param  {String} key   The property name (key).
-   * @param  {String} value The value to assign to the property.
-   */
-  this.setProperty = function(key, value) {
-    if (self.hasProperty(key)) {
+    * @param  {String} key   The property name (key).
+    * @param  {String} value The value to assign to the property.
+    */
+  	this.setProperty = function(key, value) {
       _props[key] = value;
-    }
-    else {
-      _props.push([key, value]);
-    }
-  };
+  	};
 
-  /**
-   * Returns the string representation of this object. In this case, it simply
-   * returns the component name.
-   * @return {String} The name of this component.
-   */
-  this.toString = function() {
-    return self.deviceName;
-  };
+  	/**
+    * Returns the string representation of this object. In this case, it simply
+    * returns the component name.
+    * @return {String} The name of this component.
+    */
+  	this.toString = function() {
+    	return self.deviceName;
+  	};
 
-  /**
-   * Releases all managed resources used by this instance.
-   * @override
-   */
-  this.dispose = function() {
-    if (_isDisposed) {
-      return;
-    }
+  	/**
+    * Releases all managed resources used by this instance.
+    * @override
+    */
+  	this.dispose = function() {
+    	if (_isDisposed) {
+      	return;
+    	}
 
-    _props = undefined;
-    self.tag = undefined;
-    self.deviceName = undefined;
-    _isDisposed = true;
-  };
+    	_props = undefined;
+    	self.tag = undefined;
+    	self.deviceName = undefined;
+    	_isDisposed = true;
+  	};
 }
 
 DeviceBase.prototype.constructor = DeviceBase;

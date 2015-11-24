@@ -35,9 +35,10 @@
  * @param  {Number} micros The amount of time in microseconds to sleep.
  */
 var sleepMicroseconds = function(micros) {
-  var d = new Date();
-  var end = d.getTime() + (micros / 1000);
-  while (d.getTime() <= end) {
+  var start = new Date().getTime();
+  var diff = (micros / 1000);
+  var end = start + diff;
+  while (new Date().getTime() <= end) {
     // This isn't a *real* sleep. We just spin the CPU because we
 		// aren't operating on a real-time OS, so the best we can do
 		// is spin the CPU. We can't *really* sleep less than 1ms, and

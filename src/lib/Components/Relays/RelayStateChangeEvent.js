@@ -22,6 +22,7 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+var util = require('util');
 var RelayState = require('./RelayState.js');
 
 /**
@@ -32,8 +33,15 @@ var RelayState = require('./RelayState.js');
  * @event
  */
 function RelayStateChangeEvent(oldState, newState) {
-  var _oldState = oldState || RelayState.Open;
-  var _newState = newState || RelayState.Open;
+  var _oldState = oldState;
+  if (util.isNullOrUndefined(_oldState)) {
+    _oldState = RelayState.Open;
+  }
+
+  var _newState = newState;
+  if (util.isNullOrUndefined(_oldState)) {
+    _newState = RelayState.Open;
+  }
 
   /**
    * Gets the previous state of the relay.

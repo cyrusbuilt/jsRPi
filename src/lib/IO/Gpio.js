@@ -44,18 +44,21 @@ inherits(Gpio, Pin);
 /**
  * Write a value to the pin.
  * @param  {PinState} ps The pin state value to write to the pin.
+ * @throws {ObjectDisposedException} if this instance has been disposed.
  */
 Gpio.prototype.write = function(ps) {};
 
 /**
  * Pulse the pin output for the specified number of milliseconds.
  * @param  {Number} millis The number of milliseconds to wait between states.
+ * @throws {ObjectDisposedException} if this instance has been disposed.
  */
 Gpio.prototype.pulse = function(millis) {};
 
 /**
  * Reads a value from the pin.
  * @return {PinState} The state (value) of the pin.
+ * @throws {ObjectDisposedException} if this instance has been disposed.
  */
 Gpio.prototype.read = function() { return PinState.Low; };
 
