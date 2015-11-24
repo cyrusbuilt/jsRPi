@@ -38,13 +38,13 @@ var PRESSED_STATE = PinState.High;
 var RELEASED_STATE = PinState.Low;
 
 /**
- * A component that is an abstraction of a button. This is an implementation
- * of {ButtonBase}.
- * @param {Gpio} pin The input pin the button is wired to.
- * @throws {ArgumentNullException} if the pin param is null or undefined.
- * @constructor
- * @extends {ButtonBase}
- */
+* A component that is an abstraction of a button. This is an implementation
+* of {ButtonBase}.
+* @param {Gpio} pin The input pin the button is wired to.
+* @throws {ArgumentNullException} if the pin param is null or undefined.
+* @constructor
+* @extends {ButtonBase}
+*/
 function ButtonComponent(pin) {
   ButtonBase.call(this);
   var _base = new ButtonBase();
@@ -54,11 +54,11 @@ function ButtonComponent(pin) {
   }
 
   /**
-   * Handles the pin state change event. This verifies the state has actually
-   * changed, then fires the button state change event.
-   * @param  {PinStateChangeEvent} psce The pin state change event info.
-   * @private
-   */
+  * Handles the pin state change event. This verifies the state has actually
+  * changed, then fires the button state change event.
+  * @param  {PinStateChangeEvent} psce The pin state change event info.
+  * @private
+  */
   var onPinStateChanged = function(psce) {
     if (psce.getNewState() !== psce.getOldState()) {
       _base._setState(psce.getNewState());
@@ -73,70 +73,70 @@ function ButtonComponent(pin) {
   var _isPolling = false;
   var _pollTimer = null;
 
-	/**
-	 * Gets the underlying pin the button is attached to.
-	 * @returns {Gpio} The underlying pin.
-	 */
-	this.getPin = function() {
-		return _pin;
-	};
-	
   /**
-   * Component name property.
-   * @property {String}
-   */
+  * Gets the underlying pin the button is attached to.
+  * @returns {Gpio} The underlying pin.
+  */
+  this.getPin = function() {
+    return _pin;
+  };
+
+  /**
+  * Component name property.
+  * @property {String}
+  */
   this.componentName = _base.componentName;
 
   /**
-   * Tag property.
-   * @property {Object}
-   */
+  * Tag property.
+  * @property {Object}
+  */
   this.tag = _base.tag;
 
   /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
-   * @override
-   */
+  * Gets the property collection.
+  * @return {Array} A custom property collection.
+  * @override
+  */
   this.getPropertyCollection = function() {
     return _base.getPropertyCollection();
   };
 
   /**
-   * Checks to see if the property collection contains the specified key.
-   * @param  {String} key The key name of the property to check for.
-   * @return {Boolean}    true if the property collection contains the key;
-   * Otherwise, false.
-   * @override
-   */
+  * Checks to see if the property collection contains the specified key.
+  * @param  {String} key The key name of the property to check for.
+  * @return {Boolean}    true if the property collection contains the key;
+  * Otherwise, false.
+  * @override
+  */
   this.hasProperty = function(key) {
     return _base.hasProperty(key);
   };
 
   /**
-   * Sets the value of the specified property. If the property does not already exist
-	 * in the property collection, it will be added.
-   * @param  {String} key   The property name (key).
-   * @param  {String} value The value to assign to the property.
-   */
+  * Sets the value of the specified property. If the property does not already exist
+  * in the property collection, it will be added.
+  * @param  {String} key   The property name (key).
+  * @param  {String} value The value to assign to the property.
+  */
   this.setProperty = function(key, value) {
     _base.setProperty(key, value);
   };
 
   /**
-   * Determines whether or not the current instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
-   * @override
-   */
+  * Determines whether or not the current instance has been disposed.
+  * @return {Boolean} true if disposed; Otherwise, false.
+  * @override
+  */
   this.isDisposed = function() {
     return _base.isDisposed();
   };
 
   /**
-   * Gets the button state.
-   * @return {ButtonState} Gets the state of the button.
-   * @override
-   */
+  * Gets the button state.
+  * @return {ButtonState} Gets the state of the button.
+  * @override
+  */
   this.getState = function() {
     if (_pin.state() === PRESSED_STATE) {
       return ButtonState.Pressed;
@@ -145,19 +145,19 @@ function ButtonComponent(pin) {
   };
 
   /**
-   * Checks to see if the button is in poll mode, where it reads the button
-   * state every 500ms and fires state change events when the state changes.
-   * @return {Boolean} true if the button is polling; Otherwise, false.
-   */
+  * Checks to see if the button is in poll mode, where it reads the button
+  * state every 500ms and fires state change events when the state changes.
+  * @return {Boolean} true if the button is polling; Otherwise, false.
+  */
   this.isPolling = function() {
     return _isPolling;
   };
 
   /**
-   * Executes the poll cycle. This simply polls the pin, which in turn fires
-   * pin state change events that we handle internally by firing button state
-   * change events. This only occurs if polling is enabled.
-   */
+  * Executes the poll cycle. This simply polls the pin, which in turn fires
+  * pin state change events that we handle internally by firing button state
+  * change events. This only occurs if polling is enabled.
+  */
   var executePoll = function() {
     if (_isPolling) {
       _pin.read();
@@ -165,21 +165,21 @@ function ButtonComponent(pin) {
   };
 
   /**
-   * Starts the poll timer. Every time the timer elapses, executePoll() will be
-   * called.
-   */
+  * Starts the poll timer. Every time the timer elapses, executePoll() will be
+  * called.
+  */
   var startPollTimer = function() {
     _isPolling = true;
     _pollTimer = setInterval(executePoll, 500);
   };
 
   /**
-   * Polls the button status.
-   * @throws {ObjectDisposedException} if this instance has been disposed and
-   * can no longer be used.
-   * @throws {InvalidOperationException} if this button is attached to a pin
-   * that has not been configured as an input.
-   */
+  * Polls the button status.
+  * @throws {ObjectDisposedException} if this instance has been disposed and
+  * can no longer be used.
+  * @throws {InvalidOperationException} if this button is attached to a pin
+  * that has not been configured as an input.
+  */
   this.poll = function() {
     if (self.isDisposed()) {
       throw new ObjectDisposedException('ButtonComponent');
@@ -187,7 +187,7 @@ function ButtonComponent(pin) {
 
     if (_pin.mode() !== PinMode.IN) {
       throw new InvalidOperationException("The pin this button is attached to" +
-                                            " must be configured as an input.");
+      " must be configured as an input.");
     }
 
     if (_isPolling) {
@@ -197,8 +197,8 @@ function ButtonComponent(pin) {
   };
 
   /**
-   * Interrupts the poll cycle.
-   */
+  * Interrupts the poll cycle.
+  */
   this.interruptPoll = function() {
     if (!_isPolling) {
       return;
@@ -212,42 +212,42 @@ function ButtonComponent(pin) {
   };
 
   /**
-   * Gets the string representation of this button component instance. This is
-   * basically just an alias to the name property.
-   * @return {String} The name of this button component.
-   * @override
-   */
+  * Gets the string representation of this button component instance. This is
+  * basically just an alias to the name property.
+  * @return {String} The name of this button component.
+  * @override
+  */
   this.toString = function() {
     return self.componentName;
   };
 
   /**
-   * Attaches a listener (callback) for the specified event name.
-   * @param  {String}   evt      The name of the event.
-   * @param  {Function} callback The callback function to execute when the
-   * event is raised.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   */
+  * Attaches a listener (callback) for the specified event name.
+  * @param  {String}   evt      The name of the event.
+  * @param  {Function} callback The callback function to execute when the
+  * event is raised.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @override
+  */
   this.on = function(evt, callback) {
     _base.on(evt, callback);
   };
 
   /**
-   * Emits the specified event.
-   * @param  {String} evt  The name of the event to emit.
-   * @param  {Object} args The object that provides arguments to the event.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   */
+  * Emits the specified event.
+  * @param  {String} evt  The name of the event to emit.
+  * @param  {Object} args The object that provides arguments to the event.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @override
+  */
   this.emit = function(evt, args) {
     _base.emit(evt, args);
   };
 
   /**
-   * Releases all resources used by the GpioBase object.
-   * @override
-   */
+  * Releases all resources used by the GpioBase object.
+  * @override
+  */
   this.dispose = function() {
     if (self.isDisposed()) {
       return;

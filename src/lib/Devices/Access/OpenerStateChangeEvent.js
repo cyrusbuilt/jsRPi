@@ -25,38 +25,38 @@ var util = require('util');
 var OpenerState = require('./OpenerState.js');
 
 /**
- * @classdesc The event that gets raised when an opener device changes state.
- * @param {OpenerState} oldState The previous state of the opener.
- * @param {OpenerState} newState The current state of the opener.
- * @constructor
- * @event
- */
+* @classdesc The event that gets raised when an opener device changes state.
+* @param {OpenerState} oldState The previous state of the opener.
+* @param {OpenerState} newState The current state of the opener.
+* @constructor
+* @event
+*/
 function OpenerStateChangeEvent(oldState, newState) {
-  	var _oldState = oldState;
-	if (util.isNullOrUndefined(_oldState)) {
-		_oldState = OpenerState.Closed;	
-	}
-	
-  	var _newState = newState;
-	if (util.isNullOrUndefined(_newState)) {
-		_newState = OpenerState.Closed;
-	}
-	
-  	/**
-    * Gets the previous state of the opener.
-    * @return {OpenerState} The previous state.
-    */
-  	this.getOldState = function() {
-    	return _oldState;
-  	};
+  var _oldState = oldState;
+  if (util.isNullOrUndefined(_oldState)) {
+    _oldState = OpenerState.Closed;
+  }
 
-  	/**
-    * Gets the current state of the opener.
-    * @return {OpenerState} The current state.
-    */
-  	this.getNewState = function() {
-    	return _newState;
-  	};
+  var _newState = newState;
+  if (util.isNullOrUndefined(_newState)) {
+    _newState = OpenerState.Closed;
+  }
+
+  /**
+  * Gets the previous state of the opener.
+  * @return {OpenerState} The previous state.
+  */
+  this.getOldState = function() {
+    return _oldState;
+  };
+
+  /**
+  * Gets the current state of the opener.
+  * @return {OpenerState} The current state.
+  */
+  this.getNewState = function() {
+    return _newState;
+  };
 }
 
 OpenerStateChangeEvent.prototype.constructor = OpenerStateChangeEvent;

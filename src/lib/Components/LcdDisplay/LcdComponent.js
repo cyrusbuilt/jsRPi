@@ -31,16 +31,16 @@ var LcdTransferProvider = require('../../LCD/LcdTransferProvider.js');
 var IllegalArgumentException = require('../../IllegalArgumentException.js');
 
 /**
- * An LCD display device abstraction component.
- * @param {LcdTransferProvider} provider The LCD transfer provider.
- * @param {Number} rows     The number of rows in the display.
- * @param {Number} columns  The number of columns.
- * @throws {ArgumentNullException} if the specified provider is null or undefined.
- * @throws {IllegalArgumentException} if the specified provider is not actually
- * of type LcdTransferProvider or derivative.
- * @constructor
- * @extends {LcdBase}
- */
+* An LCD display device abstraction component.
+* @param {LcdTransferProvider} provider The LCD transfer provider.
+* @param {Number} rows     The number of rows in the display.
+* @param {Number} columns  The number of columns.
+* @throws {ArgumentNullException} if the specified provider is null or undefined.
+* @throws {IllegalArgumentException} if the specified provider is not actually
+* of type LcdTransferProvider or derivative.
+* @constructor
+* @extends {LcdBase}
+*/
 function LcdComponent(provider, rows, columns) {
   LcdBase.call(this);
 
@@ -62,60 +62,60 @@ function LcdComponent(provider, rows, columns) {
   _module.begin(columns, rows);
 
   /**
-   * Component name property.
-   * @property {String}
-   */
+  * Component name property.
+  * @property {String}
+  */
   this.componentName = _base.componentName;
 
   /**
-   * Tag property.
-   * @property {Object}
-   */
+  * Tag property.
+  * @property {Object}
+  */
   this.tag = _base.tag;
 
   /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
-   * @override
-   */
+  * Gets the property collection.
+  * @return {Array} A custom property collection.
+  * @override
+  */
   this.getPropertyCollection = function() {
     return _base.getPropertyCollection();
   };
 
   /**
-   * Checks to see if the property collection contains the specified key.
-   * @param  {String} key The key name of the property to check for.
-   * @return {Boolean}    true if the property collection contains the key;
-   * Otherwise, false.
-   * @override
-   */
+  * Checks to see if the property collection contains the specified key.
+  * @param  {String} key The key name of the property to check for.
+  * @return {Boolean}    true if the property collection contains the key;
+  * Otherwise, false.
+  * @override
+  */
   this.hasProperty = function(key) {
     return _base.hasProperty(key);
   };
 
   /**
-   * Sets the value of the specified property. If the property does not already exist
-	 * in the property collection, it will be added.
-   * @param  {String} key   The property name (key).
-   * @param  {String} value The value to assign to the property.
-   */
+  * Sets the value of the specified property. If the property does not already exist
+  * in the property collection, it will be added.
+  * @param  {String} key   The property name (key).
+  * @param  {String} value The value to assign to the property.
+  */
   this.setProperty = function(key, value) {
     _base.setProperty(key, value);
   };
 
   /**
-   * Determines whether or not this instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
-   * @override
-   */
+  * Determines whether or not this instance has been disposed.
+  * @return {Boolean} true if disposed; Otherwise, false.
+  * @override
+  */
   this.isDisposed = function() {
     return _base.isDisposed();
   };
 
   /**
-   * Releases all managed resources used by this instance.
-   * @override
-   */
+  * Releases all managed resources used by this instance.
+  * @override
+  */
   this.dispose = function() {
     if (LcdBase.prototype.isDisposed()) {
       return;
@@ -130,31 +130,31 @@ function LcdComponent(provider, rows, columns) {
   };
 
   /**
-   * Gets the row count.
-   * @return {Number} The number of rows supported by the display.
-   * @override
-   */
+  * Gets the row count.
+  * @return {Number} The number of rows supported by the display.
+  * @override
+  */
   this.getRowCount = function() {
     return _module.rows();
   };
 
   /**
-   * Gets the column count.
-   * @return {Number} The number of columns supported by the display.
-   * @override
-   */
+  * Gets the column count.
+  * @return {Number} The number of columns supported by the display.
+  * @override
+  */
   this.getColumnCount = function() {
     return _module.columns();
   };
 
   /**
-   * Positions the cursor at the specified column and row. If only the row is
-   * given, then the cursor is placed at the beginning of the specified row.
-   * @param  {Number} row    The number of the row to position the cursor in.
-   * @param  {Number} column The number of the column in the specified row to
-   * position the cursor.
-   * @override
-   */
+  * Positions the cursor at the specified column and row. If only the row is
+  * given, then the cursor is placed at the beginning of the specified row.
+  * @param  {Number} row    The number of the row to position the cursor in.
+  * @param  {Number} column The number of the column in the specified row to
+  * position the cursor.
+  * @override
+  */
   this.setCursorPosition = function(row, column) {
     row = row || 0;
     column = column || 0;
@@ -163,34 +163,34 @@ function LcdComponent(provider, rows, columns) {
   };
 
   /**
-   * Writes a single byte of data to the display.
-   * @param  {Byte|Number} data The byte to send.
-   * @override
-   */
+  * Writes a single byte of data to the display.
+  * @param  {Byte|Number} data The byte to send.
+  * @override
+  */
   this.writeSingleByte = function(data) {
     _module.writeByte(data);
   };
 
   /**
-   * Clears the display.
-   */
+  * Clears the display.
+  */
   this.clearDisplay = function() {
     _module.clear();
   };
 
   /**
-   * Sets the cursor in the home position.
-   */
+  * Sets the cursor in the home position.
+  */
   this.setCursorHome = function() {
     _module.returnHome();
   };
 
   /**
-   * Converts the current instance to it's string representation. This method
-   * simply returns the component name.
-   * @return {String} The component name.
-   * @override
-   */
+  * Converts the current instance to it's string representation. This method
+  * simply returns the component name.
+  * @return {String} The component name.
+  * @override
+  */
   this.toString = function() {
     return self.componentName;
   };

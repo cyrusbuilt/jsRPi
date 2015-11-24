@@ -26,11 +26,11 @@ var inherits = require('util').inherits;
 var Component = require('./Component.js');
 
 /**
- * @classdesc Base class for hardware abstraction components.
- * @param {Array} props A collection of component properties (optional).
- * @constructor
- * @implements {Component}
- */
+* @classdesc Base class for hardware abstraction components.
+* @param {Array} props A collection of component properties (optional).
+* @constructor
+* @implements {Component}
+*/
 function ComponentBase(props) {
   Component.call(this);
 
@@ -39,57 +39,57 @@ function ComponentBase(props) {
   var _isDisposed = false;
 
   /**
-   * Determines whether or not the current instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
-   * @override
-   */
+  * Determines whether or not the current instance has been disposed.
+  * @return {Boolean} true if disposed; Otherwise, false.
+  * @override
+  */
   this.isDisposed = function() {
     return _isDisposed;
   };
 
   /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
-   * @override
-   */
+  * Gets the property collection.
+  * @return {Array} A custom property collection.
+  * @override
+  */
   this.getPropertyCollection = function() {
     return _props;
   };
 
   /**
-   * Checks to see if the property collection contains the specified key.
-   * @param  {String} key The key name of the property to check for.
-   * @return {Boolean}    true if the property collection contains the key;
-   * Otherwise, false.
-   * @override
-   */
+  * Checks to see if the property collection contains the specified key.
+  * @param  {String} key The key name of the property to check for.
+  * @return {Boolean}    true if the property collection contains the key;
+  * Otherwise, false.
+  * @override
+  */
   this.hasProperty = function(key) {
     return (key in _props);
   };
 
   /**
-   * Sets the value of the specified property. If the property does not already exist
-	* in the property collection, it will be added.
-   * @param  {String} key   The property name (key).
-   * @param  {String} value The value to assign to the property.
-   */
+  * Sets the value of the specified property. If the property does not already exist
+  * in the property collection, it will be added.
+  * @param  {String} key   The property name (key).
+  * @param  {String} value The value to assign to the property.
+  */
   this.setProperty = function(key, value) {
-      _props[key] = value;
+    _props[key] = value;
   };
 
   /**
-   * Returns the string representation of this object. In this case, it simply
-   * returns the component name.
-   * @return {String} The name of this component.
-   */
+  * Returns the string representation of this object. In this case, it simply
+  * returns the component name.
+  * @return {String} The name of this component.
+  */
   this.toString = function() {
     return self.componentName;
   };
 
   /**
-   * Releases all managed resources used by this instance.
-   * @override
-   */
+  * Releases all managed resources used by this instance.
+  * @override
+  */
   this.dispose = function() {
     if (_isDisposed) {
       return;

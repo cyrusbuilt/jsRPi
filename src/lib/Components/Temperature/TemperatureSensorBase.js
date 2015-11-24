@@ -33,231 +33,231 @@ var TemperatureScale = require('./TemperatureScale.js');
 var ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
- * @classdesc Base class for temperature sensor abstraction components.
- * @param {Gpio} clock The GPIO pin used for the clock.
- * @param {Gpio} data  The GPIO pin used for data.
- * @param {Gpio} reset The GPIO pin used to trigger reset.
- * @throws {ArgumentNullException} in any of the pins are null or undefined.
- * @constructor
- * @implements {TemperatureSensor}
- * @extends {ComponentBase}
- * @extends {EventEmitter}
- */
+* @classdesc Base class for temperature sensor abstraction components.
+* @param {Gpio} clock The GPIO pin used for the clock.
+* @param {Gpio} data  The GPIO pin used for data.
+* @param {Gpio} reset The GPIO pin used to trigger reset.
+* @throws {ArgumentNullException} in any of the pins are null or undefined.
+* @constructor
+* @implements {TemperatureSensor}
+* @extends {ComponentBase}
+* @extends {EventEmitter}
+*/
 function TemperatureSensorBase(clock, data, reset) {
-  	TemperatureSensor.call(this);
+  TemperatureSensor.call(this);
 
-  	if (util.isNullOrUndefined(clock)) {
-    	throw new ArgumentNullException("'clock' param cannot be null or undefined.");
-  	}
+  if (util.isNullOrUndefined(clock)) {
+    throw new ArgumentNullException("'clock' param cannot be null or undefined.");
+  }
 
-  	if (util.isNullOrUndefined(data)) {
-    	throw new ArgumentNullException("'data' param cannot be null or undefined.");
-  	}
+  if (util.isNullOrUndefined(data)) {
+    throw new ArgumentNullException("'data' param cannot be null or undefined.");
+  }
 
-  	if (util.isNullOrUndefined(reset)) {
-    	throw new ArgumentNullException("'reset' param cannot be null or undefined.");
-  	}
+  if (util.isNullOrUndefined(reset)) {
+    throw new ArgumentNullException("'reset' param cannot be null or undefined.");
+  }
 
-  	var self = this;
-	var _base = new ComponentBase();
-	var _emitter = new EventEmitter();
-	var _rawTemp = 0;
-	var _scale = TemperatureScale.Celcius;
-  	var _tempSensor = new DS1620(clock, data, reset);
-	
-	/**
-    * Component name property.
-    * @property {String}
-    */
-  	this.componentName = _base.componentName;
+  var self = this;
+  var _base = new ComponentBase();
+  var _emitter = new EventEmitter();
+  var _rawTemp = 0;
+  var _scale = TemperatureScale.Celcius;
+  var _tempSensor = new DS1620(clock, data, reset);
 
-  	/**
-    * Tag property.
-    * @property {Object}
-    */
-  	this.tag = _base.tag;
+  /**
+  * Component name property.
+  * @property {String}
+  */
+  this.componentName = _base.componentName;
 
-  	/**
-    * Gets the property collection.
-    * @return {Array} A custom property collection.
-    *                  @override
-    */
-  	this.getPropertyCollection = function() {
-   	return _base.getPropertyCollection();
-  	};
+  /**
+  * Tag property.
+  * @property {Object}
+  */
+  this.tag = _base.tag;
 
-  	/**
-    * Checks to see if the property collection contains the specified key.
-    * @param  {String}  key The key name of the property to check for.
-    * @return {Boolean} true if the property collection contains the key;
-    * Otherwise, false.
-    * @override
-    */
-  	this.hasProperty = function(key) {
-   	return _base.hasProperty(key);
-  	};
-
-  	/**
-    * Sets the value of the specified property. If the property does not already exist
-	 * in the property collection, it will be added.
-    * @param  {String} key   The property name (key).
-    * @param  {String} value The value to assign to the property.
-    */
-  	this.setProperty = function(key, value) {
-   	_base.setProperty(key, value);
-  	};
-
-  	/**
-    * Determines whether or not this instance has been disposed.
-    * @return {Boolean} true if disposed; Otherwise, false.
-    * @override
-    */
-  	this.isDisposed = function() {
-		return _base.isDisposed();
-  	};
-
-  	/**
-    * Releases all resources used by the SensorBase object.
-    * @override
-    */
-  	this.dispose = function() {
-    	if (_base.isDisposed()) {
-      	return;
-    	}
-
-    	if (!util.isNullOrUndefined(_tempSensor)) {
-      	_tempSensor.dispose();
-      	_tempSensor = undefined;
-    	}
-		
-		_emitter.removeAllListeners();
-		_emitter = undefined;
-    	_base.dispose();
-  	};
-	
-	/**
-    * Removes all event listeners.
-    * @override
-    */
-	this.removeAllListeners = function() {
-   	if (!_base.isDisposed()) {
-      	_emitter.removeAllListeners();
-    	}
-  	};
-
-	/**
-    * Attaches a listener (callback) for the specified event name.
-    * @param  {String}   evt      The name of the event.
-    * @param  {Function} callback The callback function to execute when the
-    * event is raised.
-    * @throws {ObjectDisposedException} if this instance has been disposed.
-    * @override
-    */
-  	this.on = function(evt, callback) {
-   	if (_base.isDisposed()) {
-      	throw new ObjectDisposedException("TemperatureSensorBase");
-    	}
-    	_emitter.on(evt, callback);
-  	};
-
-	/**
-    * Emits the specified event.
-    * @param  {String} evt  The name of the event to emit.
-    * @param  {Object} args The object that provides arguments to the event.
-    * @throws {ObjectDisposedException} if this instance has been disposed.
-    * @override
-    */
-  	this.emit = function(evt, args) {
-   	if (_base.isDisposed()) {
-      	throw new ObjectDisposedException("TemperatureSensorBase");
-    	}
-    	_emitter.emit(evt, args);
-  	};
-
-  	/**
-    * Gets the sensor geing used to measure.
-    * @return {DS160} The temperature.
-    * @override
-    */
-  	this.getSensor = function() {
-    	return _tempSensor;
-  	};
-
-  	/**
-    * Fires the temperature change event.
-    * @param  {TemperatureChangeEvent} tempChangeEvent The event object.
-    * @override
-    */
-  	this.onTemperatureChange = function(tempChangeEvent) {
-		if (_base.isDisposed()) {
-			throw new ObjectDisposedException("SwitchBase");
-		}
-		
-		var e = _emitter;
-		var evt = tempChangeEvent;
-    	process.nextTick(function() {
-      	e.emit(TemperatureSensor.EVENT_TEMPERATURE_CHANGED, evt);
-    	}.bind(this));
-  	};
-	
-	/**
-    * Gets the temperature scale.
-    * @return {TemperatureScale} The scale being used to measure.
-    * @override
-    */
-  	this.getScale = function() {
-    	return _scale;
-  	};
-
-  	/**
-    * Sets the scale to use for measurements.
-    * @param  {TemperatureScale} scale The measurement scale.
-    * @override
-    */
-  	this.setScale = function(scale) {
-    	if (_scale !== scale) {
-      	_scale = scale;
-    	}
-  	};
-	
-	/**
-	 * Sets the raw temperature.
-	 * @param {Number} The temperature to set.
-	 * @private                    
-	 */
-	this._setRawTemp = function(temp) {
-		_rawTemp = temp;
-	};
-	
-	/**
-   * Gets the raw temperature value.
-   * @return {Number} The raw value read from the sensor.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   */
-  this.getRawTemperature = function() {
-	 return _rawTemp; 
+  /**
+  * Gets the property collection.
+  * @return {Array} A custom property collection.
+  *                  @override
+  */
+  this.getPropertyCollection = function() {
+    return _base.getPropertyCollection();
   };
 
-  	/**
-    * Gets the temperature value.
-    * @param  {TemperatureScale} scale The scale to use for measurement.
-    * @return {Number}           The temperature value in the specified scale.
-    * @throws {ObjectDisposedException} if this instance has been disposed.
-    */
-  	this.getTemperature = function(scale) {
-    	return TemperatureConversion.convert(self.getScale(), scale, self.getRawTempurature());
-  	};
+  /**
+  * Checks to see if the property collection contains the specified key.
+  * @param  {String}  key The key name of the property to check for.
+  * @return {Boolean} true if the property collection contains the key;
+  * Otherwise, false.
+  * @override
+  */
+  this.hasProperty = function(key) {
+    return _base.hasProperty(key);
+  };
 
-  	/**
-    * Converts the current instance to it's string representation. This method
-    * simply returns the component name.
-    * @return {String} The component name.
-    * @override
-    */
-  	this.toString = function() {
-    	return self.componentName;
-  	};
+  /**
+  * Sets the value of the specified property. If the property does not already exist
+  * in the property collection, it will be added.
+  * @param  {String} key   The property name (key).
+  * @param  {String} value The value to assign to the property.
+  */
+  this.setProperty = function(key, value) {
+    _base.setProperty(key, value);
+  };
+
+  /**
+  * Determines whether or not this instance has been disposed.
+  * @return {Boolean} true if disposed; Otherwise, false.
+  * @override
+  */
+  this.isDisposed = function() {
+    return _base.isDisposed();
+  };
+
+  /**
+  * Releases all resources used by the SensorBase object.
+  * @override
+  */
+  this.dispose = function() {
+    if (_base.isDisposed()) {
+      return;
+    }
+
+    if (!util.isNullOrUndefined(_tempSensor)) {
+      _tempSensor.dispose();
+      _tempSensor = undefined;
+    }
+
+    _emitter.removeAllListeners();
+    _emitter = undefined;
+    _base.dispose();
+  };
+
+  /**
+  * Removes all event listeners.
+  * @override
+  */
+  this.removeAllListeners = function() {
+    if (!_base.isDisposed()) {
+      _emitter.removeAllListeners();
+    }
+  };
+
+  /**
+  * Attaches a listener (callback) for the specified event name.
+  * @param  {String}   evt      The name of the event.
+  * @param  {Function} callback The callback function to execute when the
+  * event is raised.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @override
+  */
+  this.on = function(evt, callback) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("TemperatureSensorBase");
+    }
+    _emitter.on(evt, callback);
+  };
+
+  /**
+  * Emits the specified event.
+  * @param  {String} evt  The name of the event to emit.
+  * @param  {Object} args The object that provides arguments to the event.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @override
+  */
+  this.emit = function(evt, args) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("TemperatureSensorBase");
+    }
+    _emitter.emit(evt, args);
+  };
+
+  /**
+  * Gets the sensor geing used to measure.
+  * @return {DS160} The temperature.
+  * @override
+  */
+  this.getSensor = function() {
+    return _tempSensor;
+  };
+
+  /**
+  * Fires the temperature change event.
+  * @param  {TemperatureChangeEvent} tempChangeEvent The event object.
+  * @override
+  */
+  this.onTemperatureChange = function(tempChangeEvent) {
+    if (_base.isDisposed()) {
+      throw new ObjectDisposedException("SwitchBase");
+    }
+
+    var e = _emitter;
+    var evt = tempChangeEvent;
+    process.nextTick(function() {
+      e.emit(TemperatureSensor.EVENT_TEMPERATURE_CHANGED, evt);
+    }.bind(this));
+  };
+
+  /**
+  * Gets the temperature scale.
+  * @return {TemperatureScale} The scale being used to measure.
+  * @override
+  */
+  this.getScale = function() {
+    return _scale;
+  };
+
+  /**
+  * Sets the scale to use for measurements.
+  * @param  {TemperatureScale} scale The measurement scale.
+  * @override
+  */
+  this.setScale = function(scale) {
+    if (_scale !== scale) {
+      _scale = scale;
+    }
+  };
+
+  /**
+  * Sets the raw temperature.
+  * @param {Number} The temperature to set.
+  * @private
+  */
+  this._setRawTemp = function(temp) {
+    _rawTemp = temp;
+  };
+
+  /**
+  * Gets the raw temperature value.
+  * @return {Number} The raw value read from the sensor.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @override
+  */
+  this.getRawTemperature = function() {
+    return _rawTemp;
+  };
+
+  /**
+  * Gets the temperature value.
+  * @param  {TemperatureScale} scale The scale to use for measurement.
+  * @return {Number}           The temperature value in the specified scale.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
+  */
+  this.getTemperature = function(scale) {
+    return TemperatureConversion.convert(self.getScale(), scale, self.getRawTempurature());
+  };
+
+  /**
+  * Converts the current instance to it's string representation. This method
+  * simply returns the component name.
+  * @return {String} The component name.
+  * @override
+  */
+  this.toString = function() {
+    return self.componentName;
+  };
 }
 
 TemperatureSensorBase.prototype.constructor = TemperatureSensorBase;

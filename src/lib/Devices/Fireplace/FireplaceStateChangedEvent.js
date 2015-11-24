@@ -25,38 +25,38 @@ var util = require('util');
 var FireplaceState = require('./FireplaceState.js');
 
 /**
- * @classdesc The event that gets raised when the fireplace changes state.
- * @param {FireplaceState} oldState The previous state.
- * @param {FireplaceState} newState The current state.
- * @constructor
- * @event
- */
+* @classdesc The event that gets raised when the fireplace changes state.
+* @param {FireplaceState} oldState The previous state.
+* @param {FireplaceState} newState The current state.
+* @constructor
+* @event
+*/
 function FireplaceStateChangedEvent(oldState, newState) {
-  	var _oldState = oldState;
-	if (util.isNullOrUndefined(_oldState)) {
-		_oldState = FireplaceState.Off;
-	}
-	
-  	var _newState = newState;
-	if (util.isNullOrUndefined(_newState)) {
-		_newState = FireplaceState.Off;
-	}
+  var _oldState = oldState;
+  if (util.isNullOrUndefined(_oldState)) {
+    _oldState = FireplaceState.Off;
+  }
 
-  	/**
-    * Gets the previous state.
-    * @return {FireplaceState} The previous state.
-    */
-  	this.getOldState = function() {
-    	return _oldState;
-  	};
+  var _newState = newState;
+  if (util.isNullOrUndefined(_newState)) {
+    _newState = FireplaceState.Off;
+  }
 
-  	/**
-    * Gets the current state.
-    * @return {FireplaceState} The current state.
-    */
-  	this.getNewState = function() {
-    	return _newState;
-  	};
+  /**
+  * Gets the previous state.
+  * @return {FireplaceState} The previous state.
+  */
+  this.getOldState = function() {
+    return _oldState;
+  };
+
+  /**
+  * Gets the current state.
+  * @return {FireplaceState} The current state.
+  */
+  this.getNewState = function() {
+    return _newState;
+  };
 }
 
 FireplaceStateChangedEvent.prototype.constructor = FireplaceStateChangedEvent;

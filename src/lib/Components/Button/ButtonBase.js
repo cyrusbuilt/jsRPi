@@ -32,11 +32,11 @@ var ComponentBase = require('../ComponentBase.js');
 var ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
- * Base class for button device abstraction components.
- * @constructor
- * @implements {Button}
- * @extends {ComponentBase}
- */
+* Base class for button device abstraction components.
+* @constructor
+* @implements {Button}
+* @extends {ComponentBase}
+*/
 function ButtonBase() {
   Button.call(this);
 
@@ -47,51 +47,51 @@ function ButtonBase() {
   var _holdTimer = null;
 
   /**
-   * Component name property.
-   * @property {String}
-   */
+  * Component name property.
+  * @property {String}
+  */
   this.componentName = _base.componentName;
 
   /**
-   * Tag property.
-   * @property {Object}
-   */
+  * Tag property.
+  * @property {Object}
+  */
   this.tag = _base.tag;
 
   /**
-   * Determines whether or not the current instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
-   * @override
-   */
+  * Determines whether or not the current instance has been disposed.
+  * @return {Boolean} true if disposed; Otherwise, false.
+  * @override
+  */
   this.isDisposed = function() {
     return _base.isDisposed();
   };
 
   /**
-   * Overrides state with the specified state.
-   * @param  {ButtonState} state The state to set.
-   * @protected
-   */
+  * Overrides state with the specified state.
+  * @param  {ButtonState} state The state to set.
+  * @protected
+  */
   this._setState = function(state) {
     _baseState = state;
   };
 
   /**
-   * Gets the button state.
-   * @return {ButtonState} Gets the state of the button.
-   */
+  * Gets the button state.
+  * @return {ButtonState} Gets the state of the button.
+  */
   this.getState = function() {
     return _baseState;
   };
 
   /**
-   * Attaches a listener (callback) for the specified event name.
-   * @param  {String}   evt      The name of the event.
-   * @param  {Function} callback The callback function to execute when the
-   * event is raised.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   */
+  * Attaches a listener (callback) for the specified event name.
+  * @param  {String}   evt      The name of the event.
+  * @param  {Function} callback The callback function to execute when the
+  * event is raised.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @override
+  */
   this.on = function(evt, callback) {
     if (self.isDisposed()) {
       throw new ObjectDisposedException("GpioBase");
@@ -100,12 +100,12 @@ function ButtonBase() {
   };
 
   /**
-   * Emits the specified event.
-   * @param  {String} evt  The name of the event to emit.
-   * @param  {Object} args The object that provides arguments to the event.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   */
+  * Emits the specified event.
+  * @param  {String} evt  The name of the event to emit.
+  * @param  {Object} args The object that provides arguments to the event.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @override
+  */
   this.emit = function(evt, args) {
     if (self.isDisposed()) {
       throw new ObjectDisposedException("GpioBase");
@@ -114,30 +114,30 @@ function ButtonBase() {
   };
 
   /**
-   * Gets a value indicating whether this instance is pressed.
-   * @return {Boolean} true if pressed; Otherwise, false.
-   * @override
-   */
+  * Gets a value indicating whether this instance is pressed.
+  * @return {Boolean} true if pressed; Otherwise, false.
+  * @override
+  */
   this.isPressed = function() {
     return (self.getState() === ButtonState.Pressed);
   };
 
   /**
-   * Gets a value indicating whether the button is released.
-   * @return {Boolean} true if released; Otherwise, false.
-   * @override
-   */
+  * Gets a value indicating whether the button is released.
+  * @return {Boolean} true if released; Otherwise, false.
+  * @override
+  */
   this.isReleased = function() {
     return (self.getState() === ButtonState.Released);
   };
 
   /**
-   * Fires the button hold event.
-   * @param  {ButtonEvent} btnEvent The event info.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   * @protected
-   */
+  * Fires the button hold event.
+  * @param  {ButtonEvent} btnEvent The event info.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @override
+  * @protected
+  */
   this.onButtonHold = function(btnEvent) {
     if (self.isDisposed()) {
       throw new ObjectDisposedException("GpioBase");
@@ -151,12 +151,12 @@ function ButtonBase() {
   };
 
   /**
-   * Timer elapsed callback. This fires the button hold event if the button is
-   * pressed.
-   * @param  {ButtonEvent} btnEvent The button event info.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @private
-   */
+  * Timer elapsed callback. This fires the button hold event if the button is
+  * pressed.
+  * @param  {ButtonEvent} btnEvent The button event info.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @private
+  */
   var onHoldTimerElapsed = function(btnEvent) {
     if (self.isPressed()) {
       self.onButtonHold(new ButtonEvent(self));
@@ -164,9 +164,9 @@ function ButtonBase() {
   };
 
   /**
-   * Stops the button hold timer.
-   * @private
-   */
+  * Stops the button hold timer.
+  * @private
+  */
   var stopHoldTimer = function() {
     if (!util.isNullOrUndefined(_holdTimer)) {
       clearInterval(_holdTimer);
@@ -175,20 +175,20 @@ function ButtonBase() {
   };
 
   /**
-   * Starts the button hold timer.
-   * @private
-   */
+  * Starts the button hold timer.
+  * @private
+  */
   var startHoldTimer = function() {
     _holdTimer = setInterval(onHoldTimerElapsed, 2000);
   };
 
   /**
-   * Fires the button pressend event.
-   * @param  {ButtonEvent} btnEvent The event info.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   * @protected
-   */
+  * Fires the button pressend event.
+  * @param  {ButtonEvent} btnEvent The event info.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @override
+  * @protected
+  */
   this.onButtonPressed = function(btnEvent) {
     if (self.isDisposed()) {
       throw new ObjectDisposedException("GpioBase");
@@ -204,11 +204,11 @@ function ButtonBase() {
   };
 
   /**
-   * Fires the button released event.
-   * @param  {ButtonEvent} btnEvent The event info.
-   * @override
-   * @protected
-   */
+  * Fires the button released event.
+  * @param  {ButtonEvent} btnEvent The event info.
+  * @override
+  * @protected
+  */
   this.onButtonReleased = function(btnEvent) {
     if (self.isDisposed()) {
       throw new ObjectDisposedException("GpioBase");
@@ -223,11 +223,11 @@ function ButtonBase() {
   };
 
   /**
-   * Fires the button state changed event.
-   * @param  {ButtonEvent} btnEvent The event info.
-   * @override
-   * @protected
-   */
+  * Fires the button state changed event.
+  * @param  {ButtonEvent} btnEvent The event info.
+  * @override
+  * @protected
+  */
   this.onStateChanged = function(btnEvent) {
     if (self.isDisposed()) {
       throw new ObjectDisposedException("GpioBase");
@@ -249,60 +249,60 @@ function ButtonBase() {
   };
 
   /**
-   * Checks to see if the button is in a state matching the specified state.
-   * @param  {ButtonState} state The state to check.
-   * @return {Boolean}       true if the button is in the specified state;
-   * Otherwise, false.
-   * @override
-   */
+  * Checks to see if the button is in a state matching the specified state.
+  * @param  {ButtonState} state The state to check.
+  * @return {Boolean}       true if the button is in the specified state;
+  * Otherwise, false.
+  * @override
+  */
   this.isState = function(state) {
     return (self.getState() === state);
   };
 
   /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
-   * @override
-   */
+  * Gets the property collection.
+  * @return {Array} A custom property collection.
+  * @override
+  */
   this.getPropertyCollection = function() {
     return _base.getPropertyCollection();
   };
 
   /**
-   * Checks to see if the property collection contains the specified key.
-   * @param  {String} key The key name of the property to check for.
-   * @return {Boolean}    true if the property collection contains the key;
-   * Otherwise, false.
-   * @override
-   */
+  * Checks to see if the property collection contains the specified key.
+  * @param  {String} key The key name of the property to check for.
+  * @return {Boolean}    true if the property collection contains the key;
+  * Otherwise, false.
+  * @override
+  */
   this.hasProperty = function(key) {
     return _base.hasProperty(key);
   };
 
   /**
-   * Sets the value of the specified property. If the property does not already exist
-	 * in the property collection, it will be added.
-   * @param  {String} key   The property name (key).
-   * @param  {String} value The value to assign to the property.
-   * @override
-   */
+  * Sets the value of the specified property. If the property does not already exist
+  * in the property collection, it will be added.
+  * @param  {String} key   The property name (key).
+  * @param  {String} value The value to assign to the property.
+  * @override
+  */
   this.setProperty = function(key, value) {
     _base.setProperty(key, value);
   };
 
   /**
-   * Returns the string representation of this object. In this case, it simply
-   * returns the component name.
-   * @return {String} The name of this component.
-   */
+  * Returns the string representation of this object. In this case, it simply
+  * returns the component name.
+  * @return {String} The name of this component.
+  */
   this.toString = function() {
     return self.componentName;
   };
 
   /**
-   * Releases all resources used by the GpioBase object.
-   * @override
-   */
+  * Releases all resources used by the GpioBase object.
+  * @override
+  */
   this.dispose = function() {
     if (self.isDisposed()) {
       return;

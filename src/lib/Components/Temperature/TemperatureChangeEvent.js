@@ -25,46 +25,46 @@ var util = require('util');
 
 
 /**
- * @classdesc The event that gets raised when a change in temperature occurs.
- * @param {Number} oldTemp The temperature value prior to the change event.
- * @param {Number} newTemp The temperature value since the change event.
- * @constructor
- * @event
- */
+* @classdesc The event that gets raised when a change in temperature occurs.
+* @param {Number} oldTemp The temperature value prior to the change event.
+* @param {Number} newTemp The temperature value since the change event.
+* @constructor
+* @event
+*/
 function TemperatureChangeEvent(oldTemp, newTemp) {
-  	var _oldTemp = oldTemp;
-	if (util.isNullOrUndefined(_oldTemp)) {
-		_oldTemp = 0;	
-	}
-	
-  	var _newTemp = newTemp;
-	if (util.isNullOrUndefined(_newTemp)) {
-		_newTemp = 0;
-	}
+  var _oldTemp = oldTemp;
+  if (util.isNullOrUndefined(_oldTemp)) {
+    _oldTemp = 0;
+  }
 
-  	/**
-    * Gets the previous temperature value.
-    * @return {Number} The previous temperature value.
-    */
-  	this.getOldTemp = function() {
-    	return _oldTemp;
-  	};
+  var _newTemp = newTemp;
+  if (util.isNullOrUndefined(_newTemp)) {
+    _newTemp = 0;
+  }
 
-  	/**
-    * Gets the current temperature value.
-    * @return {Number} The current temperature.
-    */
-  	this.getNewTemp = function() {
-    	return _newTemp;
-  	};
+  /**
+  * Gets the previous temperature value.
+  * @return {Number} The previous temperature value.
+  */
+  this.getOldTemp = function() {
+    return _oldTemp;
+  };
 
-  	/**
-    * Gets the temperature change.
-    * @return {Number} The change value (difference).
-    */
-  	this.getTemperatureChange = function() {
-    	return (_newTemp - _oldTemp);
-  	};
+  /**
+  * Gets the current temperature value.
+  * @return {Number} The current temperature.
+  */
+  this.getNewTemp = function() {
+    return _newTemp;
+  };
+
+  /**
+  * Gets the temperature change.
+  * @return {Number} The change value (difference).
+  */
+  this.getTemperatureChange = function() {
+    return (_newTemp - _oldTemp);
+  };
 }
 
 TemperatureChangeEvent.prototype.constructor = TemperatureChangeEvent;

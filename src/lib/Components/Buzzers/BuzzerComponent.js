@@ -31,13 +31,13 @@ var ArgumentNullException = require('../../ArgumentNullException.js');
 var STOP_FREQ = 0;
 
 /**
- * A buzzer device abstraction component.
- * @param {Gpio} pwmPin The pin the buzzer is attached to.
- * @throws {ArgumentNullException} if pin is null or undefined.
- * @constructor
- * @implements {Buzzer}
- * @extends {ComponentBase}
- */
+* A buzzer device abstraction component.
+* @param {Gpio} pwmPin The pin the buzzer is attached to.
+* @throws {ArgumentNullException} if pin is null or undefined.
+* @constructor
+* @implements {Buzzer}
+* @extends {ComponentBase}
+*/
 function BuzzerComponent(pwmPin) {
   Buzzer.call(this);
 
@@ -50,71 +50,71 @@ function BuzzerComponent(pwmPin) {
   var _pwmPin = pwmPin;
   var _isBuzzing = false;
   _pwmPin.provision();
-	
-	/**
-	 * Gets the underlying pin the buzzer is attached to.
-	 * @returns {Gpio} The underlying output pin.
-	 */
-	this.getPin = function() {
-		return _pwmPin;
-	};
 
   /**
-   * Component name property.
-   * @property {String}
-   */
+  * Gets the underlying pin the buzzer is attached to.
+  * @returns {Gpio} The underlying output pin.
+  */
+  this.getPin = function() {
+    return _pwmPin;
+  };
+
+  /**
+  * Component name property.
+  * @property {String}
+  */
   this.componentName = _base.componentName;
 
   /**
-   * Tag property.
-   * @property {Object}
-   */
+  * Tag property.
+  * @property {Object}
+  */
   this.tag = _base.tag;
 
   /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
-   * @override
-   */
+  * Gets the property collection.
+  * @return {Array} A custom property collection.
+  * @override
+  */
   this.getPropertyCollection = function() {
     return _base.getPropertyCollection();
   };
 
   /**
-   * Checks to see if the property collection contains the specified key.
-   * @param  {String} key The key name of the property to check for.
-   * @return {Boolean}    true if the property collection contains the key;
-   * Otherwise, false.
-   * @override
-   */
+  * Checks to see if the property collection contains the specified key.
+  * @param  {String} key The key name of the property to check for.
+  * @return {Boolean}    true if the property collection contains the key;
+  * Otherwise, false.
+  * @override
+  */
   this.hasProperty = function(key) {
     return _base.hasProperty(key);
   };
 
   /**
-   * Sets the value of the specified property. If the property does not already exist
-	 * in the property collection, it will be added.
-   * @param  {String} key   The property name (key).
-   * @param  {String} value The value to assign to the property.
-   */
+  * Sets the value of the specified property. If the property does not already exist
+  * in the property collection, it will be added.
+  * @param  {String} key   The property name (key).
+  * @param  {String} value The value to assign to the property.
+  */
   this.setProperty = function(key, value) {
     _base.setProperty(key, value);
   };
 
   /**
-   * Determines whether or not the current instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
-   * @override
-   */
+  * Determines whether or not the current instance has been disposed.
+  * @return {Boolean} true if disposed; Otherwise, false.
+  * @override
+  */
   this.isDisposed = function() {
     return _base.isDisposed();
   };
 
   /**
-   * In subclasses, performs application-defined tasks associated with freeing,
-   * releasing, or resetting resources.
-   * @override
-   */
+  * In subclasses, performs application-defined tasks associated with freeing,
+  * releasing, or resetting resources.
+  * @override
+  */
   this.dispose = function() {
     if (_base.isDisposed()) {
       return;
@@ -129,18 +129,18 @@ function BuzzerComponent(pwmPin) {
   };
 
   /**
-   * Gets whether or not this buzzer is buzzing.
-   * @return {Boolean} true if buzzing; Otherwise, false.
-   */
+  * Gets whether or not this buzzer is buzzing.
+  * @return {Boolean} true if buzzing; Otherwise, false.
+  */
   this.isBuzzing = function() {
     return _isBuzzing;
   };
 
   /**
-   * Start the buzzer at the specified frequency.
-   * @param  {Number} freq The frequency to buzz at.
-   * @private
-   */
+  * Start the buzzer at the specified frequency.
+  * @param  {Number} freq The frequency to buzz at.
+  * @private
+  */
   var internalBuzz = function(freq) {
     if (freq === STOP_FREQ) {
       _pwmPin.setPWM(freq);
@@ -155,25 +155,25 @@ function BuzzerComponent(pwmPin) {
   };
 
   /**
-   * Stops the buzzer.
-   * @override
-   */
+  * Stops the buzzer.
+  * @override
+  */
   this.stop = function() {
     internalBuzz(STOP_FREQ);
   };
 
   /**
-   * Starts the buzzer at the specified frequency and (optionally) for the
-   * specified duration.
-   * @param  {Number} freq     The frequency to buzz at.
-   * @param  {Number} duration The duration in milliseconds. If not specified,
-   * buzzes until stopped.
-   * @override
-   */
+  * Starts the buzzer at the specified frequency and (optionally) for the
+  * specified duration.
+  * @param  {Number} freq     The frequency to buzz at.
+  * @param  {Number} duration The duration in milliseconds. If not specified,
+  * buzzes until stopped.
+  * @override
+  */
   this.buzz = function(freq, duration) {
     var d = duration;
     if (util.isNullOrUndefined(d)) {
-        d = STOP_FREQ;
+      d = STOP_FREQ;
     }
 
     internalBuzz(freq);
@@ -185,49 +185,49 @@ function BuzzerComponent(pwmPin) {
   };
 
   /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
-   * @override
-   */
+  * Gets the property collection.
+  * @return {Array} A custom property collection.
+  * @override
+  */
   this.getPropertyCollection = function() {
     return _base.getPropertyCollection();
   };
 
   /**
-   * Checks to see if the property collection contains the specified key.
-   * @param  {String} key The key name of the property to check for.
-   * @return {Boolean}    true if the property collection contains the key;
-   * Otherwise, false.
-   * @override
-   */
+  * Checks to see if the property collection contains the specified key.
+  * @param  {String} key The key name of the property to check for.
+  * @return {Boolean}    true if the property collection contains the key;
+  * Otherwise, false.
+  * @override
+  */
   this.hasProperty = function(key) {
     return _base.hasProperty(key);
   };
 
   /**
-   * Sets the value of the specified property. If the property does not already exist
-	 * in the property collection, it will be added.
-   * @param  {String} key   The property name (key).
-   * @param  {String} value The value to assign to the property.
-   */
+  * Sets the value of the specified property. If the property does not already exist
+  * in the property collection, it will be added.
+  * @param  {String} key   The property name (key).
+  * @param  {String} value The value to assign to the property.
+  */
   this.setProperty = function(key, value) {
     _base.setProperty(key, value);
   };
 
   /**
-   * Returns the string representation of this object. In this case, it simply
-   * returns the component name.
-   * @return {String} The name of this component.
-   */
+  * Returns the string representation of this object. In this case, it simply
+  * returns the component name.
+  * @return {String} The name of this component.
+  */
   this.toString = function() {
     return self.componentName;
   };
 }
 
 /**
- * The minimum PWM frequency value used to stop the pulse (0).
- * @constant {Number}
- */
+* The minimum PWM frequency value used to stop the pulse (0).
+* @constant {Number}
+*/
 BuzzerComponent.STOP_FREQUENCY = STOP_FREQ;
 
 BuzzerComponent.prototype.constructor = BuzzerComponent;

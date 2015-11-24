@@ -24,24 +24,24 @@
 var util = require('util');
 
 /**
- * @classdesc The event that gets raised when an opener lock changes state.
- * @param {Boolean} locked Set true if locked.
- * @constructor
- * @event
- */
+* @classdesc The event that gets raised when an opener lock changes state.
+* @param {Boolean} locked Set true if locked.
+* @constructor
+* @event
+*/
 function OpenerLockChangeEvent(locked) {
-  	var _isLocked = locked;
-	if (util.isNullOrUndefined(_isLocked)) {
-		_isLocked = false;
-	}
+  var _isLocked = locked;
+  if (util.isNullOrUndefined(_isLocked)) {
+    _isLocked = false;
+  }
 
-  	/**
-    * Gets a flag indicating whether or not the opener is locked.
-    * @return {Boolean} true if locked; Otherwise, false.
-    */
-  	this.isLocked = function() {
-    	return _isLocked;
-  	};
+  /**
+  * Gets a flag indicating whether or not the opener is locked.
+  * @return {Boolean} true if locked; Otherwise, false.
+  */
+  this.isLocked = function() {
+    return _isLocked;
+  };
 }
 
 OpenerLockChangeEvent.prototype.constructor = OpenerLockChangeEvent;
