@@ -287,7 +287,7 @@ class GpioStandard extends GpioBase {
     }
 
     this._write(this.innerPin, PinState.High);
-    super.onPinStateChange(new PinStateChangeEvent(this.state, PinState.High));
+    this.onPinStateChange(new PinStateChangeEvent(this.state, PinState.High));
     this.pulse(millis);
     this._write(super.innerPin, PinState.Low);
     this.onPinStateChange(new PinStateChangeEvent(this.state, PinState.Low));
@@ -320,11 +320,6 @@ class GpioStandard extends GpioBase {
    */
   dispose() {
     this._unexportPin(super.innerPin);
-    if (super.exportedPins.length > 0) {
-      for (let i = 0; i < super.exportedPins.length; i++) {
-        this._unexportPin(super.exportedPins[i]);
-      }
-    }
 
     if (this._isPWM) {
       let cmd = "gpio unexport " + this.innerPin.value.toString();

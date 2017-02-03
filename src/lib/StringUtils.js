@@ -62,7 +62,7 @@ const create = function(c, length) {
   }
 
   let sb = new StringBuilder();
-  for (var i = 0; i < length; i++) {
+  for (let i = 0; i < length; i++) {
     sb.append(c);
   }
   return sb.toString();
@@ -83,7 +83,7 @@ const padLeft = function(data, pad, length) {
   }
 
   let sb = new StringBuilder();
-  for (var i = 0; i < length; i++) {
+  for (let i = 0; i < length; i++) {
     sb.append(pad);
   }
 
@@ -107,7 +107,7 @@ const padRight = function(data, pad, length) {
 
   let sb = new StringBuilder();
   sb.append(data);
-  for (var i = 0; i < length; i++) {
+  for (let i = 0; i < length; i++) {
     sb.append(pad);
   }
 
@@ -235,7 +235,7 @@ const contains = function(str, substr) {
 /**
  * Coverts a string value to a byte value.
  * @param  {String} str A string representing a byte value (ie. "00000000").
- * @return {Byte|Number}     The byte value.
+ * @return {Array}     The byte value.
  */
 const convertStringToByte = function(str) {
   let ch = 0;
