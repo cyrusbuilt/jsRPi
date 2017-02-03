@@ -15,6 +15,9 @@ addons:
     - gcc-4.8
     - g++-4.8
 
+before_install:
+  - wget -qO- https://raw.githubusercontent.com/xtuple/nvm/master/install.sh | sudo bash
+
 install:
   - ./install_deps.sh
 
