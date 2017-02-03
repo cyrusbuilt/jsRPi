@@ -1,7 +1,7 @@
 "use strict";
 //
 //  jsrpi.js
-//  Version 0.1.2 ALPHA
+//  Version 0.2.2 ALPHA
 //
 //  Author:
 //       Chris Brunner <cyrusbuilt at gmail dot com>
@@ -28,7 +28,7 @@
  * @module jsrpi
  */
 
-var JSRPI_FRAMEWORK_VER = '0.1.2';
+const JSRPI_FRAMEWORK_VER = '0.2.2';
 
 module.exports = {
   /**
