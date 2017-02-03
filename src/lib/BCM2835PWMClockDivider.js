@@ -27,7 +27,7 @@
  * [BCM2835PwmClockDivider description]
  * @enum {number}
  */
-var BCM2835PwmClockDivider = {
+const BCM2835PwmClockDivider = {
   /**
    * [ClockDivider1 description]
    * @type {Number}

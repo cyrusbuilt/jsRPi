@@ -21,19 +21,21 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Opener = require('../Access/Opener.js');
+const Opener = require('../Access/Opener.js');
 
 /**
  * Gate opener device abastraction interface.
  * @interface
  * @extends {Opener}
  */
-function GateOpener() {
-  Opener.call(this);
+class GateOpener extends Opener {
+  /**
+   *Initializes a new instance of the jsrpi.Devices.Gate.GateOpener interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
 }
-
-GateOpener.prototype.constructor = GateOpener;
-inherits(GateOpener, Opener);
 
 module.exports = GateOpener;

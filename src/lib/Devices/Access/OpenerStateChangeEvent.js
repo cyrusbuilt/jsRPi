@@ -21,43 +21,50 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var OpenerState = require('./OpenerState.js');
+const util = require('util');
+const OpenerState = require('./OpenerState.js');
 
 /**
 * @classdesc The event that gets raised when an opener device changes state.
-* @param {OpenerState} oldState The previous state of the opener.
-* @param {OpenerState} newState The current state of the opener.
-* @constructor
 * @event
 */
-function OpenerStateChangeEvent(oldState, newState) {
-  var _oldState = oldState;
-  if (util.isNullOrUndefined(_oldState)) {
-    _oldState = OpenerState.Closed;
-  }
+class OpenerStateChangeEvent {
+  /**
+   * Initializes a new instance of the of the jsrpi.Devices.Access.OpenerStateChangeEvent
+   * class with the old and new states.
+   * @param {OpenerState} oldState The previous state of the opener.
+   * @param {OpenerState} newState The current state of the opener.
+   * @constructor
+   */
+  constructor(oldState, newState) {
+    this._oldState = oldState;
+    if (util.isNullOrUndefined(this._oldState)) {
+      this._oldState = OpenerState.Closed;
+    }
 
-  var _newState = newState;
-  if (util.isNullOrUndefined(_newState)) {
-    _newState = OpenerState.Closed;
+    this._newState = newState;
+    if (util.isNullOrUndefined(this._newState)) {
+      this._newState = OpenerState.Closed;
+    }
   }
 
   /**
   * Gets the previous state of the opener.
-  * @return {OpenerState} The previous state.
+  * @property {OpenerState} oldState - The previous opener state.
+  * @readonly
   */
-  this.getOldState = function() {
-    return _oldState;
-  };
+  get oldState() {
+    return this._oldState;
+  }
 
   /**
   * Gets the current state of the opener.
-  * @return {OpenerState} The current state.
+  * @property {OpenerState} newState - The new (current) opener state.
+  * @readonly
   */
-  this.getNewState = function() {
-    return _newState;
-  };
+  get newState() {
+    return this._newState;
+  }
 }
 
-OpenerStateChangeEvent.prototype.constructor = OpenerStateChangeEvent;
 module.exports = OpenerStateChangeEvent;

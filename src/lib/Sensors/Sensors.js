@@ -23,8 +23,8 @@
 
 /**
  * @fileOverview Provides classes and interfaces for working with specific sensors.
- *
  * @module Sensors
+ * @namespace jsrpi.Sensors
  */
 
 module.exports = {

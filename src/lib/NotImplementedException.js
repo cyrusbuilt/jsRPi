@@ -24,17 +24,24 @@
 /**
  * @classdesc The exception that is thrown when a method has been called that
  * has not yet been implemented.
- * @param {String} sMessage A message describing the exception (optional).
- * @constructor
  * @extends {Error}
  */
-function NotImplementedException(sMessage) {
-  this.name = "NotImplementedException";
-  this.message = sMessage || "Method not yet implemented.";
-  this.stack = (new Error()).stack;
-}
-
-NotImplementedException.prototype = Object.create(Error.prototype);
-NotImplementedException.prototype.constructor = NotImplementedException;
+ class NotImplementedException extends Error {
+     /**
+     * Initializes a new instance of the jsrpi.NotImplementedException class with
+     * a message describing the exception.
+     * @param {String} sMessage A message describing the exception (optional).
+     * @constructor
+     */
+     constructor(sMessage) {
+         super(sMessage);
+         this.name = this.constructor.name;
+         if (typeof Error.captureStackTrace === 'function') {
+             Error.captureStackTrace(this, this.constructor);
+         } else {
+             this.stack = (new Error(sMessage)).stack;
+         }
+     }
+ }
 
 module.exports = NotImplementedException;

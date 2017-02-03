@@ -27,7 +27,7 @@
  * The Raspberry Pi board revision.
  * @enum {number}
  */
-var BoardRevision = {
+const BoardRevision = {
   /**
    * Revision 1.0 board.
    * @type {Number}

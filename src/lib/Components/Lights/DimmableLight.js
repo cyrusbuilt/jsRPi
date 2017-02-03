@@ -22,56 +22,55 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Light = require('./Light.js');
+const Light = require('./Light.js');
 
 /**
  * An interface for dimmable light component abstractions.
  * @interface
  * @extends {Light}
  */
-function DimmableLight() {
-  Light.call(this);
+class DimmableLight extends Light {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Lights.DimmableLight
+   * interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derivative class, raises the light level changed event.
+   * @param  {LightlevelChangeEvent} levelChangeEvent The level change event object.
+   */
+  onLightLevelChanged(levelChangeEvent) {}
+
+  /**
+   * In a derivative class, gets or sets the brightness level.
+   * @property {Number} level - The brightness level.
+   */
+  get level() { return 0; }
+
+  set level(lev) {}
+
+  /**
+   * In a derivative class, gets the minimum brightness level.
+   * @property {Number} minLevel - The minimum brightness level.
+   */
+  get minLevel() { return 0; }
+
+  /**
+   * In a derivative class, gets the maximum brightness level.
+   * @property {Number} maxLevel - The maximum brightness level.
+   */
+  get maxLevel() { return 0; }
+
+  /**
+   * In a derivative class, gets the current brightness level percentage.
+   * @param  {Number} level The brightness level.
+   * @return {Number}       The brightness percentage level.
+   */
+  getLevelPercentage(level) { return 0; }
 }
-
-DimmableLight.prototype.constructor = DimmableLight;
-inherits(DimmableLight, Light);
-
-/**
- * In a derivative class, raises the light level changed event.
- * @param  {LightlevelChangeEvent} levelChangeEvent The level change event object.
- */
-DimmableLight.prototype.onLightLevelChanged = function(levelChangeEvent) {};
-
-/**
- * In a derivative class, gets the brightness level.
- * @return {Number} The brightness level.
- */
-DimmableLight.prototype.getLevel = function() { return 0; };
-
-/**
- * In a derivative class, sets the brightness level.
- * @param  {Number} level The brightness level.
- */
-DimmableLight.prototype.setLevel = function(level) {};
-
-/**
- * In a derivative class, gets the minimum brightness level.
- * @return {Number} The minimum brightness level.
- */
-DimmableLight.prototype.minLevel = function() { return 0; };
-
-/**
- * In a derivative class, gets the maximum brightness level.
- * @return {Number} The max brightness level.
- */
-DimmableLight.prototype.maxLevel = function() { return 0; };
-
-/**
- * In a derivative class, gets the current brightness level percentage.
- * @param  {Number} level The brightness level.
- * @return {Number}       The brightness percentage level.
- */
-DimmableLight.prototype.getLevelPercentage = function(level) { return 0; };
 
 module.exports = DimmableLight;

@@ -22,103 +22,124 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Motor = require('./Motor.js');
-var MotorState = require('./MotorState.js');
-var ComponentBase = require('../ComponentBase.js');
-var EventEmitter = require('events').EventEmitter;
-var MotorStateChangeEvent = require('./MotorStateChangeEvent.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
+const Motor = require('./Motor.js');
+const MotorState = require('./MotorState.js');
+const ComponentBase = require('../ComponentBase.js');
+const EventEmitter = require('events').EventEmitter;
+const MotorStateChangeEvent = require('./MotorStateChangeEvent.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
  * @classdesc Base class for motor abstraction components.
- * @constructor
  * @implements {Motor}
  * @extends {ComponentBase}
  * @extends {EventEmitter}
  */
-function MotorBase() {
-  Motor.call(this);
-
-  var self = this;
-  var _base = new ComponentBase();
-  var _emitter = new EventEmitter();
-  var _state = MotorState.Stop;
-
+class MotorBase extends Motor {
   /**
-   * Component name property.
-   * @property {String}
+   * Initializes a new instance of the jsrpi.Components.Motors.MotorBase class.
+   * @constructor
    */
-  this.componentName = _base.componentName;
+  constructor() {
+    super();
+
+    this._base = new ComponentBase();
+    this._emitter = new EventEmitter();
+    this._state = MotorState.Stop;
+  }
 
   /**
-   * Tag property.
-   * @property {Object}
-   */
-  this.tag = _base.tag;
-
-  /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
+   * Gets or sets the name of this component.
+   * @property {String} componentName - The name of the component.
    * @override
    */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
+  get componentName() {
+    return this._base.componentName;
+  }
+
+  set componentName(name) {
+    this._base.componentName = name;
+  }
+
+  /**
+   * Gets or sets the object this component is tagged with.
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
+
+  /**
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
+  * @override
+  */
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
    * Checks to see if the property collection contains the specified key.
    * @param  {String} key The key name of the property to check for.
-   * @return {Boolean}    true if the property collection contains the key;
+   * @return {Boolean} true if the property collection contains the key;
    * Otherwise, false.
    * @override
    */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
-   * Sets the value of the specified property. If the property does not already exist
-	 * in the property collection, it will be added.
+   * Sets the value of the specified property. If the property does not already
+   * exist in the property collection, it will be added.
    * @param  {String} key   The property name (key).
    * @param  {String} value The value to assign to the property.
+   * @override
    */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
    * Determines whether or not this instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
+   * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+  get isDisposed() {
+    return this._base.isDisposed;
+  }
 
   /**
-   * Releases all resources used by the GpioBase object.
+   * In subclasses, performs application-defined tasks associated with freeing,
+   * releasing, or resetting resources.
    * @override
    */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  dispose() {
+    if (this._base.isDisposed) {
       return;
     }
 
-    _emitter.removeAllListeners();
-    _emitter = undefined;
-    _base.dispose();
-  };
+    this._emitter.removeAllListeners();
+    this._emitter = undefined;
+    this._base.dispose();
+  }
 
   /**
    * Removes all event listeners.
    * @override
    */
-  this.removeAllListeners = function() {
-    if (!_base.isDisposed()) {
-      _emitter.removeAllListeners();
+  removeAllListeners() {
+    if (!this._base.isDisposed) {
+      this._emitter.removeAllListeners();
     }
-  };
+  }
 
   /**
    * Attaches a listener (callback) for the specified event name.
@@ -128,12 +149,12 @@ function MotorBase() {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.on = function(evt, callback) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("MotorBase");
+  on(evt, callback) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.on(evt, callback);
-  };
+    this._emitter.on(evt, callback);
+  }
 
   /**
    * Emits the specified event.
@@ -142,95 +163,91 @@ function MotorBase() {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.emit = function(evt, args) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("MotorBase");
+  emit(evt, args) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.emit(evt, args);
-  };
+    this._emitter.emit(evt, args);
+  }
 
   /**
    * Fires the motor state change event.
    * @param  {MotorStateChangeEvent} stateChangeEvent The event info object.
    * @override
    */
-  this.onMotorStateChange = function(stateChangeEvent) {
-    if (_base.isDisposed()) {
+  onMotorStateChange(stateChangeEvent) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("MotorBase");
     }
 
-    var e = _emitter;
-    var evt = stateChangeEvent;
-    process.nextTick(function() {
-      e.emit(Motor.EVENT_STATE_CHANGED, evt);
-      switch (evt.getNewState()) {
+    setImmediate(() => {
+      this.emit(Motor.EVENT_STATE_CHANGED, stateChangeEvent);
+      switch (stateChangeEvent.newState) {
         case MotorState.Stop:
-          e.emit(Motor.EVENT_STOPPED);
+          this.emit(Motor.EVENT_STOPPED);
           break;
         case MotorState.Forward:
-          e.emit(Motor.EVENT_FORWARD);
+          this.emit(Motor.EVENT_FORWARD);
           break;
         case MotorState.Reverse:
-          e.emit(Motor.EVENT_REVERSE);
+          this.emit(Motor.EVENT_REVERSE);
           break;
         default:
           break;
       }
-    }.bind(this));
-  };
+    });
+  }
 
   /**
-   * Fets the state of the motor.
-   * @return {MotorState} The motor state.
-   */
-  this.getState = function() {
-    return _state;
-  };
-
-  /**
-   * Sets the state of the motor.
-   * @param  {MotorState} state The state to set the motor to.
+   * Gets or sets the state of the motor.
+   * @property {MotorState} state - The motor state.
    * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
    */
-  this.setState = function(state) {
-    if (_base.isDisposed()) {
+  get state() {
+    return this._state;
+  }
+
+  set state(s) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("MotorBase");
     }
-    _state = state;
-  };
+    this._state = s;
+  }
 
   /**
    * Determines whether the motor's current state is the specified state.
    * @param  {MotorState} state The state to check for.
-   * @return {Boolean}       true if the motor is in the specified state;
-   * Otherwise, false.
+   * @return {Boolean} true if the motor is in the specified state; Otherwise,
+   * false.
    * @override
    */
-  this.isState = function(state) {
-    return (self.getState() === state);
-  };
+  isState(s) {
+    return (this.state === s);
+  }
 
   /**
    * Checks to see if the motor is stopped.
-   * @return {Boolean} true if stopped; Otherwise, false.
+   * @property {Boolean} isStopped - true if stopped; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isStopped = function() {
-    return self.isState(MotorState.Stop);
-  };
+  get isStopped() {
+    return this.isState(MotorState.Stop);
+  }
 
   /**
    * Stops the motor's movement.
    * @override
    */
-  this.stop = function() {
-    if (self.getState() === MotorState.Stop) {
+  stop() {
+    if (this.state === MotorState.Stop) {
       return;
     }
-    var oldState = self.getState();
-    self.setState(MotorState.Stop);
-    self.onMotorStateChange(new MotorStateChangeEvent(oldState, MotorState.Stop));
-  };
+    let oldState = this.state;
+    this.state = MotorState.Stop;
+    this.onMotorStateChange(new MotorStateChangeEvent(oldState, MotorState.Stop));
+  }
 
   /**
    * Tells the motor to move forward for the specified amount of time.
@@ -239,47 +256,46 @@ function MotorBase() {
    * until stopped.
    * @override
    */
-  this.forward = function(millis) {
-    if (self.getState() === MotorState.Forward) {
+  forward(millis) {
+    if (this.state === MotorState.Forward) {
       return;
     }
-    var oldState = self.getState();
-    self.setState(MotorState.Forward);
-    self.onMotorStateChange(new MotorStateChangeEvent(oldState, MotorState.Forward));
 
-    var ms = millis || 0;
+    let oldState = this.state;
+    this.state = MotorState.Forward;
+    this.onMotorStateChange(new MotorStateChangeEvent(oldState, MotorState.Forward));
+
+    let ms = millis || 0;
     if (ms > 0) {
-      setTimeout(function() {
-        self.stop();
+      setTimeout(() => {
+        this.stop();
       }, ms);
     }
-  };
+  }
 
   /**
    * Tells the motor to move in reverse for the specified amount of time.
    * @param  {Number} millis The number of milliseconds to continue moving in
-   * reverse for. If zero, null, or undefined, then moves in reverse continuously
-   * until stopped.
+   * reverse for. If zero, null, or undefined, then moves in reverse
+   * continuously until stopped.
    * @override
    */
-  this.reverse = function(millis) {
-    if (self.getState() === MotorState.Reverse) {
+  reverse(millis) {
+    if (this.state === MotorState.Reverse) {
       return;
     }
-    var oldState = self.getState();
-    self.setState(MotorState.Reverse);
-    self.onMotorStateChange(new MotorStateChangeEvent(oldState, MotorState.Reverse));
 
-    var ms = millis || 0;
+    let oldState = this.state;
+    this.state = MotorState.Reverse;
+    this.onMotorStateChange(new MotorStateChangeEvent(oldState, MotorState.Reverse));
+
+    let ms = millis || 0;
     if (ms > 0) {
-      setTimeout(function() {
-        self.stop();
+      setTimeout(() => {
+        this.stop();
       }, ms);
     }
-  };
+  }
 }
-
-MotorBase.prototype.constructor = MotorBase;
-inherits(MotorBase, Motor);
 
 module.exports = MotorBase;

@@ -25,7 +25,7 @@
  * The available relays on the PiFace.
  * @enum {Number}
  */
-var PiFaceRelay = {
+const PiFaceRelay = {
   /**
    * Relay K0
    * @type {Number}

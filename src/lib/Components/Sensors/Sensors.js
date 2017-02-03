@@ -26,6 +26,7 @@
  * components.
  *
  * @module Sensors
+ * @namespace jsrpi.Components.Sensors
  */
 
 module.exports = {

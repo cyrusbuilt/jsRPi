@@ -26,7 +26,7 @@
  * Switch states.
  * @enum {Number}
  */
-var SwitchState = {
+const SwitchState = {
   /**
    * The switch is in the on position.
    * @type {Number}

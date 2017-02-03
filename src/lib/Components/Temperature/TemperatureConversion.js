@@ -28,35 +28,35 @@
  * @requires TemperatureScale
  */
 
-var TemperatureScale = require('./TemperatureScale.js');
+const TemperatureScale = require('./TemperatureScale.js');
 
 /**
  * Absolute zero temperature in Celcius scale.
  * @type {Number}
  * @const
  */
-var ABSOLUTE_ZERO_CELCIUS = -273.15;
+const ABSOLUTE_ZERO_CELCIUS = -273.15;
 
 /**
  * Absolute zero temperature in Farenheit scale.
  * @type {Number}
  * @const
  */
-var ABSOLUTE_ZERO_FARENHEIT = -459.67;
+const ABSOLUTE_ZERO_FARENHEIT = -459.67;
 
 /**
  * Absolute zero temperature in Kelvin scale.
  * @type {Number}
  * @const
  */
-var ABSOLUTE_ZERO_KELVIN = 0;
+const ABSOLUTE_ZERO_KELVIN = 0;
 
 /**
  * Absolute zero temperature in Rankine scale.
  * @type {Number}
  * @const
  */
-var ABSOLUTE_ZERO_RANKINE = 0;
+const ABSOLUTE_ZERO_RANKINE = 0;
 
 /**
  * Converts the temperature from Rankine to Kelvin scale.
@@ -64,7 +64,7 @@ var ABSOLUTE_ZERO_RANKINE = 0;
  * @param  {Number} temp The temperature in degrees Rankine.
  * @return {Number}      The temperature value in degrees Kelvin.
  */
-var convertRankineToKelvin = function(temp) {
+const convertRankineToKelvin = function(temp) {
   return ((temp * 5) / 9);
 };
 
@@ -74,7 +74,7 @@ var convertRankineToKelvin = function(temp) {
  * @param  {Number} temp The temperature in degrees Rankine.
  * @return {Number}      The temperature in degrees Celcius.
  */
-var convertRankineToCelcius = function(temp) {
+const convertRankineToCelcius = function(temp) {
   return (((temp - 491.67) * 5) / 9);
 };
 
@@ -84,7 +84,7 @@ var convertRankineToCelcius = function(temp) {
  * @param  {Number} temp The temperature in degrees Rankine.
  * @return {Number}      The temperature value in degrees Farenheit.
  */
-var convertRankineToFarenheit = function(temp) {
+const convertRankineToFarenheit = function(temp) {
   return (temp - 459.67);
 };
 
@@ -94,7 +94,7 @@ var convertRankineToFarenheit = function(temp) {
  * @param  {Number} temp The temperature in degrees Kelvin.
  * @return {Number}      The temperature value in degrees Rankine.
  */
-var convertKelvinToRankine = function(temp) {
+const convertKelvinToRankine = function(temp) {
   return ((temp * 9) / 5);
 };
 
@@ -104,7 +104,7 @@ var convertKelvinToRankine = function(temp) {
  * @param  {Number} temp The temperature in degrees Kelvin.
  * @return {Number}      The temperature value in degrees Farenheit.
  */
-var convertKelvinToFarenheit = function(temp) {
+const convertKelvinToFarenheit = function(temp) {
   return (((temp * 9) / 5) - 459.67);
 };
 
@@ -114,7 +114,7 @@ var convertKelvinToFarenheit = function(temp) {
  * @param  {Number} temp The temperature in degress Kelvin.
  * @return {Number}      The temperature value in degrees Celcius.
  */
-var convertKelvinToCelcius = function(temp) {
+const convertKelvinToCelcius = function(temp) {
   return (temp + ABSOLUTE_ZERO_CELCIUS);
 };
 
@@ -124,7 +124,7 @@ var convertKelvinToCelcius = function(temp) {
  * @param  {Number} temp The temperature in degrees Celcius.
  * @return {Number}      The temperature value in degrees Rankine.
  */
-var convertCelciusToRankine = function(temp) {
+const convertCelciusToRankine = function(temp) {
   return (((temp - ABSOLUTE_ZERO_CELCIUS) * 9) / 5);
 };
 
@@ -134,7 +134,7 @@ var convertCelciusToRankine = function(temp) {
  * @param  {Number} temp The temperature in degrees Celcius.
  * @return {Number}      The temperature value in degrees Kelvin.
  */
-var convertCelciusToKelvin = function(temp) {
+const convertCelciusToKelvin = function(temp) {
   return (temp - ABSOLUTE_ZERO_CELCIUS);
 };
 
@@ -144,7 +144,7 @@ var convertCelciusToKelvin = function(temp) {
  * @param  {Number} temp The temperature in degrees Celcius.
  * @return {Number}      The temperature value in degrees Farenheit.
  */
-var convertCelciusToFarenheit = function(temp) {
+const convertCelciusToFarenheit = function(temp) {
   return (((temp * 9) / 5) + 32);
 };
 
@@ -154,7 +154,7 @@ var convertCelciusToFarenheit = function(temp) {
  * @param  {Number} temp The temperature in degrees Farenheit.
  * @return {Number}      The temperature value in degrees Rankine.
  */
-var convertFarenheitToRankine = function(temp) {
+const convertFarenheitToRankine = function(temp) {
   return (temp + 459.67);
 };
 
@@ -164,7 +164,7 @@ var convertFarenheitToRankine = function(temp) {
  * @param  {Number} temp The temperature in degrees Farenheit.
  * @return {Number}      The temperature value in degrees Kelvin.
  */
-var convertFarenheitToKelvin = function(temp) {
+const convertFarenheitToKelvin = function(temp) {
   return (((temp + 459.67) * 5) / 9);
 };
 
@@ -174,7 +174,7 @@ var convertFarenheitToKelvin = function(temp) {
  * @param  {Number} temp The temperature in degrees Farenheit.
  * @return {Number}      The temperature value in degrees Celcius.
  */
-var convertFarenheitToCelcius = function(temp) {
+const convertFarenheitToCelcius = function(temp) {
   return ((temp - 32) * 5 / 9);
 };
 
@@ -184,8 +184,8 @@ var convertFarenheitToCelcius = function(temp) {
  * @param  {Number} temp  The temperature value to convert to Rankine scale.
  * @return {Number}       The temperature value in degrees Rankine.
  */
-var convertToRankine = function(scale, temp) {
-  var val = 0;
+const convertToRankine = function(scale, temp) {
+  let val = 0;
   switch (scale) {
     case TemperatureScale.Farenheit:
       val = convertFarenheitToRankine(temp);
@@ -212,8 +212,8 @@ var convertToRankine = function(scale, temp) {
  * @param  {Number} temp  The temperature value in degrees Rankine.
  * @return {Number}       The temperature value in the specified scale.
  */
-var convertFromRankine = function(scale, temp) {
-  var val = 0;
+const convertFromRankine = function(scale, temp) {
+  let val = 0;
   switch (scale) {
     case TemperatureScale.Farenheit:
       val = convertRankineToFarenheit(temp);
@@ -240,8 +240,8 @@ var convertFromRankine = function(scale, temp) {
  * @param  {Number} temp  The temperature value to convert.
  * @return {Number}       The temperature in degrees Kelvin.
  */
-var convertToKelvin = function(scale, temp) {
-  var val = 0;
+const convertToKelvin = function(scale, temp) {
+  let val = 0;
   switch (scale) {
     case TemperatureScale.Farenheit:
       val = convertFarenheitToKelvin(temp);
@@ -267,8 +267,8 @@ var convertToKelvin = function(scale, temp) {
  * @param  {Number} temp  The temperature in degrees Kelvin.
  * @return {Number}       The temperature value in the specified scale.
  */
-var convertFromKelvin = function(scale, temp) {
-  var val = 0;
+const convertFromKelvin = function(scale, temp) {
+  let val = 0;
   switch (scale) {
     case TemperatureScale.Farenheit:
       val = convertKelvinToFarenheit(temp);
@@ -294,8 +294,8 @@ var convertFromKelvin = function(scale, temp) {
  * @param  {Number} temp  The temperature value.
  * @return {Number}       The temperature value in degrees Celcius.
  */
-var convertToCelcius = function(scale, temp) {
-  var val = 0;
+const convertToCelcius = function(scale, temp) {
+  let val = 0;
   switch (scale) {
     case TemperatureScale.Farenheit:
       val = convertFarenheitToCelcius(temp);
@@ -322,8 +322,8 @@ var convertToCelcius = function(scale, temp) {
  * @param  {Number} temp  The temperature in degrees Celcius.
  * @return {Number}       The temperature value in the specified scale.
  */
-var convertFromCelcius = function(scale, temp) {
-  var val = 0;
+const convertFromCelcius = function(scale, temp) {
+  let val = 0;
   switch (scale) {
     case TemperatureScale.Farenheit:
       val = convertCelciusToFarenheit(temp);
@@ -349,8 +349,8 @@ var convertFromCelcius = function(scale, temp) {
  * @param  {Number} temp  The temperature value in the specified scale.
  * @return {Number}       The temperature in degrees Farenheit.
  */
-var convertToFarenheit = function(scale, temp) {
-  var val = 0;
+const convertToFarenheit = function(scale, temp) {
+  let val = 0;
   switch (scale) {
     case TemperatureScale.Farenheit:
       val = temp;
@@ -376,8 +376,8 @@ var convertToFarenheit = function(scale, temp) {
  * @param  {Number} temp  The temperature in degrees Farenheit.
  * @return {Number}       The temperature value in the specified scale.
  */
-var convertFromFarenheit = function(scale, temp) {
-  var val = 0;
+const convertFromFarenheit = function(scale, temp) {
+  let val = 0;
   switch (scale) {
     case TemperatureScale.Farenheit:
       val = temp;
@@ -405,8 +405,8 @@ var convertFromFarenheit = function(scale, temp) {
  * @return {Number}           The temperature in the degress matching the 'to'
  * scale.
  */
-var convert = function(fromScale, toScale, temp) {
-  var val = 0;
+const convert = function(fromScale, toScale, temp) {
+  let val = 0;
   switch (fromScale) {
     case TemperatureScale.Farenheit:
       val = convertFromFarenheit(toScale, temp);

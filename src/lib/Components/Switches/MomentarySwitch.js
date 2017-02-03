@@ -22,19 +22,22 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Switch = require('./Switch.js');
+const Switch = require('./Switch.js');
 
 /**
  * An interface for momentary switch device abstractions.
  * @interface
  * @extends {Switch}
  */
-function MomentarySwitch() {
-  Switch.call(this);
+class MomentarySwitch extends Switch {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Switches.MomentarySwitch
+   * interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
 }
-
-MomentarySwitch.prototype.constructor = MomentarySwitch;
-inherits(MomentarySwitch, Switch);
 
 module.exports = MomentarySwitch;

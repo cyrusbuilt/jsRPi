@@ -22,16 +22,22 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Disposable = require('../Disposable.js');
+const Disposable = require('../Disposable.js');
 
 /**
  * LCD data transfer provider interface.
  * @interface
  * @extends {Disposable}
  */
-function LcdTransferProvider() {
-  Disposable.call(this);
+class LcdTransferProvider extends Disposable {
+  /**
+   * Initializes a new instance of the jsrpi.LCD.LcdTransferProvider class. This
+   * is the default constructor.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
 
   /**
    * In derived classes, send the specified data, mode and backlight.
@@ -40,17 +46,15 @@ function LcdTransferProvider() {
    * on, PinState.Low = off).
    * @param  {Boolean} backlight Turns on the backlight.
    */
-  this.send = function(data, mode, backlight) {};
+  send(data, mode, backlight) {}
 
   /**
    * In derived classes, Gets a value indicating whether this instance
 	 * is in four-bit mode.
-   * @return {Boolean} true if four-bit mode; Otherwise, false.
+   * @property {Boolean} isFourBitMode - true if four-bit mode; Otherwise,
+   * false.
    */
-  this.isFourBitMode = function() { return false; };
+  get isFourBitMode() { return false; }
 }
-
-LcdTransferProvider.prototype.constructor = LcdTransferProvider;
-inherits(LcdTransferProvider, Disposable);
 
 module.exports = LcdTransferProvider;

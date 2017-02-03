@@ -21,42 +21,51 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
+const util = require('util');
 
 /**
  * @classdesc The event that gets raised when motion is detected.
- * @param {Boolean} motion    Set true if motion was detected.
- * @param {Date} timestamp The timestamp of when the state changed.
- * @constructor
  * @event
  */
-function MotionDetectedEvent(motion, timestamp) {
-  var _motionDetected = motion;
-  if (util.isNullOrUndefined(_motionDetected)) {
-    _motionDetected = false;
-  }
+class MotionDetectedEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Sensors.MotionDetectedEvent
+   * class with the flag indicating motion and a timestamp when the motion was
+   * detected.
+   * @param {Boolean} motion Set true if motion was detected.
+   * @param {Date} timestamp The timestamp of when the state changed.
+   * @constructor
+   */
+  constructor(motion, timestamp) {
+    this._motionDetected = motion;
+    if (util.isNullOrUndefined(this._motionDetected)) {
+      this._motionDetected = false;
+    }
 
-  var _timestamp = timestamp;
-  if (util.isNullOrUndefined(_timestamp)) {
-    _timestamp = new Date();
+    this._timestamp = timestamp;
+    if (util.isNullOrUndefined(this._timestamp)) {
+      this._timestamp = new Date();
+    }
   }
 
   /**
    * Gets whether or not motion was detected.
-   * @return {Boolean} true if motion detected; Otherwise, false.
+   * @property {Boolean} isMotionDetected - true if motion detected; Otherwise,
+   * false.
+   * @readonly
    */
-  this.isMotionDetected = function() {
-    return _motionDetected;
-  };
+  get isMotionDetected() {
+    return this._motionDetected;
+  }
 
   /**
    * Gets the timestamp of when the state changed.
-   * @return {Date} The timestamp.
+   * @property {Date} timestamp - The timestamp of when the event occurred.
+   * @readonly
    */
-  this.getTimestamp = function() {
-    return _timestamp;
-  };
+  get timestamp() {
+    return this._timestamp;
+  }
 }
 
-MotionDetectedEvent.prototype.constructor = MotionDetectedEvent;
 module.exports = MotionDetectedEvent;

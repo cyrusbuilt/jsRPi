@@ -23,51 +23,71 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 //
 
-var inherits = require('util').inherits;
-var Disposable = require('../Disposable.js');
-var PinMode = require('./PinMode.js');
-var PinState = require('./PinState.js');
+const Disposable = require('../Disposable.js');
+const PinMode = require('./PinMode.js');
+const PinState = require('./PinState.js');
 
 /**
  * A physical pin interface.
  * @interface
  * @extends {Disposable}
  */
-function Pin() {
-  Disposable.call(this);
+class Pin extends Disposable {
+  /**
+   * Initializes a new instance of the jsrpi.IO.Pin interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+
+    this._pinName = "";
+    this._tag = null;
+  }
+
+  /**
+   * Gets or sets the pin name.
+   * @property {String} pinName - The pin name.
+   */
+  get pinName() {
+    return this._pinName;
+  }
+
+  set pinName(name) {
+    this._pinName = name;
+  }
+
+  /**
+   * Gets or sets the tag.
+   * @property {Object} tag - The tag.
+   */
+  get tag() {
+    return this._tag;
+  }
+
+  set tag(t) {
+    this._tag = t;
+  }
+
+  /**
+   * Gets the state of the pin.
+   * @property {PinState} state - The pin state.
+   * @readonly
+   */
+  get state() { return PinState.Low; }
+
+  /**
+   * Gets the pin mode.
+   * @property {PinMode} mode - The pin mode.
+   * @readonly
+   */
+  get mode() { return PinMode.TRI; }
+
+  /**
+   * Gets the pin address.
+   * @property {Number} address - The pin address.
+   * @readonly
+   */
+  get address() { return 0; }
 }
-
-Pin.prototype.constructor = Pin;
-inherits(Pin, Disposable);
-
-/**
- * Gets or sets the pin name.
- * @property {String}
- */
-Pin.prototype.pinName = "";
-
-/**
- * Gets or sets the tag.
- * @property {Object}
- */
-Pin.prototype.tag = null;
-
-/**
- * Gets the state of the pin.
- * @return {PinState} The state of the pin.
- */
-Pin.prototype.state = function() { return PinState.Low; };
-
-/**
- * Gets the pin mode.
- * @return {PinMode} The pin mode.
- */
-Pin.prototype.mode = function() { return PinMode.TRI; };
-
-/**
- * Gets the pin address.
- * @return {Number} The address.
- */
-Pin.prototype.address = function() { return 0; };
 
 module.exports = Pin;

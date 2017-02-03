@@ -25,27 +25,37 @@
 
 /**
  * @classdesc The exception that is thrown when an invalid pin mode is used.
- * @param {Pin} pin         The pin that is the cause of the exception.
- * @param {String} sMessage The message describing the exception.
- * @constructor
  * @extends {Error}
  */
-function InvalidPinModeException(pin, sMessage) {
-  this.name = "InvalidPinModeException";
-  this.message = sMessage;
-  this.stack = (new Error()).stack;
-  var _pin = pin;
+ class InvalidPinModeException extends Error {
+     /**
+     * Initializes a new instance of the jsrpi.IO.InvalidPinModeException class
+     * with the pin that has the incorrect mode and a message describing the
+     * exception.
+     * @param {Pin} pin         The pin that is the cause of the exception.
+     * @param {String} sMessage The message describing the exception.
+     * @constructor
+     */
+     constructor(sMessage, pin) {
+         super(sMessage);
+         this.name = this.constructor.name;
+         if (typeof Error.captureStackTrace === 'function') {
+             Error.captureStackTrace(this, this.constructor);
+         } else {
+             this.stack = (new Error(sMessage)).stack;
+         }
 
-  /**
-   * Gets the pin that is the cause of the exception.
-   * @return {Pin} The pin that is the cause of the exception.
-   */
-  this.getPin = function() {
-    return _pin;
-  };
-}
+         this._pin = pin;
+     }
 
-InvalidPinModeException.prototype = Object.create(Error.prototype);
-InvalidPinModeException.prototype.constructor = InvalidPinModeException;
+     /**
+     * Gets the pin that is the cause of the exception.
+     * @property {Pin} pin - The pin that caused the exception.
+     * @readonly
+     */
+     get pin() {
+         return this._pin;
+     }
+ }
 
 module.exports = InvalidPinModeException;

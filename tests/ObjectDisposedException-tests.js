@@ -1,37 +1,35 @@
 'use strict';
 
-var inherits = require('util').inherits;
 var ObjectDisposedException = require('../src/lib/ObjectDisposedException.js');
 var Disposable = require('../src/lib/Disposable.js');
 
-function Dummy() {
-  Disposable.call(this);
+class Dummy extends Disposable {
+    constructor() {
+        super();
 
-  var _isDisposed = false;
-
-  this.dispose = function() {
-    _isDisposed = true;
-  };
-
-  this.isDisposed = function() {
-    return _isDisposed;
-  };
-
-  this.doSomething = function() {
-    if (_isDisposed) {
-      throw new ObjectDisposedException("Dummy");
+        this._isDisposed = false;
     }
-    console.log("SUCCESS: Hello World from Dummy.doSomething()!");
-  };
+
+    dispose() {
+        this._isDisposed = true;
+    }
+
+    get isDisposed() {
+        return this._isDisposed;
+    }
+
+    doSomething() {
+        if (this._isDisposed) {
+            throw new ObjectDisposedException("Dummy");
+        }
+    }
 }
 
-Dummy.prototype.constructor = Dummy;
-inherits(Dummy, Disposable);
 
 module.exports.objectDisposedExceptionTests = {
   testThrow: function(assert) {
-    var d = new Dummy();
-    var result = true;
+    let d = new Dummy();
+    let result = true;
     try {
       d.doSomething();
     }
@@ -47,7 +45,7 @@ module.exports.objectDisposedExceptionTests = {
       d.doSomething();
     }
     catch (e) {
-      result = ((d.isDisposed()) && (e.name === 'ObjectDisposedException'));
+      result = ((d.isDisposed) && (e.name === 'ObjectDisposedException'));
     }
 
     assert.ok(result, "Dummy is not disposed or exception thrown is not of type ObjectDisposedException");

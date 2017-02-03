@@ -13,50 +13,47 @@
 // however, you can comment all this code to test proper initialization
 // of the pins.
 
-var util = require('util');
-var inherits = require('util').inherits;
-var GpioBase = require('../../../src/lib/IO/GpioBase.js');
-var GpioPins = require('../../../src/lib/IO/GpioPins.js');
-var PinMode = require('../../../src/lib/IO/PinMode.js');
-var PinState = require('../../../src/lib/IO/PinState.js');
-var PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
-var PiBrellaInput = require('../../../src/lib/Devices/PiBrella/PiBrellaInput.js');
-var PiBrellaOutput = require('../../../src/lib/Devices/PiBrella/PiBrellaOutput.js');
+const util = require('util');
+const GpioBase = require('../../../src/lib/IO/GpioBase.js');
+const GpioPins = require('../../../src/lib/IO/GpioPins.js');
+const PinMode = require('../../../src/lib/IO/PinMode.js');
+const PinState = require('../../../src/lib/IO/PinState.js');
+const PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
+const PiBrellaInput = require('../../../src/lib/Devices/PiBrella/PiBrellaInput.js');
+const PiBrellaOutput = require('../../../src/lib/Devices/PiBrella/PiBrellaOutput.js');
 
 
-function FakeGpio(pin, mode, value) {
-  GpioBase.call(this, pin, mode, value);
+class FakeGpio extends GpioBase {
+    constructor(pin, mode, value) {
+        super(pin, mode, value);
 
-  var self = this;
-  var _overriddenState = value;
-  if (util.isNullOrUndefined(_overriddenState)) {
-    _overriddenState = PinState.Low;
-  }
-
-  this.read = function() {
-    return _overriddenState;
-  };
-
-  this.write = function(ps) {
-    if (_overriddenState !== ps) {
-      var addr = pin.value;
-      var evt = new PinStateChangeEvent(_overriddenState, ps, addr);
-      _overriddenState = ps;
-      self.onPinStateChange(evt);
+        this._overriddenState = value;
+        if (util.isNullOrUndefined(this._overriddenState)) {
+            this._overriddenState = PinState.Low;
+        }
     }
-  };
-	
-  this.provision = function() {
-	  // No-op
-  };
-	
-  this.setPWM = function(pwm) {
-	 // No-op 
-  };
-}
 
-FakeGpio.prototype.constructor = FakeGpio;
-inherits(FakeGpio, GpioBase);
+    read() {
+        return this._overriddenState;
+    }
+
+    write(ps) {
+        if (this._overriddenState !== ps) {
+            let addr = this.innerPin.value;
+            let evt = new PinStateChangeEvent(this._overriddenState, ps, addr);
+            this._overriddenState = ps;
+            this.onPinStateChange(evt);
+        }
+    }
+
+    provision() {
+        // No-op
+    }
+
+    setPWM(pwm) {
+        // No-op
+    }
+}
 
 
 PiBrellaInput.A = new FakeGpio(GpioPins.Pin13, PinMode.IN, PinState.Low);
@@ -75,132 +72,124 @@ PiBrellaOutput.LED_GREEN = new FakeGpio(GpioPins.GPIO07, PinMode.OUT, PinState.L
 PiBrellaOutput.BUZZER = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
 
 
-// COMMENT ALL OF THE ABOVE CODE TO TEST NATIVE ACCESS TO PINS IF RUNNING THESE 
+// COMMENT ALL OF THE ABOVE CODE TO TEST NATIVE ACCESS TO PINS IF RUNNING THESE
 // TESTS ON AN ACTUAL RASPI HOST.
 
-var PiBrellaDevice = require('../../../src/lib/Devices/PiBrella/PiBrellaDevice.js');
+const PiBrellaDevice = require('../../../src/lib/Devices/PiBrella/PiBrellaDevice.js');
 
 module.exports.PiBrellaDeviceTests = {
 	disposeAndIsDisposedTest: function(assert) {
-		var pb = new PiBrellaDevice();
-		
+		let pb = new PiBrellaDevice();
+
 		assert.expect(2);
-		assert.ok(!pb.isDisposed(), "PiBrella is already disposed");
-		
+		assert.ok(!pb.isDisposed, "PiBrella is already disposed");
+
 		pb.dispose();
-		assert.ok(pb.isDisposed(), "PiBrella did not dispose");
+		assert.ok(pb.isDisposed, "PiBrella did not dispose");
 		assert.done();
 	},
 	setHasPropertyTest: function(assert) {
-		var pb = new PiBrellaDevice();
+		let pb = new PiBrellaDevice();
 		pb.setProperty("foo", "bar");
-		
+
 		assert.expect(1);
 		assert.ok(pb.hasProperty("foo"), "The PiBrella does not possess property 'foo'.");
 		assert.done();
 	},
 	getRedLEDtest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getRedLED().getPin();
-		
+		let pb = new PiBrellaDevice();
+		let l = pb.redLED.pin;
+
 		assert.expect(1);
 		assert.equals(l.pinName, "RED LED", "LED is not RED LED.");
 		assert.done();
 	},
 	getYellowLEDtest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getYellowLED().getPin();
-		
+		let pb = new PiBrellaDevice();
+		let l = pb.yellowLED.pin;
+
 		assert.expect(1);
 		assert.equals(l.pinName, "YELLOW LED", "LED is not YELLOW LED.");
 		assert.done();
 	},
 	getGreenLEDtest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getGreenLED().getPin();
-		
+		let pb = new PiBrellaDevice();
+		let l = pb.greenLED.pin;
+
 		assert.expect(1);
 		assert.equals(l.pinName, "GREEN LED", "LED is not GREEN LED.");
 		assert.done();
 	},
 	getButtonTest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getButton().getPin();
-		
+		let pb = new PiBrellaDevice();
+		let l = pb.button.pin;
+
 		assert.expect(1);
 		assert.equals(l.pinName, "BUTTON", "Pin is not BUTTON.");
 		assert.done();
 	},
 	getBuzzerTest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getBuzzer();
-		
+		let pb = new PiBrellaDevice();
+		let l = pb.buzzer;
+
 		assert.expect(1);
 		assert.equals(l.componentName, "PIBRELLA BUZZER", "PiBrella component is not the buzzer");
 		assert.done();
 	},
 	getInputAtest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getInputA();
-		
+		let pb = new PiBrellaDevice();
+
 		assert.expect(1);
-		assert.equals(l.pinName, "INPUT A", "PiBrella component is not INPUT A");
+		assert.equals(pb.inputA.pinName, "INPUT A", "PiBrella component is not INPUT A");
 		assert.done();
 	},
 	getInputBtest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getInputB();
-		
+		let pb = new PiBrellaDevice();
+
 		assert.expect(1);
-		assert.equals(l.pinName, "INPUT B", "PiBrella component is not INPUT B");
+		assert.equals(pb.inputB.pinName, "INPUT B", "PiBrella component is not INPUT B");
 		assert.done();
 	},
 	getInputCtest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getInputC();
-		
+		let pb = new PiBrellaDevice();
+
 		assert.expect(1);
-		assert.equals(l.pinName, "INPUT C", "PiBrella component is not INPUT C");
+		assert.equals(pb.inputC.pinName, "INPUT C", "PiBrella component is not INPUT C");
 		assert.done();
 	},
 	getInputDtest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getInputD();
-		
+		let pb = new PiBrellaDevice();
+
 		assert.expect(1);
-		assert.equals(l.pinName, "INPUT D", "PiBrella component is not INPUT D");
+		assert.equals(pb.inputD.pinName, "INPUT D", "PiBrella component is not INPUT D");
 		assert.done();
 	},
 	getOutputEtest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getOutputE();
-		
+		let pb = new PiBrellaDevice();
+
 		assert.expect(1);
-		assert.equals(l.pinName, "OUTPUT E", "PiBrella component is not OUTPUT E");
+		assert.equals(pb.outputE.pinName, "OUTPUT E", "PiBrella component is not OUTPUT E");
 		assert.done();
 	},
 	getOutputFtest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getOutputF();
-		
+		let pb = new PiBrellaDevice();
+
 		assert.expect(1);
-		assert.equals(l.pinName, "OUTPUT F", "PiBrella component is not OUTPUT F");
+		assert.equals(pb.outputF.pinName, "OUTPUT F", "PiBrella component is not OUTPUT F");
 		assert.done();
 	},
 	getOutputGtest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getOutputG();
-		
+		let pb = new PiBrellaDevice();
+
 		assert.expect(1);
-		assert.equals(l.pinName, "OUTPUT G", "PiBrella component is not OUTPUT G");
+		assert.equals(pb.outputG.pinName, "OUTPUT G", "PiBrella component is not OUTPUT G");
 		assert.done();
 	},
 	getOutputHtest: function(assert) {
-		var pb = new PiBrellaDevice();
-		var l = pb.getOutputH();
-		
+		let pb = new PiBrellaDevice();
+
 		assert.expect(1);
-		assert.equals(l.pinName, "OUTPUT H", "PiBrella component is not OUTPUT H");
+		assert.equals(pb.outputH.pinName, "OUTPUT H", "PiBrella component is not OUTPUT H");
 		assert.done();
 	}
 };

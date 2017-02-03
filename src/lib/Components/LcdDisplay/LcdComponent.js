@@ -22,130 +22,85 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var inherits = require('util').inherits;
-var LcdBase = require('./LcdBase.js');
-var LcdModule = require('../../LCD/LcdModule.js');
-var ArgumentNullException = require('../../ArgumentNullException.js');
-var LcdTransferProvider = require('../../LCD/LcdTransferProvider.js');
-var IllegalArgumentException = require('../../IllegalArgumentException.js');
+const util = require('util');
+const LcdBase = require('./LcdBase.js');
+const LcdModule = require('../../LCD/LcdModule.js');
+const ArgumentNullException = require('../../ArgumentNullException.js');
+const LcdTransferProvider = require('../../LCD/LcdTransferProvider.js');
+const IllegalArgumentException = require('../../IllegalArgumentException.js');
 
 /**
-* An LCD display device abstraction component.
-* @param {LcdTransferProvider} provider The LCD transfer provider.
-* @param {Number} rows     The number of rows in the display.
-* @param {Number} columns  The number of columns.
-* @throws {ArgumentNullException} if the specified provider is null or undefined.
-* @throws {IllegalArgumentException} if the specified provider is not actually
-* of type LcdTransferProvider or derivative.
-* @constructor
+* @classdesc An LCD display device abstraction component.
 * @extends {LcdBase}
 */
-function LcdComponent(provider, rows, columns) {
-  LcdBase.call(this);
+class LcdComponent extends LcdBase {
+  /**
+   * Initializes a new instance of the jsrpi.Components.LcdDisplay.LcdComponent
+   * class with the transfer provider and number of rows and columns,
+   * @param {LcdTransferProvider} provider The LCD transfer provider.
+   * @param {Number} rows     The number of rows in the display.
+   * @param {Number} columns  The number of columns.
+   * @throws {ArgumentNullException} if the specified provider is null or undefined.
+   * @throws {IllegalArgumentException} if the specified provider is not actually
+   * of type LcdTransferProvider or derivative.
+   * @constructor
+   */
+  constructor(provider, rows, columns) {
+    super();
 
-  var self = this;
-  var _base = new LcdBase();
-  var _module = provider || null;
-  columns = columns || 0;
-  rows = rows || 0;
+    this._module = provider || null;
+    columns = columns || 0;
+    rows = rows || 0;
 
-  if (util.isNullOrUndefined(_module)) {
-    throw new ArgumentNullException("'provider' param cannot be null or undefined.");
+    if (util.isNullOrUndefined(this._module)) {
+      throw new ArgumentNullException("'provider' param cannot be null or undefined.");
+    }
+
+    if (!(this._module instanceof LcdTransferProvider)) {
+      throw new IllegalArgumentException("'provider' param must be of LcdTransferProvider or derivative.");
+    }
+
+    this._module = new LcdModule(provider);
+    this._module.begin(columns, rows);
   }
-
-  if (!(_module instanceof LcdTransferProvider)) {
-    throw new IllegalArgumentException("'provider' param must be of LcdTransferProvider or derivative.");
-  }
-
-  _module = new LcdModule(provider);
-  _module.begin(columns, rows);
-
-  /**
-  * Component name property.
-  * @property {String}
-  */
-  this.componentName = _base.componentName;
-
-  /**
-  * Tag property.
-  * @property {Object}
-  */
-  this.tag = _base.tag;
-
-  /**
-  * Gets the property collection.
-  * @return {Array} A custom property collection.
-  * @override
-  */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
-
-  /**
-  * Checks to see if the property collection contains the specified key.
-  * @param  {String} key The key name of the property to check for.
-  * @return {Boolean}    true if the property collection contains the key;
-  * Otherwise, false.
-  * @override
-  */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
-
-  /**
-  * Sets the value of the specified property. If the property does not already exist
-  * in the property collection, it will be added.
-  * @param  {String} key   The property name (key).
-  * @param  {String} value The value to assign to the property.
-  */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
-
-  /**
-  * Determines whether or not this instance has been disposed.
-  * @return {Boolean} true if disposed; Otherwise, false.
-  * @override
-  */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
 
   /**
   * Releases all managed resources used by this instance.
   * @override
   */
-  this.dispose = function() {
-    if (LcdBase.prototype.isDisposed()) {
+  dispose() {
+    if (this.isDisposed) {
       return;
     }
 
-    if (!util.isNullOrUndefined(_module)) {
-      _module.clear();
-      _module.provider().dispose();
-      _module = undefined;
+    if (!util.isNullOrUndefined(this._module)) {
+      this._module.clear();
+      this._module.provider.dispose();
+      this._module = undefined;
     }
-    LcdBase.prototype.dispose();
-  };
+
+    super.dispose();
+  }
 
   /**
-  * Gets the row count.
-  * @return {Number} The number of rows supported by the display.
+  * Gets the number of rows supported by the display.
+  * @property {Number} rowCount - The number of supported rows.
+  * @readonly
   * @override
   */
-  this.getRowCount = function() {
-    return _module.rows();
-  };
+  get rowCount() {
+    return this._module.rows;
+  }
 
   /**
-  * Gets the column count.
-  * @return {Number} The number of columns supported by the display.
+  * Gets the number of columns supported by the display.
+  * @property {Number} columnCount - The number of supported columns.
+  * @readonly
   * @override
   */
-  this.getColumnCount = function() {
-    return _module.columns();
-  };
+  get columnCount() {
+    return this._module.columns;
+  }
 
   /**
   * Positions the cursor at the specified column and row. If only the row is
@@ -155,35 +110,35 @@ function LcdComponent(provider, rows, columns) {
   * position the cursor.
   * @override
   */
-  this.setCursorPosition = function(row, column) {
+  setCursorPosition(row, column) {
     row = row || 0;
     column = column || 0;
-    LcdBase.prototype._validateCoordinates(row, column);
-    _module.setCursorPosition(column, row);
-  };
+    this._validateCoordinates(row, column);
+    this._module.setCursorPosition(column, row);
+  }
 
   /**
   * Writes a single byte of data to the display.
   * @param  {Byte|Number} data The byte to send.
   * @override
   */
-  this.writeSingleByte = function(data) {
-    _module.writeByte(data);
-  };
+  writeSingleByte(data) {
+    this._module.writeByte(data);
+  }
 
   /**
   * Clears the display.
   */
-  this.clearDisplay = function() {
-    _module.clear();
-  };
+  clearDisplay() {
+    this._module.clear();
+  }
 
   /**
   * Sets the cursor in the home position.
   */
-  this.setCursorHome = function() {
-    _module.returnHome();
-  };
+  setCursorHome() {
+    this._module.returnHome();
+  }
 
   /**
   * Converts the current instance to it's string representation. This method
@@ -191,12 +146,9 @@ function LcdComponent(provider, rows, columns) {
   * @return {String} The component name.
   * @override
   */
-  this.toString = function() {
-    return self.componentName;
-  };
+  toString() {
+    return this.componentName;
+  }
 }
-
-LcdComponent.prototype.constructor = LcdComponent;
-inherits(LcdComponent, LcdBase);
 
 module.exports = LcdComponent;

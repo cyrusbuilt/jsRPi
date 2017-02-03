@@ -22,46 +22,51 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Disposable = require('../Disposable.js');
+const Disposable = require('../Disposable.js');
 
 /**
  * An interface for the Dallas Semiconductor DS1620 digital thermometer IC.
  * @interface
  * @extends {Disposable}
  */
-function DS1620Interface() {
-  Disposable.call(this);
+class DS1620Interface extends Disposable {
+  /**
+   * Initializes a new instance of the jsrpi.Sensors.DS1620Interface interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In an implementing class, gets the clock pin.
+   * @property {Gpio} clockPin - The clock pin.
+   * @readonly
+   */
+  get clockPin() { return null; }
+
+  /**
+   * In an implementing class, gets the data pin.
+   * @property {Gpio} dataPin - The data pin.
+   * @readonly
+   */
+  get dataPin() { return null; }
+
+  /**
+   * In an implementing class, gets the reset pin.
+   * @property {Gpio} resetPin - The reset pin.
+   * @readonly
+   */
+  get resetPin() { return null; }
+
+  /**
+   * In an implementing class, sends the commands to get the temperature from the
+   * sensor.
+   * @return {Number} The tempurature with half-degree granularity.
+   * @throws {ObjectDisposedException} if this instance has been disposed and is
+   * no longer usable.
+   */
+  getTemperature() { return 0; }
 }
-
-/**
- * In an implementing class, gets the clock pin.
- * @return {Gpio} The clock pin.
- */
-DS1620Interface.prototype.getClockPin = function() {};
-
-/**
- * In an implementing class, gets the data pin.
- * @return {Gpio} The data pin.
- */
-DS1620Interface.prototype.getDataPin = function() {};
-
-/**
- * In an implementing class, gets the reset pin.
- * @return {Gpio} The reset pin.
- */
-DS1620Interface.prototype.getResetPin = function() {};
-
-/**
- * In an implementing class, sends the commands to get the temperature from the
- * sensor.
- * @return {Number} The tempurature with half-degree granularity.
- * @throws {ObjectDisposedException} if this instance has been disposed and is
- * no longer usable.
- */
-DS1620Interface.prototype.getTemperature = function() { return 0; };
-
-DS1620Interface.prototype.constructor = DS1620Interface;
-inherits(DS1620Interface, Disposable);
 
 module.exports = DS1620Interface;

@@ -22,43 +22,50 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var RelayState = require('./RelayState.js');
+const util = require('util');
+const RelayState = require('./RelayState.js');
 
 /**
  * The event that gets raised when a relay changes state.
- * @param {RelayState} oldState The previous relay state.
- * @param {RelayState} newState The current relay state.
- * @constructor
  * @event
  */
-function RelayStateChangeEvent(oldState, newState) {
-  var _oldState = oldState;
-  if (util.isNullOrUndefined(_oldState)) {
-    _oldState = RelayState.Open;
-  }
+class RelayStateChangeEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Relays.RelayStateChangeEvent
+   * class with the old and new states.
+   * @param {RelayState} oldState The previous relay state.
+   * @param {RelayState} newState The current relay state.
+   * @constructor
+   */
+  constructor(oldState, newState) {
+    this._oldState = oldState;
+    if (util.isNullOrUndefined(this._oldState)) {
+      this._oldState = RelayState.Open;
+    }
 
-  var _newState = newState;
-  if (util.isNullOrUndefined(_oldState)) {
-    _newState = RelayState.Open;
+    this._newState = newState;
+    if (util.isNullOrUndefined(this._oldState)) {
+      this._newState = RelayState.Open;
+    }
   }
 
   /**
    * Gets the previous state of the relay.
-   * @return {RelayState} The previous relay state.
+   * @property {RelayState} oldState - The previous state.
+   * @readonly
    */
-  this.getOldState = function() {
-    return _oldState;
-  };
+  get oldState() {
+    return this._oldState;
+  }
 
   /**
    * Gets the current state of the relay.
-   * @return {RelayState} The current relay state.
+   * @property {RelayState} newState - The new (current) state.
+   * @readonly
    */
-  this.getNewState = function() {
-    return _newState;
-  };
+  get newState() {
+    return this._newState;
+  }
 }
 
-RelayStateChangeEvent.prototype.constructor = RelayStateChangeEvent;
 module.exports = RelayStateChangeEvent;

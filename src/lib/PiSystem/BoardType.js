@@ -27,7 +27,7 @@
  * Defines possible Raspberry Pi board types.
  * @enum {number}
  */
-var BoardType = {
+const BoardType = {
   /**
    * Model B, Revision 1.
    * @type {Number}

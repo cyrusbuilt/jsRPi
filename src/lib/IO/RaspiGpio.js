@@ -22,39 +22,43 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Gpio = require('./Gpio.js');
-var BoardRevision = require('../BoardRevision.js');
-var GpioPins = require('./GpioPins.js');
+const Gpio = require('./Gpio.js');
+const BoardRevision = require('../BoardRevision.js');
+const GpioPins = require('./GpioPins.js');
 
 /**
  * A RaspberryPi GPIO interface.
  * @interface
  * @extends {Gpio}
  */
-function RaspiGpio() {
-  Gpio.call(this);
+class RaspiGpio extends Gpio {
+  /**
+   * Iniatializes a new instance of the jsrpi.IO.RaspiGpio interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * Gets the board revision.
+   * @property {BoardRevision} revision - The board revision.
+   * @readonly
+   */
+  get revision() { return BoardRevision.Rev2; }
+
+  /**
+   * Gets the physical pin being represented by this instance.
+   * @property {GpioPins} innerPin - The underlying physical pin.
+   * @readonly
+   */
+  get innerPin() { return GpioPins.GPIO_NONE; }
+
+  /**
+   * In a derivative class, fires the pin state change event.
+   * @param {PinStateChangeEvent} psce The event object.
+   */
+  onPinStateChange(psce) {}
 }
-
-Gpio.prototype.constructor = RaspiGpio;
-inherits(RaspiGpio, Gpio);
-
-/**
- * Gets the board revision.
- * @return {BoardRevision} The board revision.
- */
-Gpio.prototype.getRevision = function() { return BoardRevision.Rev2; };
-
-/**
- * Gets the physical pin being represented by this instance.
- * @return {GpioPins} The physical pin.
- */
-Gpio.prototype.getInnerPin = function() { return GpioPins.GPIO_NONE; };
-
-/**
- * In a derivative class, fires the pin state change event.
- * @param  {PinStateChangeEvent} psce The event object.
- */
-Gpio.prototype.onPinStateChange = function(psce) {};
 
 module.exports = RaspiGpio;

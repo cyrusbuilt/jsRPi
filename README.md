@@ -1,9 +1,10 @@
 jsRPi
 ======
+[![Build Status](https://travis-ci.org/cyrusbuilt/jsRPi.svg?branch=master)](https://travis-ci.org/cyrusbuilt/jsRPi)
 
 Raspberry Pi library framework for NodeJS
 ======
-jsRPi v0.1.2 ALPHA
+jsRPi v0.2.2 ALPHA
 Copyright (c) CyrusBuilt 2015
 
 A Raspberry Pi GPIO and device/component library framework for NodeJS. This is a
@@ -16,7 +17,8 @@ abstractions for creating your own. This library is under development and not
 ready for production use. This library has grown into a bit of a "Swiss Army
 Knife" given the breadth of functionality that is still growing as it is
 adapted. Most of it is ready, however, I'd love some feed back. This framework
-will soon be release as a Node Module and will be installable via NPM.
+will be released as a Node Module and will be installable via NPM at some point
+in the (hopefully) near future.
 
 Note:
 ======
@@ -42,84 +44,11 @@ general goes against the non-blocking nature of NodeJS. Unfortunately, this
 could not be avoided in many cases but I do have plans try and refactor some of
 this code in an attempt to make it more asynchronous wherever possible.
 
-A note about object inheritance:
-======
-Coming from the world of Java/.NET/C++ and other languages where one class
-can extend multpile classes and implement multiple interfaces, I struggled a
-great deal to port this framework from the MonoPi project. There are a number
-of interfaces and base classes (well... the JS implementation of such constructs)
-that many other classes are built off of.  For example, most of the classes in
-src/lib/Components all derive from a base class called "ComponentBase", of which
-implements the "Component" interface. The problem is, when you want to implement
-an interface, and then also extend 2 base classes (such as ComponentBase and
-EventEmitter) it all falls apart. I've done a ton of research into this and the
-only effective solution I've come up with is to inherit from the "primary"
-interface using util.inherits so that the instanceof keyword will work, but then
-instanceof will be false for ComponentBase and EventEmitter. Then internally, I
-create instances of both ComponentBase and EventEmitter and wrap the necessary
-methods the "derived" class like so:
-
-```JavaScript
-var inherits = require('util').inherits;
-var Switch = require('./Switch.js');
-var ComponentBase = require('../ComponentBase.js');
-var EventEmitter = require('events').EventEmitter;
-
-function SwitchBase() {
-	Switch.call(this);
-	
-	// NOTE this class' content is drastically reduced for brevity
-	
-	var self = this;
-	var _base = new ComponentBase();
-	var _emitter = new EventEmitter();
-	
-	this.isDisposed = function() {
-		return _base.isDisposed();
-	};
-	
-	this.dispose = function() {
-		if (_base.isDisposed()) {
-			return;
-		}
-		
-		// ...
-		// Dispose stuff
-		
-		_base.dispose();
-	};
-	
-	this.removeAllListensers = function() {
-		_emitter.removeAllListeners();
-	};
-	
-	this.on = function(event, callback) {
-		_emitter.on(event, callback);
-	};
-	
-	this.emit = function(event, args) {
-		_emitter.emit(event, args);
-	};
-}
-
-SwitchBase.prototype.constructor = SwitchBase;
-inherits(SwitchBase, Switch);
-
-module.exports = SwitchBase;
-```
-
-I hope to find a more elegant solution moving forward because I feel
-like this method uses more memory that it really should and also
-because I can hear the seasoned JS developers out there screaming in
-agony just looking at this code.
-
 ES6 Comliance:
 ======
-This framework was written to be ES5 compliant, but there are plans
-to refactor this framework to ES6 in the future. This (I'm hoping)
-will not only bring it closer in resemblance to the original MonoPi
-code, but also address at least *some* of the inheritance issues I've
-encountered.
+This framework has been ported from ES5-compliant code to ES6. It is recommended that if have implemented an previous
+versions of the framework (v0.1.x) that you review your code as the v0.2.x code is quite a bit different and will likely
+break your existing code.
 
 Building jsRPi:
 ======
@@ -156,7 +85,34 @@ provided for convenience for those who would rather deal with a single file inst
 
 Also, if you just want to run unit tests, just navigate to the jsRPi directory from a command line and type:
 ```
-grunt nodeunit
+npm run test
+```
+
+ADDITIONAL COMMANDS
+======
+To just run JSHint against all the source and tests:
+```
+npm run jshint
+```
+
+To run all unit tests:
+```
+npm run test
+```
+
+To run a watch:
+```
+npm run watch
+```
+
+To just generate/update API documentation in the /docs folder:
+```
+npm run doc
+```
+
+To run a full build:
+```
+npm run build
 ```
 
 LICENSE:

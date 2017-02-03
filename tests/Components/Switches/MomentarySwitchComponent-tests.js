@@ -1,130 +1,129 @@
 'use strict';
 
-var util = require('util');
-var inherits = require('util').inherits;
-var GpioBase = require('../../../src/lib/IO/GpioBase.js');
-var GpioPins = require('../../../src/lib/IO/GpioPins.js');
-var PinMode = require('../../../src/lib/IO/PinMode.js');
-var PinState = require('../../../src/lib/IO/PinState.js');
-var PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
-var Switch = require('../../../src/lib/Components/Switches/Switch.js');
-var SwitchState = require('../../../src/lib/Components/Switches/SwitchState.js');
-var MomentarySwitchComponent = require('../../../src/lib/Components/Switches/MomentarySwitchComponent.js');
+const util = require('util');
+const GpioBase = require('../../../src/lib/IO/GpioBase.js');
+const GpioPins = require('../../../src/lib/IO/GpioPins.js');
+const PinMode = require('../../../src/lib/IO/PinMode.js');
+const PinState = require('../../../src/lib/IO/PinState.js');
+const PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
+const Switch = require('../../../src/lib/Components/Switches/Switch.js');
+const SwitchState = require('../../../src/lib/Components/Switches/SwitchState.js');
+const MomentarySwitchComponent = require('../../../src/lib/Components/Switches/MomentarySwitchComponent.js');
 
 
-function FakeGpio(pin, mode, value) {
-  GpioBase.call(this, pin, mode, value);
+class FakeGpio extends GpioBase {
+    constructor(pin, mode, value) {
+        super(pin, mode, value);
 
-  var self = this;
-  var _overriddenState = value;
-  if (util.isNullOrUndefined(_overriddenState)) {
-    _overriddenState = PinState.Low;
-  }
-
-  this.read = function() {
-    return _overriddenState;
-  };
-
-  this.write = function(ps) {
-    if (_overriddenState !== ps) {
-      var addr = pin.value;
-      var evt = new PinStateChangeEvent(_overriddenState, ps, addr);
-      _overriddenState = ps;
-      self.onPinStateChange(evt);
+        this._overriddenState = value;
+        if (util.isNullOrUndefined(this._overriddenState)) {
+            this._overriddenState = PinState.Low;
+        }
     }
-  };
-}
 
-FakeGpio.prototype.constructor = FakeGpio;
-inherits(FakeGpio, GpioBase);
+    read() {
+        return this._overriddenState;
+    }
+
+    write(ps) {
+        super.write(ps);
+        if (this._overriddenState !== ps) {
+            let addr = this.innerPin.value;
+            let evt = new PinStateChangeEvent(this._overriddenState, ps, addr);
+            this._overriddenState = ps;
+            this.onPinStateChange(evt);
+        }
+    }
+}
 
 
 module.exports.MomentarySwitchComponentTests = {
 	disposeAndIsDisposedTest: function(assert) {
-		var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-		var msc = new MomentarySwitchComponent(fakePin);
-		
+		let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+		let msc = new MomentarySwitchComponent(fakePin);
+
 		assert.expect(2);
-		assert.ok(!msc.isDisposed(), "Momentary switch is already disposed");
-		
+		assert.ok(!msc.isDisposed, "Momentary switch is already disposed");
+
 		msc.dispose();
-		assert.ok(msc.isDisposed(), "Momentary switch is not disposed");
+		assert.ok(msc.isDisposed, "Momentary switch is not disposed");
 		assert.done();
 	},
 	setHasPropertyTest: function(assert) {
-		var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-		var msc = new MomentarySwitchComponent(fakePin);
+		let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+		let msc = new MomentarySwitchComponent(fakePin);
 		msc.setProperty("foo", "bar");
-		
+
 		assert.expect(1);
 		assert.ok(msc.hasProperty("foo"), "Propery 'foo' not present");
 		assert.done();
 	},
 	getStateTest: function(assert) {
-		var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-		var msc = new MomentarySwitchComponent(fakePin);
-		
+		let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+		let msc = new MomentarySwitchComponent(fakePin);
+
 		assert.expect(2);
-		assert.equals(msc.getState(), SwitchState.Off, "Momentary switch state is not off");
-		
+		assert.equals(msc.state, SwitchState.Off, "Momentary switch state is not off");
+
 		fakePin.write(PinState.High);
-		assert.equals(msc.getState(), SwitchState.On, "Momentary switch is not on");
+		assert.equals(msc.state, SwitchState.On, "Momentary switch is not on");
 		assert.done();
 	},
 	isStateTest: function(assert) {
-		var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-		var msc = new MomentarySwitchComponent(fakePin);
-		
+		let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+        let msc = new MomentarySwitchComponent(fakePin);
+        let result = msc.isState(SwitchState.Off);
+
 		assert.expect(1);
-		assert.ok(msc.isState(SwitchState.Off), "Momentary switch is not on");
+		assert.ok(result, "Momentary switch is not on");
 		assert.done();
 	},
 	isOnTest: function(assert) {
-		var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-		var msc = new MomentarySwitchComponent(fakePin);
-		
+		let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+		let msc = new MomentarySwitchComponent(fakePin);
+
 		assert.expect(2);
-		assert.ok(!msc.isOn(), "Momentary switch is already on");
-		
+		assert.ok(!msc.isOn, "Momentary switch is already on");
+
 		fakePin.write(PinState.High);
-		assert.ok(msc.isOn(), "Momentary switch is not on");
+		assert.ok(msc.isOn, "Momentary switch is not on");
 		assert.done();
 	},
 	isOffTest: function(assert) {
-		var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-		var msc = new MomentarySwitchComponent(fakePin);
-		
+		let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+		let msc = new MomentarySwitchComponent(fakePin);
+
 		assert.expect(1);
-		assert.ok(msc.isOff(), "Momentary switch is not off");
+		assert.ok(msc.isOff, "Momentary switch is not off");
 		assert.done();
 	},
 	pollTest: function(assert) {
-		var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-		var msc = new MomentarySwitchComponent(fakePin);
-		
+		let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+		let msc = new MomentarySwitchComponent(fakePin);
+
 		assert.expect(2);
-		assert.ok(!msc.isPolling(), "Momentary switch is already polling");
-		
+		assert.ok(!msc.isPolling, "Momentary switch is already polling");
+
 		msc.poll();
-		assert.ok(msc.isPolling(), "Momentary switch is not polling");
-		
+		assert.ok(msc.isPolling, "Momentary switch is not polling");
+
 		msc.interruptPoll();
 		assert.done();
 	},
 	stateChangeTest: function(assert) {
-		var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-		var msc = new MomentarySwitchComponent(fakePin);
-		msc.on(Switch.EVENT_STATE_CHANGED, function(stateChanged) {
+		let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+		let msc = new MomentarySwitchComponent(fakePin);
+		msc.on(Switch.EVENT_STATE_CHANGED, (stateChanged) => {
 			assert.expect(2);
-			assert.equals(stateChanged.getOldState(), SwitchState.Off, "Old momentary switch state is not off");
-			assert.equals(stateChanged.getNewState(), SwitchState.On, "New momentary switch state is not on");
+			assert.equals(stateChanged.oldState, SwitchState.Off, "Old momentary switch state is not off");
+			assert.equals(stateChanged.newState, SwitchState.On, "New momentary switch state is not on");
 			assert.done();
 		});
-		
+
 		msc.poll();
 		fakePin.write(PinState.High);
-		
-		setTimeout(function() {
+
+		setTimeout(() => {
 			msc.interruptPoll();
 		}, 225);
 	}

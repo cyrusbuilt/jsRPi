@@ -26,6 +26,7 @@
  * modules.
  *
  * @module LCD
+ * @namespace jsrpi.LCD
  */
 
 module.exports = {

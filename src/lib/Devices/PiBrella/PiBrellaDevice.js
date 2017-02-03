@@ -21,20 +21,22 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var PiBrellaBase = require('./PiBrellaBase.js');
+const PiBrellaBase = require('./PiBrellaBase.js');
 
 /**
  * @classdesc An abstraction of a PiBrella device. This is an implmentation of
  * PiBrellaBase.
- * @constructor
  * @extends {PiBrellaBase}
  */
-function PiBrellaDevice() {
-  PiBrellaBase.call(this);
+class PiBrellaDevice extends PiBrellaBase {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.PiBrella.PiBrellaDevice
+   * class.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
 }
-
-PiBrellaDevice.prototype.constructor = PiBrellaDevice;
-inherits(PiBrellaDevice, PiBrellaBase);
 
 module.exports = PiBrellaDevice;

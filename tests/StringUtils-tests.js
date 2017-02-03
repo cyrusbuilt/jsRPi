@@ -1,51 +1,51 @@
 'use strict';
 
-var StringUtils = require('../src/lib/StringUtils.js');
+const StringUtils = require('../src/lib/StringUtils.js');
 
 module.exports.StringUtilsTests = {
   testCreate: function(assert) {
     assert.expect(1);
-    var s = StringUtils.create('c', 3);
+    let s = StringUtils.create('c', 3);
     assert.equals(s, "ccc", "'s' is not 'ccc'");
     assert.done();
   },
   testPadLeft: function(assert) {
     assert.expect(1);
-    var testString = "Hello World!";
-    var s = StringUtils.padLeft(testString, 'a', 3);
+    let testString = "Hello World!";
+    let s = StringUtils.padLeft(testString, 'a', 3);
     assert.equals(s, "aaaHello World!", "'s' is not 'aaaHello World!'");
     assert.done();
   },
   testPadRight: function(assert) {
     assert.expect(1);
-    var testString = "Hello World!";
-    var s = StringUtils.padRight(testString, 'f', 5);
+    let testString = "Hello World!";
+    let s = StringUtils.padRight(testString, 'f', 5);
     assert.equals(s, "Hello World!fffff", "'s' is not 'Hello World!fffff'");
     assert.done();
   },
   testPad: function(assert) {
     assert.expect(1);
-    var testString = "FooBar";
-    var s = StringUtils.pad(testString, '-', 3);
+    let testString = "FooBar";
+    let s = StringUtils.pad(testString, '-', 3);
     assert.equals(s, "---FooBar---", "'s' is not '---FooBar---'");
     assert.done();
   },
   testPadCenter: function(assert) {
     assert.expect(1);
-    var testString = "FooBar";
-    var s = StringUtils.padCenter(testString, StringUtils.DEFAULT_PAD_CHAR, 1);
+    let testString = "FooBar";
+    let s = StringUtils.padCenter(testString, StringUtils.DEFAULT_PAD_CHAR, 1);
     assert.equals(s, "Foo Bar", "'s' is not 'Foo Bar'");
     assert.done();
   },
   testEndsWith: function(assert) {
     assert.expect(1);
-    var result = StringUtils.endsWith("foo.bar", "bar");
+    let result = StringUtils.endsWith("foo.bar", "bar");
     assert.ok(result, "'foo.bar' does not end with 'bar'");
     assert.done();
   },
   testStartsWith: function(assert) {
     assert.expect(1);
-    var result = StringUtils.startsWith("foo.bar", "foo");
+    let result = StringUtils.startsWith("foo.bar", "foo");
     assert.ok(result, "'foo.bar' does not start with 'foo'");
     assert.done();
   },
@@ -81,8 +81,8 @@ module.exports.StringUtilsTests = {
         return false;
       }
 
-      var result = true;
-      for (var i = 0; i < a.length; ++i) {
+      let result = true;
+      for (let i = 0; i < a.length; ++i) {
         if (a[i] !== b[i]) {
           result = false;
           break;
@@ -91,7 +91,7 @@ module.exports.StringUtilsTests = {
       return result;
     }
 
-    var byte = StringUtils.convertStringToByte("1");
+    let byte = StringUtils.convertStringToByte("1");
     assert.expect(1);
     assert.ok(arraysEqual(byte, [49]), "String does not convert to 1");
     assert.done();

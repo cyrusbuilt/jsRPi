@@ -22,93 +22,88 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var fs = require('fs');
-var _ = require('underscore');
-var ExecUtils = require("../ExecUtils.js");
-var GpioBase = require("./GpioBase.js");
-var GpioPins = require("./GpioPins.js");
-var PinMode = require("./PinMode.js");
-var PinState = require("./PinState.js");
-var PinUtils = require("./PinUtils.js");
-var IOException = require("./IOException.js");
-var InvalildOperationException = require("../InvalidOperationException.js");
-var PinStateChangeEvent = require("./PinStateChangeEvent.js");
+const fs = require('fs');
+const _ = require('underscore');
+const ExecUtils = require("../ExecUtils.js");
+const GpioBase = require("./GpioBase.js");
+const GpioPins = require("./GpioPins.js");
+const PinMode = require("./PinMode.js");
+const PinState = require("./PinState.js");
+const PinUtils = require("./PinUtils.js");
+const IOException = require("./IOException.js");
+const InvalildOperationException = require("../InvalidOperationException.js");
+const PinStateChangeEvent = require("./PinStateChangeEvent.js");
 
-var IO_PATH = "/sys/class/gpio/";
+const IO_PATH = "/sys/class/gpio/";
 
 /**
  * @classdesc Raspberry Pi GPIO using the file-based access method.
- * @param {GpioPins} pin          The pin on the board to access.
- * @param {PinMode} mode          The I/O mod of the pin.
- * @param {PinState} initialValue The pin's initial value.
- * @constructor
  * @extends {GpioBase}
  */
-function GpioStandard(pin, mode, initialValue) {
-  GpioBase.call(this, pin, mode, initialValue);
-
-  var _lastState = PinState.Low;
-  var _pwm = 0;
-  var _pwmRange = 1024;
-  var _isPWM = false;
-  var self = this;
-
+class GpioStandard extends GpioBase {
   /**
-   * Gets the PWM (Pulse-Width Modulation) value.
-   * @return {Number} The PWM value.
-   * @override
+   * Initializes a new instance of the jsrpi.IO.GpioStandard class with the pin
+   * the GPIO represents, the pin mode to configure it to, and the initial pin
+   * state.
+   * @param {GpioPins} pin          The pin on the board to access.
+   * @param {PinMode} mode          The I/O mod of the pin.
+   * @param {PinState} initialValue The pin's initial value.
+   * @constructor
    */
-  this.getPwm = function() {
-    return _pwm;
-  };
+  constructor(pin, mode, initialValue) {
+    super(pin, mode, initialValue);
+
+    this._lastState = PinState.Low;
+    this._pwm = 0;
+    this._pwmRange = 1024;
+    this._isPWM = false;
+  }
 
   /**
-   * Sets the PWM (Pulse-Width Modulation) value.
-   * @param  {Number} pwm The PWM value.
+   * Gets or sets the PWM (Pulse-Width Modulation) value.
+   * @property {Number} pwm - The PWM value.
    * @throws {InvalildOperationException} if specified pin is not PWM.
    * @override
    */
-  this.setPwm = function(pwm) {
-    if (self.mode !== PinMode.PWM) {
+  get pwm() {
+    return this._pwm;
+  }
+
+  set pwm(val) {
+    if (this.mode !== PinMode.PWM) {
       throw new InvalildOperationException("Cannot set PWM value on a pin not configured for PWM.");
     }
 
-    if (pwm < 0) {
-      pwm = 0;
+    if (val < 0) {
+      val = 0;
     }
 
-    if (pwm > 1023) {
-      pwm = 1023;
+    if (val > 1023) {
+      val = 1023;
     }
 
-    if (_pwm !== pwm) {
-      _pwm = pwm;
-      var cmd = "";
-      if (!_isPWM) {
-        cmd = "gpio mode " + self.getInnerPin().toString() + " pwm";
+    if (this._pwm !== val) {
+      this._pwm = val;
+      let cmd = "";
+      if (!this._isPWM) {
+        cmd = "gpio mode " + this.innerPin.toString() + " pwm";
         ExecUtils.executeCommand(cmd);
       }
-      cmd = "gpio pwm " + self.getInnerPin().toString() + " " + _pwm.toString();
+      cmd = "gpio pwm " + this.innerPin.toString() + " " + this._pwm.toString();
       ExecUtils.executeCommand(cmd);
     }
-  };
+  }
 
   /**
-   * Gets the PWM range.
-   * @return {Number} The PWM range.
+   * Gets or sets the PWM range.
+   * @property {Number} pwmRange - The PWM range.
    * @override
    */
-  this.getPWMRange = function() {
-    return _pwmRange;
-  };
+  get pwmRange() {
+    return this._pwmRange;
+  }
 
-  /**
-   * Sets the PWM range.
-   * @param  {Number} range The PWM range.
-   * @override
-   */
-  this.setPWMRange = function(range) {
+  set pwmRange(range) {
     if (range < 0) {
       range = 0;
     }
@@ -117,10 +112,10 @@ function GpioStandard(pin, mode, initialValue) {
       range = 1024;
     }
 
-    if (_pwmRange !== range) {
-      _pwmRange = range;
+    if (this._pwmRange !== range) {
+      this._pwmRange = range;
     }
-  };
+  }
 
   /**
    * Exports the GPIO setting the direction. This creates the
@@ -131,27 +126,20 @@ function GpioStandard(pin, mode, initialValue) {
    * @param  {String} pinname The name of the pin.
    * @private
    */
-  this._internal_ExportPin = function(pin, mode, pinnum, pinname) {
-    var pinPath = IO_PATH + "gpio" + pinnum;
-    var m = PinUtils.getPinModeName(mode);
-    var pins = self.getExportedPins();
+  _internal_ExportPin(pin, mode, pinnum, pinname) {
+    let pinPath = IO_PATH + "gpio" + pinnum;
+    let m = PinUtils.getPinModeName(mode);
 
     // If the pin is already exported, check it's in the proper direction.
-    if (pin in pins) {
-      // If the direction matches, return out of the function. If not,
-			// change the direction.
-			if (pins[pin] === mode) {
-        return;
-      }
-      else {
-        // Set the direction on the pin and update the exported list.
-        fs.writeFileSync(pinPath + "/direction", m);
-        pins[pin] = mode;
-        return;
-      }
+    // If the direction matches, return out of the function. If not,
+    // change the direction.
+    if (this.innerPin.mode === mode) {
+      return;
     }
     else {
-      pins.push(pin);
+      // Set the direction on the pin and update the exported list.
+      fs.writeFileSync(pinPath + "/direction", m);
+      return;
     }
 
     // Export.
@@ -161,11 +149,7 @@ function GpioStandard(pin, mode, initialValue) {
 
     // Set I/O direction.
     fs.writeFileSync(pinPath + "/direction", m);
-
-    // Update the pin.
-    pins[pin] = mode;
-    self._setExportedPins(pins);
-  };
+  }
 
   /**
    * Exports the GPIO setting the direction. This creates the
@@ -174,9 +158,9 @@ function GpioStandard(pin, mode, initialValue) {
    * @param  {PinMode} mode  The I/O mode.
    * @private
    */
-  this._exportPin = function(pin, mode) {
-    self._internal_ExportPin(pin.value, mode, pin.value.toString(), pin.name);
-  };
+  _exportPin(pin, mode) {
+    this._internal_ExportPin(pin.value, mode, pin.value.toString(), pin.name);
+  }
 
   /**
    * Writes the specified value to the specified GPIO pin.
@@ -186,17 +170,17 @@ function GpioStandard(pin, mode, initialValue) {
    * @param  {String} pinName The name of the pin.
    * @private
    */
-  this._internal_Write = function(pin, value, gpioNum, pinName) {
+  _internal_Write(pin, value, gpioNum, pinName) {
     // GPIO_NONE is the same value for both Rev1 and Rev2 boards.
     if (pin === GpioPins.GPIO_NONE.value) {
       return;
     }
 
-    self._internal_ExportPin(pin, PinMode.OUT, gpioNum, pinName);
-    var val = value.toString();
-    var path = IO_PATH + "gpio" + gpioNum + "/value";
+    this._internal_ExportPin(pin, PinMode.OUT, gpioNum, pinName);
+    let val = value.toString();
+    let path = IO_PATH + "gpio" + gpioNum + "/value";
     fs.writeFileSync(path, val);
-  };
+  }
 
   /**
    * Writes the specified value to the specified GPIO pin.
@@ -204,42 +188,39 @@ function GpioStandard(pin, mode, initialValue) {
    * @param  {PinState} value The value to write to the pin.
    * @private
    */
-  this._write = function(pin, value) {
-    var num = pin.value.toString();
-    var name = pin.name;
-    self._internal_Write(pin, value, num, name);
-  };
+  _write(pin, value) {
+    let num = pin.value.toString();
+    let name = pin.name;
+    this._internal_Write(pin, value, num, name);
+  }
 
   /**
    * Unexport the GPIO. This removes the /sys/class/gpio/gpioXX directory.
-   * @param  {Number} pin     The GPIO pin to unexport.
    * @param  {String} gpioNum The GPIO number associated with the pin.
    * @private
    */
-  this._internal_UnexportPin = function(pin, gpioNum) {
+  _internal_UnexportPin(gpioNum) {
     fs.writeFileSync(IO_PATH + "unexport", gpioNum);
-    var idx = _.indexBy(this.getExportedPins(), pin)[0];
-    self.getExportedPins().splice(idx, 1);
-  };
+  }
 
   /**
    * Unexport the GPIO. This removes the /sys/class/gpio/gpioXX directory.
    * @param  {GpioPins} pin The GPIO pin to unexport.
    * @private
    */
-  this._unexportPin = function(pin) {
-    self._write(pin, PinState.Low);
-    self._internal_UnexportPin(pin.value, pin.value.toString());
-  };
+  _unexportPin(pin) {
+    this._write(pin, PinState.Low);
+    this._internal_UnexportPin(pin.value.toString());
+  }
 
   /**
    * Provisions the I/O pin. See http://wiringpi.com/reference/raspberry-pi-specifics/
    * @override
    */
-  this.provision = function() {
-    self._exportPin(self.getInnerPin(), self.mode);
-    self._write(self.getInnerPin(), self._getInitialPinValue());
-  };
+  provision() {
+    this._exportPin(this.innerPin, this.mode);
+    this._write(this.innerPin, this._getInitialPinValue());
+  }
 
   /**
    * Reads the value of the specified GPIO pin.
@@ -247,16 +228,16 @@ function GpioStandard(pin, mode, initialValue) {
    * @param  {String} gpioNum  The GPIO pin number.
    * @param  {String} gpioName The name of the GPIO.
    * @return {PinState}        The value of the pin.
-   * @throws {IOExcption} if the specified pin could not be read (device does
+   * @throws {IOException} if the specified pin could not be read (device does
    * not exist).
    * @private
    */
-  this._internal_Read = function(pin, gpioNum, gpioName) {
-    var returnValue = PinState.Low;
-    self._internal_ExportPin(pin, PinMode.IN, gpioNum, gpioName);
-    var fileName = IO_PATH + "gpio" + gpioNum + "/value";
+  _internal_Read(pin, gpioNum, gpioName) {
+    let returnValue = PinState.Low;
+    this._internal_ExportPin(pin, PinMode.IN, gpioNum, gpioName);
+    let fileName = IO_PATH + "gpio" + gpioNum + "/value";
     if (fs.existsSync(fileName)) {
-      var readValue = fs.readFileSync(fileName);
+      let readValue = fs.readFileSync(fileName);
       if ((readValue.length > 0) && (parseInt(readValue.substring(0, 1)) === 1)) {
         returnValue = PinState.High;
       }
@@ -266,7 +247,7 @@ function GpioStandard(pin, mode, initialValue) {
     }
 
     return returnValue;
-  };
+  }
 
   /**
    * Read a value from the specified pin.
@@ -276,93 +257,90 @@ function GpioStandard(pin, mode, initialValue) {
    * not exist).
    * @private
    */
-  this._read = function(pin) {
-    var num = pin.value.toString();
-    var name = pin.name;
-    return self._internal_Read(pin.value, num, name);
-  };
+  _read(pin) {
+    let num = pin.value.toString();
+    let name = pin.name;
+    return this._internal_Read(pin.value, num, name);
+  }
 
   /**
    * Write a value to the pin.
    * @param  {PinState} ps The pin state value to write to the pin.
    * @override
    */
-  this.write = function(ps) {
-    GpioBase.prototype.write.call(self, ps);
-    self._write(self.getInnerPin(), ps);
-    if (_lastState !== self.state) {
-      self.onPinStateChange(new PinStateChangeEvent(_lastState, self.state));
+  write(ps) {
+    super.write(ps);
+    this._write(this.innerPin, ps);
+    if (this._lastState !== this.state) {
+      this.onPinStateChange(new PinStateChangeEvent(this._lastState, this.state));
     }
-  };
+  }
 
   /**
    * Pulse the pin output for the specified number of milliseconds.
    * @param  {Number} millis The number of milliseconds to wait between states.
    * @override
    */
-  this.pulse = function(millis) {
-    if (self.mode === PinMode.IN) {
+  pulse(millis) {
+    if (this.mode === PinMode.IN) {
       throw new InvalildOperationException("You cannot pulse a pin set as an input.");
     }
 
-    self._write(self.getInnerPin(), PinState.High);
-    self.onPinStateChange(new PinStateChangeEvent(self.state, PinState.High));
-    self.pulse(millis);
-    self._write(self.getInnerPin(), PinState.Low);
-    self.onPinStateChange(new PinStateChangeEvent(self.state, PinState.Low));
-  };
+    this._write(this.innerPin, PinState.High);
+    super.onPinStateChange(new PinStateChangeEvent(this.state, PinState.High));
+    this.pulse(millis);
+    this._write(super.innerPin, PinState.Low);
+    this.onPinStateChange(new PinStateChangeEvent(this.state, PinState.Low));
+  }
 
   /**
    * Pulses the pin for the default value of 500ms.
    */
-  this.pulseDefault = function() {
-    self.pulse(500);
-  };
+  pulseDefault() {
+    this.pulse(500);
+  }
 
   /**
    * Reads a value from the pin.
    * @return {PinState} The state (value) of the pin.
    * @override
    */
-  this.read = function() {
-    var val = self._read(self.getInnerPin());
-    if (_lastState !== val) {
-      self.onPinStateChange(new PinStateChangeEvent(_lastState, val));
+  read() {
+    let val = this._read(super.innerPin);
+    if (this._lastState !== val) {
+      this.onPinStateChange(new PinStateChangeEvent(this._lastState, val));
     }
     return val;
-  };
+  }
 
   /**
    * In subclasses, performs application-defined tasks associated with freeing,
    * releasing, or resetting resources.
    * @override
    */
-  this.dispose = function() {
-    self._unexportPin(self.getInnerPin());
-    if (self.getExportedPins().length > 0) {
-      for (var i = 0; i < self.getExportedPins().length; i++) {
-        self._unexportPin(self.getExportedPins[i]);
+  dispose() {
+    this._unexportPin(super.innerPin);
+    if (super.exportedPins.length > 0) {
+      for (let i = 0; i < super.exportedPins.length; i++) {
+        this._unexportPin(super.exportedPins[i]);
       }
     }
 
-    if (_isPWM) {
-        var cmd = "gpio unexport " + self.getInnerPin().value.toString();
-        ExecUtils.executeCommand(cmd);
+    if (this._isPWM) {
+      let cmd = "gpio unexport " + this.innerPin.value.toString();
+      ExecUtils.executeCommand(cmd);
     }
 
-    self.write(PinState.Low);
-    GpioBase.prototype.dispose.call(self);
-  };
+    this.write(PinState.Low);
+    super.dispose();
+  }
+
+  /**
+   * The path on the Raspberry Pi for the GPIO interface.
+   * @type {String}
+   * @const
+   */
+  static get GPIO_PATH() { return IO_PATH; }
 }
-
-GpioStandard.prototype.constructor = GpioStandard;
-inherits(GpioStandard, GpioBase);
-
-/**
- * The path on the Raspberry Pi for the GPIO interface.
- * @type {String}
- * @const
- */
-GpioStandard.GPIO_PATH = IO_PATH;
 
 module.exports = GpioStandard;

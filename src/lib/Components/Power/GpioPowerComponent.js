@@ -22,44 +22,61 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var inherits = require('util').inherits;
-var PowerBase = require('./PowerBase.js');
-var PowerState = require('./PowerState.js');
-var PowerStateChangeEvent = require('./PowerStateChangeEvent.js');
-var PowerUtils = require('./PowerUtils.js');
-var PowerInterface = require('./PowerInterface.js');
-var Gpio = require('../../IO/Gpio.js');
-var PinState = require('../../IO/PinState.js');
-var PinMode = require('../../IO/PinMode.js');
-var PinStateChangeEvent = require('../../IO/PinStateChangeEvent.js');
-var ArgumentNullException = require('../../ArgumentNullException.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
-var InvalidPinModeException = require('../../IO/InvalidPinModeException.js');
-var InvalidOperationException = require('../../InvalidOperationException.js');
+const util = require('util');
+const PowerBase = require('./PowerBase.js');
+const PowerState = require('./PowerState.js');
+const PowerStateChangeEvent = require('./PowerStateChangeEvent.js');
+const PowerUtils = require('./PowerUtils.js');
+const PowerInterface = require('./PowerInterface.js');
+const Gpio = require('../../IO/Gpio.js');
+const PinState = require('../../IO/PinState.js');
+const PinMode = require('../../IO/PinMode.js');
+const PinStateChangeEvent = require('../../IO/PinStateChangeEvent.js');
+const ArgumentNullException = require('../../ArgumentNullException.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
+const InvalidPinModeException = require('../../IO/InvalidPinModeException.js');
+const InvalidOperationException = require('../../InvalidOperationException.js');
 
 /**
  * @classdesc A power control component implemented using a single native GPIO
  * configured as an output.
- * @param {RaspiGpio} pin      [description]
- * @param {PinState} onState  [description]
- * @param {PinState} offState [description]
- * @throws {ArgumentNullException}
- * @constructor
  * @extends {PowerBase}
  */
-function GpioPowerComponent(pin, onState, offState) {
-  PowerBase.call(this);
+class GpioPowerComponent extends PowerBase {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Power.GpioPowerComponent
+   * class with the pin it is attached to and the pin states to consider the
+   * device to be on and off.
+   * @param {RaspiGpio} pin     The GPIO on the RPi that the device is attached to.
+   * @param {PinState} onState  The pin state to consider the device "on".
+   * @param {PinState} offState The pin state to consider the device "off".
+   * @throws {ArgumentNullException} if the specified pin is null or undefined.
+   * @constructor
+   */
+  constructor(pin, onState, offState) {
+    super();
 
-  if (util.isNullOrUndefined(pin)) {
-    throw new ArgumentNullException("'pin' param cannot be null or undefined.");
+    if (util.isNullOrUndefined(pin)) {
+      throw new ArgumentNullException("'pin' param cannot be null or undefined.");
+    }
+
+    this._output = pin;
+    this._onState = onState || PinState.High;
+    this._offState = offState || PinState.Low;
+
+    this._output.on(Gpio.EVENT_STATE_CHANGED, (evt) => {
+        this._onOutputStateChanged(evt);
+    });
   }
 
-  var self = this;
-  var _base = new PowerBase();
-  var _output = pin;
-  var _onState = onState || PinState.High;
-  var _offState = offState || PinState.Low;
+  /**
+   * Gets the this power component is attached to.
+   * @property {RaspiGpio} pin - The underlying physical pin.
+   * @readonly
+   */
+  get pin() {
+    return this._pin;
+  }
 
   /**
    * Internal handler for the output pin state change event. This dispatches the
@@ -67,219 +84,112 @@ function GpioPowerComponent(pin, onState, offState) {
    * @param  {PinStateChangeEvent} e The state change event.
    * @private
    */
-  var onOutputStateChanged = function(e) {
-    if (e.getNewState() === _onState) {
-      _base.onPowerStateChanged(new PowerStateChangeEvent(PowerState.Off, PowerState.On));
+  _onOutputStateChanged(e) {
+    if (e.newState === this._onState) {
+      this.onPowerStateChanged(new PowerStateChangeEvent(PowerState.Off, PowerState.On));
     }
     else {
-      _base.onPowerStateChanged(new PowerStateChangeEvent(PowerState.On, PowerState.Off));
+      this.onPowerStateChanged(new PowerStateChangeEvent(PowerState.On, PowerState.Off));
     }
-  };
-
-  _output.on(Gpio.EVENT_STATE_CHANGED, onOutputStateChanged);
-
-  /**
-   * Component name property.
-   * @property {String}
-   */
-  this.componentName = _base.componentName;
-
-  /**
-   * Tag property.
-   * @property {Object}
-   */
-  this.tag = _base.tag;
-
-  /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
-   * @override
-   */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
-
-  /**
-   * Checks to see if the property collection contains the specified key.
-   * @param  {String} key The key name of the property to check for.
-   * @return {Boolean}    true if the property collection contains the key;
-   * Otherwise, false.
-   * @override
-   */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
-
-  /**
-   * Sets the value of the specified property. If the property does not already exist
-	 * in the property collection, it will be added.
-   * @param  {String} key   The property name (key).
-   * @param  {String} value The value to assign to the property.
-   */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
-
-  /**
-   * Determines whether or not this instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
-   * @override
-   */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+  }
 
   /**
    * Releases all resources used by the GpioBase object.
    * @override
    */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  dispose() {
+    if (this.isDisposed) {
       return;
     }
 
-    if (!util.isNullOrUndefined(_output)) {
-      _output.dispose();
-      _output = undefined;
+    if (!util.isNullOrUndefined(this._output)) {
+      this._output.dispose();
+      this._output = undefined;
     }
 
-    _base.dispose();
-  };
-
-  /**
-   * Removes all event listeners.
-   * @override
-   */
-  this.removeAllListeners = function() {
-    if (!_base.isDisposed()) {
-      _base.removeAllListeners();
-    }
-  };
+    super.dispose();
+  }
 
   /**
-   * Attaches a listener (callback) for the specified event name.
-   * @param  {String}   evt      The name of the event.
-   * @param  {Function} callback The callback function to execute when the
-   * event is raised.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   */
-  this.on = function(evt, callback) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("PowerBase");
-    }
-    _base.on(evt, callback);
-  };
-
-  /**
-   * Emits the specified event.
-   * @param  {String} evt  The name of the event to emit.
-   * @param  {Object} args The object that provides arguments to the event.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   */
-  this.emit = function(evt, args) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("PowerBase");
-    }
-    _base.emit(evt, args);
-  };
-
-  /**
-   * In a derivative class, gets the state of the component.
-   * @return {PowerState} The component state.
-   * @override
-   */
-  this.getState = function() {
-    if (_output.state() === _onState) {
-      return PowerState.On;
-    }
-    else if (_output.state() === _offState) {
-      return PowerState.Off;
-    }
-    else {
-      return PowerState.Unknown;
-    }
-  };
-
-  /**
-   * Sets the state of the component.
-   * @param  {PowerState} state The power state to set.
+   * Gets or sets the state of the power component.
+   * @property {PowerState} state - The component state.
    * @throws {ObjectDisposedException} if this component instance has been disposed.
    * @throws {InvalidPinModeException} if the pin being used to control this
    * component is not configured as an output.
    * @throws {InvalidOperationException} if an invalid state is specified.
    * @override
    */
-  this.setState = function(state) {
-    if (_base.isDisposed()) {
+  get state() {
+    if (this._output.state === this._onState) {
+      return PowerState.On;
+    }
+    else if (this._output.state === this._offState) {
+      return PowerState.Off;
+    }
+    else {
+      return PowerState.Unknown;
+    }
+  }
+
+  set state(s) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("GpioPowerComponent");
     }
 
-    if (_output.mode() !== PinMode.OUT) {
-      throw new InvalidPinModeException(_output, "Pins in use by power components MUST be configured as outputs.");
+    if (this._output.mode !== PinMode.OUT) {
+      throw new InvalidPinModeException(this._output, "Pins in use by power components MUST be configured as outputs.");
     }
 
-    switch (state) {
+    switch (s) {
       case PowerState.Off:
-        _output.write(_offState);
-        _base.setState(state);
+        this._output.write(this._offState);
+        super.state = s;
         break;
       case PowerState.On:
-        _output.write(_onState);
-        _base.setState(state);
+        this._output.write(this._onState);
+        super.state = s;
         break;
       default:
-        var badState = PowerUtils.getPowerStateName(state);
+        let badState = PowerUtils.getPowerStateName(s);
         throw new InvalidOperationException("Cannot set power state: " + badState);
     }
-  };
-
-  /**
-   * Fires the power state changed event.
-   * @param  {PowerStateChangeEvent} stateChangeEvent The event info object.
-   * @override
-   */
-  this.onPowerStateChanged = function(stateChangeEvent) {
-    _base.onPowerStateChanged(stateChangeEvent);
-  };
+  }
 
   /**
    * Checks to see if the component is on.
-   * @return {Boolean} true if on; Otherwise, false.
+   * @property {Boolean} isOn - true if on; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isOn = function() {
-    return (self.getState() === PowerState.On);
-  };
+  get isOn() {
+    return (this.state === PowerState.On);
+  }
 
   /**
    * Checks to see if the component is off.
-   * @return {Boolean} true if off; Otherwise, false.
+   * @property {Boolean} isOff - true if off; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isOff = function() {
-    return (self.getState() === PowerState.Off);
-  };
+  get isOff() {
+    return (this.state === PowerState.Off);
+  }
 
   /**
    * Turns the component on.
    * @override
    */
-  this.turnOn = function() {
-    self.setState(PowerState.On);
-  };
+  turnOn() {
+    this.state = PowerState.On;
+  }
 
   /**
    * Turns the component off.
    * @override
    */
-  this.turnOff = function() {
-    self.setState(PowerState.Off);
-  };
+  turnOff() {
+    this.state = PowerState.Off;
+  }
 }
-
-GpioPowerComponent.prototype.constructor = GpioPowerComponent;
-inherits(GpioPowerComponent, PowerBase);
 
 module.exports = GpioPowerComponent;

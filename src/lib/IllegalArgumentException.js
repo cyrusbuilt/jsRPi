@@ -26,17 +26,24 @@
 /**
  * @classdesc The exception that is thrown if an argument value passed to a
  * function is illegal or invalid.
- * @param {String} sMessage A description of the error.
- * @constructor
  * @extends {Error}
  */
-function IllegalArgumentException(sMessage) {
-  this.name = "IllegalArgumentException";
-  this.message = sMessage;
-  this.stack = (new Error()).stack;
-}
-
-IllegalArgumentException.prototype = Object.create(Error.prototype);
-IllegalArgumentException.prototype.constructor = IllegalArgumentException;
+ class IllegalArgumentException extends Error {
+     /**
+     * Initializes a new instance of the jsrpi.IllegalArgumentException class with
+     * a message describing the error.
+     * @param {String} sMessage A description of the error.
+     * @constructor
+     */
+     constructor(sMessage) {
+         super(sMessage);
+         this.name = this.constructor.name;
+         if (typeof Error.captureStackTrace === 'function') {
+             Error.captureStackTrace(this, this.constructor);
+         } else {
+             this.stack = (new Error(sMessage)).stack;
+         }
+     }
+ }
 
 module.exports = IllegalArgumentException;

@@ -26,7 +26,7 @@
  * Flags for LCD commands.
  * @enum {Number}
  */
-var LcdCommands = {
+const LcdCommands = {
   /**
    * Clears the display.
    * @type {Number}

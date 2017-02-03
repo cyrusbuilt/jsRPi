@@ -26,6 +26,7 @@
  * sprinkler devices.
  *
  * @module Sprinkler
+ * @namespace jsrpi.Devices.Sprinkler
  */
 
 module.exports = {

@@ -26,6 +26,7 @@
  * PiBrella.
  *
  * @module PiBrella
+ * @namespace jsrpi.Devices.PiBrella
  */
 
 module.exports = {

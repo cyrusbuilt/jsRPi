@@ -22,47 +22,65 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var LEDInterface  = require('./LEDInterface.js');
-var ComponentBase = require('../ComponentBase.js');
-var EventEmitter = require('events').EventEmitter;
-var Light = require('./Light.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
+const LEDInterface  = require('./LEDInterface.js');
+const ComponentBase = require('../ComponentBase.js');
+const EventEmitter = require('events').EventEmitter;
+const Light = require('./Light.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
  * @classdesc Base class for LED component abstractions.
- * @constructor
  * @implements {LEDInterface}
  * @extends {ComponentBase}
  * @extends {EventEmitter}
  */
-function LEDBase() {
-  LEDInterface.call(this);
-
-  var self = this;
-  var _base = new ComponentBase();
-  var _emitter = new EventEmitter();
-
+class LEDBase extends LEDInterface {
   /**
-   * Component name property.
-   * @property {String}
+   * Initializes a new instance of jsrpi.Components.Lights.LEDBase class.
+   * @constructor
    */
-  this.componentName = _base.componentName;
+  constructor() {
+    super();
+
+    this._base = new ComponentBase();
+    this._emitter = new EventEmitter();
+  }
 
   /**
-   * Tag property.
-   * @property {Object}
-   */
-  this.tag = _base.tag;
-
-  /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
+   * Gets or sets the name of this component.
+   * @property {String} componentName - The name of the component.
    * @override
    */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
+  get componentName() {
+    return this._base.componentName;
+  }
+
+  set componentName(name) {
+    this._base.componentName = name;
+  }
+
+  /**
+   * Gets or sets the object this component is tagged with (if set).
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
+
+  /**
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
+  * @override
+  */
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
    * Checks to see if the property collection contains the specified key.
@@ -71,53 +89,55 @@ function LEDBase() {
    * Otherwise, false.
    * @override
    */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
    * Sets the value of the specified property. If the property does not already exist
 	 * in the property collection, it will be added.
    * @param  {String} key   The property name (key).
    * @param  {String} value The value to assign to the property.
+   * @override
    */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
    * Determines whether or not this instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
+   * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+  get isDisposed() {
+    return this._base.isDisposed;
+  }
 
   /**
    * In subclasses, performs application-defined tasks associated with freeing,
    * releasing, or resetting resources.
    * @override
    */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  dispose() {
+    if (this._base.isDisposed) {
       return;
     }
 
-    _emitter.removeAllListeners();
-    _emitter = undefined;
-    _base.dispose();
-  };
+    this._emitter.removeAllListeners();
+    this._emitter = undefined;
+    this._base.dispose();
+  }
 
   /**
    * Removes all event listeners.
    * @override
    */
-  this.removeAllListeners = function() {
-    if (!_base.isDisposed()) {
-      _emitter.removeAllListeners();
+  removeAllListeners() {
+    if (!this._base.isDisposed) {
+      this._emitter.removeAllListeners();
     }
-  };
+  }
 
   /**
    * Attaches a listener (callback) for the specified event name.
@@ -127,12 +147,12 @@ function LEDBase() {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.on = function(evt, callback) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("LEDBase");
+  on(evt, callback) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.on(evt, callback);
-  };
+    this._emitter.on(evt, callback);
+  }
 
   /**
    * Emits the specified event.
@@ -141,21 +161,12 @@ function LEDBase() {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.emit = function(evt, args) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("LEDBase");
+  emit(evt, args) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.emit(evt, args);
-  };
-
-  /**
-   * Gets a value indicating whether this light is off.
-   * @return {Boolean} true if the light is off; Otherwise, false.
-   * @override
-   */
-  this.isOff = function() {
-    return !self.isOn();
-  };
+    this._emitter.emit(evt, args);
+  }
 
   /**
    * Fires the light state change event.
@@ -163,33 +174,38 @@ function LEDBase() {
    * object.
    * @override
    */
-  this.onLightStateChange = function(lightChangeEvent) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("LEDBase");
+  onLightStateChange(lightChangeEvent) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("LightBase");
     }
 
-    var e = _emitter;
-    var evt = lightChangeEvent;
-    process.nextTick(function() {
-      e.emit(Light.EVENT_STATE_CHANGED, evt);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(Light.EVENT_STATE_CHANGED, lightChangeEvent);
+    });
+  }
+
+  /**
+   * Gets a value indicating whether this light is off.
+   * @property {Boolean} isOff - true if the light is off; Otherwise, false.
+   * @readonly
+   * @override
+   */
+  get isOff() {
+    return !this.isOn;
+  }
 
   /**
    * Toggles the state of the LED.
    * @override
    */
-  this.toggle = function() {
-    if (self.isOn()) {
-      self.turnOff();
+  toggle() {
+    if (this.isOn) {
+      this.turnOff();
     }
     else {
-      self.turnOn();
+      this.turnOn();
     }
-  };
+  }
 }
-
-LEDBase.prototype.constructor = LEDBase;
-inherits(LEDBase, LEDInterface);
 
 module.exports = LEDBase;

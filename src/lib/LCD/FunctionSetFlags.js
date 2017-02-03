@@ -26,7 +26,7 @@
  * Function set flags.
  * @enum {Number}
  */
-var FunctionSetFlags = {
+const FunctionSetFlags = {
   /**
    * Set 4-bit mode.
    * @type {Number}

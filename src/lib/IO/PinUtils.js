@@ -31,20 +31,20 @@
  * @requires PinMode
  */
 
-var util = require('util');
-var PinMode = require("./PinMode.js");
+const util = require('util');
+const PinMode = require("./PinMode.js");
 
 /**
  * Converts the specified mode to it's equivalent name string.
  * @param  {PinMode} mode The mode to get the name of.
  * @return {String}       The mode name.
  */
-var getPinModeName = function(mode) {
+const getPinModeName = function(mode) {
   if (util.isNullOrUndefined(mode)) {
     return "";
   }
 
-  var result = "";
+  let result = "";
   switch (mode) {
     case PinMode.IN:
       result = "IN";

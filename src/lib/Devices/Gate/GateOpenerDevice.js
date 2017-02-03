@@ -21,26 +21,29 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var GateOpenerBase = require('./GateOpenerBase.js');
+const GateOpenerBase = require('./GateOpenerBase.js');
 
 /**
  * @classdesc An abstraction of a gate opener device. This is an implementation
  * of the GateOpenerBase class.
- * @param {Relay} relay                The relay that controls the door.
- * @param {Sensor} doorSensor          The sensor that indicates the state of
- * the door.
- * @param {SensorState} doorSensorOpenState The sensor state that indicates the
- * door is open.
- * @param {Switch} lok                 The switch that controls the lock.
- * @constructor
  * @extends {GateOpenerBase}
  */
-function GateOpenerDevice(relay, doorSensor, doorSensorOpenState, lok) {
-  GateOpenerBase.call(this, relay, doorSensor, doorSensorOpenState, lok);
+class GateOpenerDevice extends GateOpenerBase {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.Gate.GateOpenerDevice
+   * class with the control relay, door sensor, lock switch, and the sensor
+   * state used to consider the door open.
+   * @param {Relay} relay                The relay that controls the door.
+   * @param {Sensor} doorSensor          The sensor that indicates the state of
+   * the door.
+   * @param {SensorState} doorSensorOpenState The sensor state that indicates the
+   * door is open.
+   * @param {Switch} lok                 The switch that controls the lock.
+   * @constructor
+   */
+  constructor(relay, doorSensor, doorSensorOpenState, lok) {
+    super(relay, doorSensor, doorSensorOpenState, lok);
+  }
 }
-
-GateOpenerDevice.prototype.constructor = GateOpenerDevice;
-inherits(GateOpenerDevice, GateOpenerBase);
 
 module.exports = GateOpenerDevice;

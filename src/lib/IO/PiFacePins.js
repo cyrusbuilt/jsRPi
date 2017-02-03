@@ -26,7 +26,7 @@
  * PiFace I/O pins.
  * @enum {Number}
  */
-var PiFacePins = {
+const PiFacePins = {
   /**
    * Output pin 1 (relay 1).
    * @type {Number}

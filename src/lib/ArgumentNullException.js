@@ -26,17 +26,24 @@
 /**
  * @classdesc The exception that is thrown when null is passed to a method or
  * constructor as a parameter when that method or constructor does not allow it.
- * @param {String} sMessage A description of the error.
- * @constructor
  * @extends {Error}
  */
-function ArgumentNullException(sMessage) {
-  this.name = "ArgumentNullException";
-  this.message = sMessage;
-  this.stack = (new Error()).stack;
-}
-
-ArgumentNullException.prototype = Object.create(Error.prototype);
-ArgumentNullException.prototype.constructor = ArgumentNullException;
+ class ArgumentNullException extends Error {
+     /**
+     * Initializes a new instance of the jsrpi.ArgumentNullException class with a
+     * description of the error.
+     * @param {String} sMessage A description of the error.
+     * @constructor
+     */
+     constructor(sMessage) {
+         super(sMessage);
+         this.name = this.constructor.name;
+         if (typeof Error.captureStackTrace === 'function') {
+             Error.captureStackTrace(this, this.constructor);
+         } else {
+             this.stack = (new Error(sMessage)).stack;
+         }
+     }
+ }
 
 module.exports = ArgumentNullException;

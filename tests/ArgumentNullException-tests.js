@@ -1,10 +1,10 @@
 'use strict';
 
-var ArgumentNullException = require('../src/lib/ArgumentNullException.js');
+const ArgumentNullException = require('../src/lib/ArgumentNullException.js');
 
 module.exports.argumentNullExceptionTests = {
   testThrow: function(assert) {
-    var result = false;
+    let result = false;
     try {
         throw new ArgumentNullException("The argument is null or undefined");
     }

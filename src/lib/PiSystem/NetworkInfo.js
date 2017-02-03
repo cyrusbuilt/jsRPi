@@ -37,15 +37,15 @@
  * @requires ExecUtils
  */
 
-var os = require('os');
-var dns = require('dns');
-var ExecUtils = require("../ExecUtils.js");
+const os = require('os');
+const dns = require('dns');
+const ExecUtils = require("../ExecUtils.js");
 
 /**
  * Gets the name of the host.
  * @return {String} The host name.
  */
-var getHostName = function() {
+const getHostName = function() {
   return os.hostname();
 };
 
@@ -53,8 +53,8 @@ var getHostName = function() {
  * Get the fully-qualified domain name of the local host.
  * @return {String} The fully-qualified domain name (FQDN).
  */
-var getFQDN = function() {
-  var result = ExecUtils.executeCommand("hostname -f");
+const getFQDN = function() {
+  let result = ExecUtils.executeCommand("hostname -f");
   if (result != null) {
     return result[0];
   }
@@ -66,9 +66,9 @@ var getFQDN = function() {
  * Gets an array of all the IP addresses assigned to all the network interfaces.
  * @return {Array} An array of IPv4/IPv6 addresses assigned to the local host.
  */
-var getIPAddresses = function() {
-  var addrs = [];
-  var ifaces = os.networkInterfaces();
+const getIPAddresses = function() {
+  let addrs = [];
+  let ifaces = os.networkInterfaces();
   Object.keys(ifaces).forEach(function(ifname) {
     ifaces[ifname].forEach(function(iface) {
       if (((iface.family !== 'IPv4') && (iface.family !== 'IPv6')) ||
@@ -87,7 +87,7 @@ var getIPAddresses = function() {
  * hostname can be resolved.
  * @return {String} The IP address.
  */
-var getIPAddress = function() {
+const getIPAddress = function() {
   return ExecUtils.executeCommand("hostname --ip-address")[0];
 };
 
@@ -101,8 +101,8 @@ var getIPAddress = function() {
  * items in the array.
  * @return {Array} The FQDNs.
  */
-var getAllFQDNs = function() {
-  var names = ExecUtils.executeCommand("hostname --all-fqdns")[0];
+const getAllFQDNs = function() {
+  let names = ExecUtils.executeCommand("hostname --all-fqdns")[0];
   return names.split(' ');
 };
 
@@ -110,7 +110,7 @@ var getAllFQDNs = function() {
  * Gets an array of all available name servers.
  * @return {Array} The name servers.
  */
-var getNameServers = function() {
+const getNameServers = function() {
   return dns.getServers();
 };
 

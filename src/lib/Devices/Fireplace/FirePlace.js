@@ -26,6 +26,7 @@
  * control devices (igniters, fan, etc).
  *
  * @module FirePlace
+ * @namespace jsrpi.Devices.Fireplace
  */
 
 module.exports = {

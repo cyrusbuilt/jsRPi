@@ -31,10 +31,10 @@
  * @requires PinState
  */
 
-var GpioStandard = require('../../IO/GpioStandard.js');
-var GpioPins = require('../../IO/GpioPins.js');
-var PinMode = require('../../IO/PinMode.js');
-var PinState = require('../../IO/PinState.js');
+const GpioStandard = require('../../IO/GpioStandard.js');
+const GpioPins = require('../../IO/GpioPins.js');
+const PinMode = require('../../IO/PinMode.js');
+const PinState = require('../../IO/PinState.js');
 
 /**
  * PiBrella input A.

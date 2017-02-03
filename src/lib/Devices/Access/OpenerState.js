@@ -25,7 +25,7 @@
  * The state of the opener.
  * @enum {Number}
  */
-var OpenerState = {
+const OpenerState = {
   /**
    * The opener is open.
    * @type {Number}

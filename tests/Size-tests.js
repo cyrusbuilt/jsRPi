@@ -1,13 +1,13 @@
 'use strict';
 
-var Size = require('../src/lib/Size.js');
+const Size = require('../src/lib/Size.js');
 
-var e = Size.EMPTY;
+const e = Size.EMPTY;
 
 // Size object
 module.exports.SizeTests = {
   testSize: function(assert) {
-    var s = new Size(5, 3);
+    let s = new Size(5, 3);
     assert.expect(3);
     assert.equals(s.width, 5, "Size.width == 5");
     assert.equals(s.height, 3, "Size.height == 3");

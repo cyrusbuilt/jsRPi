@@ -22,42 +22,50 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var SwitchState = require('./SwitchState.js');
+const util = require('util');
+const SwitchState = require('./SwitchState.js');
 
 /**
- * The event that gets raised when a switch changes state.
- * @param {SwitchState} oldState The previous state of the switch.
- * @param {SwitchState} newState The new state of the switch.
- * @constructor
+ * @classdesc The event that gets raised when a switch changes state.
  * @event
  */
-function SwitchStateChangeEvent(oldState, newState) {
-  var _oldState = oldState;
-  if (util.isNullOrUndefined(_oldState)) {
-    _oldState = SwitchState.Off;
-  }
+class SwitchStateChangeEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Switches.SwitchStateChangeEvent
+   * class with the old and new states.
+   * @param {SwitchState} oldState The previous state of the switch.
+   * @param {SwitchState} newState The new state of the switch.
+   * @constructor
+   */
+  constructor(oldState, newState) {
+    this._oldState = oldState;
+    if (util.isNullOrUndefined(this._oldState)) {
+      this._oldState = SwitchState.Off;
+    }
 
-  var _newState = newState;
-  if (util.isNullOrUndefined(_newState)) {
-    _newState = SwitchState.Off;
+    this._newState = newState;
+    if (util.isNullOrUndefined(this._newState)) {
+      this._newState = SwitchState.Off;
+    }
   }
 
   /**
    * Gets the old state.
-   * @return {SwitchState} The previous switch state.
+   * @property {SwitchState} oldState - The previous state.
+   * @readonly
    */
-  this.getOldState = function() {
-    return _oldState;
-  };
+  get oldState() {
+    return this._oldState;
+  }
 
   /**
    * Gets the new state.
-   * @return {SwitchState} The current switch state.
+   * @property {SwitchState} newState - The new (current) state.
+   * @readonly
    */
-  this.getNewState = function() {
-    return _newState;
-  };
+  get newState() {
+    return this._newState;
+  }
 }
 
 module.exports = SwitchStateChangeEvent;

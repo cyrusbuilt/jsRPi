@@ -32,21 +32,21 @@
  * @requires IllegalArgumentException
  */
 
-var util = require('util');
-var sb = require("string-builder");
-var IllegalArgumentException = require("./IllegalArgumentException.js");
+const util = require('util');
+const StringBuilder = require("string-builder");
+const IllegalArgumentException = require("./IllegalArgumentException.js");
 
 /**
  * The default padding character.
  * @constant {String}
  */
-var DEFAULT_PAD_CHAR = ' ';
+const DEFAULT_PAD_CHAR = ' ';
 
 /**
  * Represents an empty string.
  * @constant {String}
  */
-var EMPTY = "";
+const EMPTY = "";
 
 /**
  * Creates a string from the specified character or string.
@@ -56,12 +56,12 @@ var EMPTY = "";
  * or string to construct the string from.
  * @return {String}        The constructed string.
  */
-var create = function(c, length) {
+const create = function(c, length) {
   if ((util.isNullOrUndefined(c)) || (c === EMPTY)) {
     c = DEFAULT_PAD_CHAR;
   }
 
-  sb.clear();
+  let sb = new StringBuilder();
   for (var i = 0; i < length; i++) {
     sb.append(c);
   }
@@ -77,12 +77,12 @@ var create = function(c, length) {
  * to inject.
  * @return {String}        The padded version of the string.
  */
-var padLeft = function(data, pad, length) {
+const padLeft = function(data, pad, length) {
   if ((util.isNullOrUndefined(pad)) || (pad === EMPTY)) {
     pad = DEFAULT_PAD_CHAR;
   }
 
-  sb.clear();
+  let sb = new StringBuilder();
   for (var i = 0; i < length; i++) {
     sb.append(pad);
   }
@@ -100,12 +100,12 @@ var padLeft = function(data, pad, length) {
  * string to use.
  * @return {String}        The padded version of the string.
  */
-var padRight = function(data, pad, length) {
+const padRight = function(data, pad, length) {
   if ((util.isNullOrUndefined(pad)) || (pad === EMPTY)) {
     pad = DEFAULT_PAD_CHAR;
   }
 
-  sb.clear();
+  let sb = new StringBuilder();
   sb.append(data);
   for (var i = 0; i < length; i++) {
     sb.append(pad);
@@ -123,13 +123,13 @@ var padRight = function(data, pad, length) {
  * pad on both sides.
  * @return {String}        The padded version of the string.
  */
-var pad = function(data, pad, length) {
+const pad = function(data, pad, length) {
   if ((util.isNullOrUndefined(pad)) || (pad === EMPTY)) {
     pad = DEFAULT_PAD_CHAR;
   }
 
-  var p = create(pad, length);
-  sb.clear();
+  let p = create(pad, length);
+  let sb = new StringBuilder();
   sb.append(p);
   sb.append(data);
   sb.append(p);
@@ -147,7 +147,7 @@ var pad = function(data, pad, length) {
  * @return {String}        The padded version of the string.
  * @throws {IllegalArgumentException} if data param is null or not a string.
  */
-var padCenter = function(data, c, length) {
+const padCenter = function(data, c, length) {
   if ((util.isNullOrUndefined(data)) || (typeof data !== 'string')) {
     throw new IllegalArgumentException("data param must be a string.");
   }
@@ -157,11 +157,11 @@ var padCenter = function(data, c, length) {
   }
 
   if ((data.length > 2) && (length > 0)) {
-    var firstHalf = data.substring(0, (data.length / 2));
-    var secondHalf = data.substring((data.length / 2), data.length);
-    var pad = create(c, length);
+    let firstHalf = data.substring(0, (data.length / 2));
+    let secondHalf = data.substring((data.length / 2), data.length);
+    let pad = create(c, length);
 
-    sb.clear();
+    let sb = new StringBuilder();
     sb.append(firstHalf);
     sb.append(pad);
     sb.append(secondHalf);
@@ -177,7 +177,7 @@ var padCenter = function(data, c, length) {
  * @return {Boolean}       true if the string ends with the specified suffix;
  * Otherwise, false.
  */
-var endsWith = function(str, suffix) {
+const endsWith = function(str, suffix) {
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
 };
 
@@ -188,7 +188,7 @@ var endsWith = function(str, suffix) {
  * @return {Boolean}       true if the string starts with the specified suffix;
  * Otherwise, false.
  */
-var startsWith = function(str, prefix) {
+const startsWith = function(str, prefix) {
   return str.indexOf(prefix, 0) === 0;
 };
 
@@ -198,7 +198,7 @@ var startsWith = function(str, prefix) {
  * @return {Boolean}    true if the specified string is null or empty;
  * Otherwise, false.
  */
-var isNullOrEmpty = function(str) {
+const isNullOrEmpty = function(str) {
   if ((util.isNullOrUndefined(str)) || (str.length === 0)) {
     return true;
   }
@@ -210,7 +210,7 @@ var isNullOrEmpty = function(str) {
  * @param  {String} str The string to trim.
  * @return {String}     The resulting (trimmed) string.
  */
-var trim = function(str) {
+const trim = function(str) {
   if ((util.isNullOrUndefined(str)) || (typeof str !== 'string')) {
     return "";
   }
@@ -228,7 +228,7 @@ var trim = function(str) {
  * @return {Boolean}       true if at least one instance of the specified
  * substring was found within the specified string.
  */
-var contains = function(str, substr) {
+const contains = function(str, substr) {
   return (str.indexOf(substr) > -1);
 };
 
@@ -237,11 +237,11 @@ var contains = function(str, substr) {
  * @param  {String} str A string representing a byte value (ie. "00000000").
  * @return {Byte|Number}     The byte value.
  */
-var convertStringToByte = function(str) {
-  var ch = 0;
-  var st = [];
-  var re = [];
-  for (var i = 0; i < str.length; i++) {
+const convertStringToByte = function(str) {
+  let ch = 0;
+  let st = [];
+  let re = [];
+  for (let i = 0; i < str.length; i++) {
     st = [];
     ch = str.charCodeAt(i);
     while (ch) {

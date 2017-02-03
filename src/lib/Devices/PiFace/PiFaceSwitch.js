@@ -25,7 +25,7 @@
  * The various switches on the PiFace.
  * @enum {Number}
  */
-var PiFaceSwitch = {
+const PiFaceSwitch = {
     /**
      * Switch 1
      * @type {Number}

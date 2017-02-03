@@ -25,7 +25,7 @@
  * Possible address codes.
  * @enum {Number}
  */
-var AddressCode = {
+const AddressCode = {
   /**
    * Address 1.
    * @type {Number}

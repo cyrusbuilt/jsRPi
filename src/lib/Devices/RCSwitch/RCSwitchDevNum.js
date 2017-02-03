@@ -25,7 +25,7 @@
  * Possible switch device numbers.
  * @enum {Number}
  */
-var RCSwitchDevNum = {
+const RCSwitchDevNum = {
   /**
    * Device 1.
    * @type {Number}

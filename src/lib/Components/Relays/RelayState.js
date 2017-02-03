@@ -26,7 +26,7 @@
  * The state of the relay.
  * @enum {Number}
  */
-var RelayState = {
+const RelayState = {
   /**
    * The relay's dry contacts are open.
    * @type {Number}

@@ -25,7 +25,7 @@
  * Possible RC communication protols.
  * @enum {Number}
  */
-var RCProtocol = {
+const RCProtocol = {
   /**
    * Protocol 1.
    * @type {Number}

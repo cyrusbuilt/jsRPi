@@ -26,6 +26,7 @@
  * components.
  *
  * @module Components
+ * @namespace jsrpi.Components
  */
 
 module.exports = {

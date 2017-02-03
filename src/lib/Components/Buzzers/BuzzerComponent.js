@@ -22,63 +22,83 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var inherits = require('util').inherits;
-var Buzzer = require('./Buzzer.js');
-var ComponentBase = require('../ComponentBase.js');
-var ArgumentNullException = require('../../ArgumentNullException.js');
+const util = require('util');
+const Buzzer = require('./Buzzer.js');
+const ComponentBase = require('../ComponentBase.js');
+const ArgumentNullException = require('../../ArgumentNullException.js');
 
-var STOP_FREQ = 0;
+const STOP_FREQ = 0;
 
 /**
 * A buzzer device abstraction component.
-* @param {Gpio} pwmPin The pin the buzzer is attached to.
-* @throws {ArgumentNullException} if pin is null or undefined.
-* @constructor
 * @implements {Buzzer}
 * @extends {ComponentBase}
 */
-function BuzzerComponent(pwmPin) {
-  Buzzer.call(this);
+class BuzzerComponent extends Buzzer {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Buzzers.BuzzerComponent
+   * class with the PWM pin the buzzer is attached to.
+   * @param {Gpio} pwmPin The pin the buzzer is attached to.
+   * @throws {ArgumentNullException} if pin is null or undefined.
+   * @constructor
+   */
+  constructor(pwmPin) {
+    super();
 
-  if (util.isNullOrUndefined(pwmPin)) {
-    throw new ArgumentNullException("'pwmPin' cannot be null or undefined.");
+    if (util.isNullOrUndefined(pwmPin)) {
+      throw new ArgumentNullException("'pwmPin' cannot be null or undefined.");
+    }
+
+    this._base = new ComponentBase();
+    this._pwmPin = pwmPin;
+    this._isBuzzing = false;
+    this._pwmPin.provision();
   }
-
-  var self = this;
-  var _base = new ComponentBase();
-  var _pwmPin = pwmPin;
-  var _isBuzzing = false;
-  _pwmPin.provision();
 
   /**
   * Gets the underlying pin the buzzer is attached to.
-  * @returns {Gpio} The underlying output pin.
+  * @property {Gpio} pin - The underlying physical pin.
+  * @readonly
   */
-  this.getPin = function() {
-    return _pwmPin;
-  };
+  get pin() {
+    return this._pwmPin;
+  }
 
   /**
-  * Component name property.
-  * @property {String}
-  */
-  this.componentName = _base.componentName;
+   * Gets or sets the name of this component.
+   * @property {String} componentName - The component name.
+   * @override
+   */
+  get componentName() {
+    return this._base.componentName;
+  }
+
+  set componentName(name) {
+    this._base.componentName = name;
+  }
 
   /**
-  * Tag property.
-  * @property {Object}
-  */
-  this.tag = _base.tag;
+   * Gets or sets the object this component is tagged with.
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
 
   /**
-  * Gets the property collection.
-  * @return {Array} A custom property collection.
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
   * @override
   */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
   * Checks to see if the property collection contains the specified key.
@@ -87,80 +107,83 @@ function BuzzerComponent(pwmPin) {
   * Otherwise, false.
   * @override
   */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
   * Sets the value of the specified property. If the property does not already exist
   * in the property collection, it will be added.
   * @param  {String} key   The property name (key).
   * @param  {String} value The value to assign to the property.
+  * @override
   */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
   * Determines whether or not the current instance has been disposed.
-  * @return {Boolean} true if disposed; Otherwise, false.
+  * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+  get isDisposed() {
+    return this._base.isDisposed;
+  }
 
   /**
   * In subclasses, performs application-defined tasks associated with freeing,
   * releasing, or resetting resources.
   * @override
   */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  dispose() {
+    if (this._base.isDisposed) {
       return;
     }
 
-    if (!util.isNullOrUndefined(_pwmPin)) {
-      _pwmPin.dispose();
-      _pwmPin = undefined;
+    if (!util.isNullOrUndefined(this._pwmPin)) {
+      this._pwmPin.dispose();
+      this._pwmPin = undefined;
     }
 
-    _base.dispose();
-  };
+    this._base.dispose();
+  }
 
   /**
   * Gets whether or not this buzzer is buzzing.
-  * @return {Boolean} true if buzzing; Otherwise, false.
+  * @property {Boolean} isBuzzing - true if buzzing; Otherwise, false.
+  * @readonly
   */
-  this.isBuzzing = function() {
-    return _isBuzzing;
-  };
+  get isBuzzing() {
+    return this._isBuzzing;
+  }
 
   /**
   * Start the buzzer at the specified frequency.
   * @param  {Number} freq The frequency to buzz at.
   * @private
   */
-  var internalBuzz = function(freq) {
+  _internalBuzz(freq) {
     if (freq === STOP_FREQ) {
-      _pwmPin.setPWM(freq);
-      _isBuzzing = false;
+      this._pwmPin.pwm = freq;
+      this._isBuzzing = false;
     }
     else {
-      var range = (600000 / freq);
-      _pwmPin.setPWMRange(range);
-      _pwmPin.setPWM(freq / 2);
-      _isBuzzing = true;
+      let range = (600000 / freq);
+      this._pwmPin.pwmRange = range;
+      this._pwmPin.pwm = (freq / 2);
+      this._isBuzzing = true;
     }
-  };
+  }
 
   /**
   * Stops the buzzer.
   * @override
   */
-  this.stop = function() {
-    internalBuzz(STOP_FREQ);
-  };
+  stop() {
+    this._internalBuzz(STOP_FREQ);
+  }
 
   /**
   * Starts the buzzer at the specified frequency and (optionally) for the
@@ -170,66 +193,35 @@ function BuzzerComponent(pwmPin) {
   * buzzes until stopped.
   * @override
   */
-  this.buzz = function(freq, duration) {
-    var d = duration;
+  buzz(freq, duration) {
+    let d = duration;
     if (util.isNullOrUndefined(d)) {
       d = STOP_FREQ;
     }
 
-    internalBuzz(freq);
+    this._internalBuzz(freq);
     if (d > STOP_FREQ) {
-      setTimeout(function() {
-        self.stop();
+      setTimeout(() => {
+        this.stop();
       }, duration);
     }
-  };
-
-  /**
-  * Gets the property collection.
-  * @return {Array} A custom property collection.
-  * @override
-  */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
-
-  /**
-  * Checks to see if the property collection contains the specified key.
-  * @param  {String} key The key name of the property to check for.
-  * @return {Boolean}    true if the property collection contains the key;
-  * Otherwise, false.
-  * @override
-  */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
-
-  /**
-  * Sets the value of the specified property. If the property does not already exist
-  * in the property collection, it will be added.
-  * @param  {String} key   The property name (key).
-  * @param  {String} value The value to assign to the property.
-  */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  }
 
   /**
   * Returns the string representation of this object. In this case, it simply
   * returns the component name.
   * @return {String} The name of this component.
+  * @override
   */
-  this.toString = function() {
-    return self.componentName;
-  };
+  toString() {
+    return this.componentName;
+  }
+
+  /**
+  * The minimum PWM frequency value used to stop the pulse (0).
+  * @constant {Number}
+  */
+  static get STOP_FREQUENCY() { return STOP_FREQ; }
 }
 
-/**
-* The minimum PWM frequency value used to stop the pulse (0).
-* @constant {Number}
-*/
-BuzzerComponent.STOP_FREQUENCY = STOP_FREQ;
-
-BuzzerComponent.prototype.constructor = BuzzerComponent;
-inherits(BuzzerComponent, Buzzer);
 module.exports = BuzzerComponent;

@@ -21,51 +21,58 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
+const util = require('util');
 
 
 /**
 * @classdesc The event that gets raised when a change in temperature occurs.
-* @param {Number} oldTemp The temperature value prior to the change event.
-* @param {Number} newTemp The temperature value since the change event.
-* @constructor
 * @event
 */
-function TemperatureChangeEvent(oldTemp, newTemp) {
-  var _oldTemp = oldTemp;
-  if (util.isNullOrUndefined(_oldTemp)) {
-    _oldTemp = 0;
-  }
+class TemperatureChangeEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Temperature.TemperatureChangeEvent
+   * class with the new and old temperature values.
+   * @param {Number} oldTemp The temperature value prior to the change event.
+   * @param {Number} newTemp The temperature value since the change event.
+   * @constructor
+   */
+  constructor(oldTemp, newTemp) {
+    this._oldTemp = oldTemp;
+    if (util.isNullOrUndefined(this._oldTemp)) {
+      this._oldTemp = 0;
+    }
 
-  var _newTemp = newTemp;
-  if (util.isNullOrUndefined(_newTemp)) {
-    _newTemp = 0;
+    this._newTemp = newTemp;
+    if (util.isNullOrUndefined(this._newTemp)) {
+      this._newTemp = 0;
+    }
   }
 
   /**
   * Gets the previous temperature value.
-  * @return {Number} The previous temperature value.
+  * @property {Number} oldTemp - The previous temperature.
+  * @readonly
   */
-  this.getOldTemp = function() {
-    return _oldTemp;
-  };
+  get oldTemp() {
+    return this._oldTemp;
+  }
 
   /**
   * Gets the current temperature value.
-  * @return {Number} The current temperature.
+  * @property {Number} newTemp - The new (current) temperature.
+  * @readonly
   */
-  this.getNewTemp = function() {
-    return _newTemp;
-  };
+  get newTemp() {
+    return this._newTemp;
+  }
 
   /**
   * Gets the temperature change.
   * @return {Number} The change value (difference).
   */
-  this.getTemperatureChange = function() {
-    return (_newTemp - _oldTemp);
-  };
+  getTemperatureChange() {
+    return (this._newTemp - this._oldTemp);
+  }
 }
 
-TemperatureChangeEvent.prototype.constructor = TemperatureChangeEvent;
 module.exports = TemperatureChangeEvent;

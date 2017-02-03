@@ -25,6 +25,7 @@
  * @fileOverview Classes and utilities for working with the PiCamera.
  *
  * @module PiCamera
+ * @namespace jsrpi.Devices.PiCamera
  */
 
 module.exports = {

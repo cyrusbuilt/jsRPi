@@ -24,7 +24,8 @@
 /**
  * @fileOverview Contains classes, interfaces, etc for device abstractions.
  *
- * @module Components
+ * @module Devices
+ * @namespace jsrpi.Devices
  */
 
 module.exports = {

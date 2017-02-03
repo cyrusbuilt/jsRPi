@@ -1,10 +1,10 @@
 'use strict';
 
-var InvalidOperationException = require('../src/lib/InvalidOperationException.js');
+const InvalidOperationException = require('../src/lib/InvalidOperationException.js');
 
 module.exports.invalidOperationExceptionTests = {
   testThrow: function(assert) {
-    var result = false;
+    let result = false;
     try {
       throw new InvalidOperationException("This operation is not valid");
     }

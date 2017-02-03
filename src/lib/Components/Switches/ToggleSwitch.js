@@ -22,19 +22,22 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Switch = require('./Switch.js');
+const Switch = require('./Switch.js');
 
 /**
  * An interface for toggle switch device abstractions.
  * @interface
  * @extends {Switch}
  */
-function ToggleSwitch() {
-  Switch.call(this);
+class ToggleSwitch extends Switch {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Switches.ToggleSwitch
+   * interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
 }
-
-ToggleSwitch.prototype.constructor = ToggleSwitch;
-inherits(ToggleSwitch, Switch);
 
 module.exports = ToggleSwitch;

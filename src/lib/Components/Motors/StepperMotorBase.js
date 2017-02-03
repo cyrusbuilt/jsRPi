@@ -22,50 +22,69 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Motor = require('./Motor.js');
-var MotorState = require('./MotorState.js');
-var MotorBase = require('./MotorBase.js');
-var StepperMotor = require('./StepperMotor.js');
-var MotorRotateEvent = require('./MotorRotateEvent.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
+const Motor = require('./Motor.js');
+const MotorState = require('./MotorState.js');
+const MotorBase = require('./MotorBase.js');
+const StepperMotor = require('./StepperMotor.js');
+const MotorRotateEvent = require('./MotorRotateEvent.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
  * @classdesc A base class for stepper motor components.
- * @constructor
  * @implements {StepperMotor}
  * @extends {MotorBase}
  */
-function StepperMotorBase() {
-  StepperMotor.call(this);
-
-  var self = this;
-  var _base = new MotorBase();
-  var _stepIntervalMillis = 0;
-  var _stepIntervalNanos = 0;
-  var _stepSequence = [];
-  var _stepsPerRevolution = 0;
-
+class StepperMotorBase extends StepperMotor {
   /**
-   * Component name property.
-   * @property {String}
+   * Initializes a new instance of the jsrpi.Components.Motors.StepperMotorBase
+   * class.
+   * @constructor
    */
-  this.componentName = _base.componentName;
+  constructor() {
+    super();
+
+    this._base = new MotorBase();
+    this._stepIntervalMillis = 0;
+    this._stepIntervalNanos = 0;
+    this._stepSequence = [];
+    this._stepsPerRevolution = 0;
+  }
 
   /**
-   * Tag property.
-   * @property {Object}
-   */
-  this.tag = _base.tag;
-
-  /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
+   * Gets or sets the name of this component.
+   * @property {String} componentName - The component name.
    * @override
    */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
+  get componentName() {
+    return this._base.componentName;
+  }
+
+  set componentName(name) {
+    this._base.componentName = name;
+  }
+
+  /**
+   * Gets or sets the object this component is tagged with.
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
+
+  /**
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
+  * @override
+  */
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
    * Checks to see if the property collection contains the specified key.
@@ -74,54 +93,56 @@ function StepperMotorBase() {
    * Otherwise, false.
    * @override
    */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
    * Sets the value of the specified property. If the property does not already exist
 	 * in the property collection, it will be added.
    * @param  {String} key   The property name (key).
    * @param  {String} value The value to assign to the property.
+   * @override
    */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
    * Determines whether or not this instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
+   * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+  get isDisposed() {
+    return this._base.isDisposed;
+  }
 
   /**
    * Releases all resources used by the GpioBase object.
    * @override
    */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  dispose() {
+    if (this.isDisposed) {
       return;
     }
 
-    _stepSequence.length = 0;
-    _stepsPerRevolution = 0;
-    _stepIntervalNanos = 0;
-    _stepIntervalMillis = 0;
-    _base.dispose();
-  };
+    this._stepSequence.length = 0;
+    this._stepsPerRevolution = 0;
+    this._stepIntervalNanos = 0;
+    this._stepIntervalMillis = 0;
+    this._base.dispose();
+  }
 
   /**
    * Removes all event listeners.
    * @override
    */
-  this.removeAllListeners = function() {
-    if (!_base.isDisposed()) {
-      _base.removeAllListeners();
+  removeAllListeners() {
+    if (!this._base.isDisposed) {
+      this._base.removeAllListeners();
     }
-  };
+  }
 
   /**
    * Attaches a listener (callback) for the specified event name.
@@ -131,12 +152,12 @@ function StepperMotorBase() {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.on = function(evt, callback) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("MotorBase");
+  on(evt, callback) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _base.on(evt, callback);
-  };
+    this._base.on(evt, callback);
+  }
 
   /**
    * Emits the specified event.
@@ -145,73 +166,64 @@ function StepperMotorBase() {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.emit = function(evt, args) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("MotorBase");
+  emit(evt, args) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _base.emit(evt, args);
-  };
+    this._base.emit(evt, args);
+  }
 
   /**
    * Fires the motor state change event.
    * @param  {MotorStateChangeEvent} stateChangeEvent The event info object.
    * @override
    */
-  this.onMotorStateChange = function(stateChangeEvent) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("MotorBase");
-    }
-
-    process.nextTick(function() {
-      _base.emit(Motor.EVENT_STATE_CHANGED, stateChangeEvent);
-    });
-  };
+  onMotorStateChange(stateChangeEvent) {
+    this._base.onMotorStateChange(stateChangeEvent);
+  }
 
   /**
    * Fires the rotation start event.
    * @param  {MotorRotateEvent} rotateEvent The event object.
    * @override
    */
-  this.onRotationStarted = function(rotateEvent) {
-    if (_base.isDisposed()) {
+  onRotationStarted(rotateEvent) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("MotorBase");
     }
 
-    process.nextTick(function() {
-      _base.emit(StepperMotor.EVENT_ROTATION_STARTED, rotateEvent);
+    setImmediate(() => {
+      this._base.emit(StepperMotor.EVENT_ROTATION_STARTED, rotateEvent);
     });
-  };
+  }
 
   /**
    * Fires the rotation stopped event.
    * @override
    */
-  this.onRotationStopped = function() {
-    if (_base.isDisposed()) {
+  onRotationStopped() {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("MotorBase");
     }
 
-    process.nextTick(function() {
-      _base.emit(StepperMotor.EVENT_ROTATION_STOPPED);
+    setImmediate(() => {
+      this._base.emit(StepperMotor.EVENT_ROTATION_STOPPED);
     });
-  };
+  }
 
   /**
-   * Fets the state of the motor.
-   * @return {MotorState} The motor state.
-   */
-  this.getState = function() {
-    return _base.getState();
-  };
-
-  /**
-   * Sets the state of the motor.
-   * @param  {MotorState} state The state to set the motor to.
+   * Gets or sets the state of the motor.
+   * @property {MotorState} state - The motor state.
    * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
    */
-  this.setState = function(state) {
-    _base.setState(state);
-  };
+  get state() {
+    return this._base.state;
+  }
+
+  set state(s) {
+    this._base.state = s;
+  }
 
   /**
    * Determines whether the motor's current state is the specified state.
@@ -220,53 +232,53 @@ function StepperMotorBase() {
    * Otherwise, false.
    * @override
    */
-  this.isState = function(state) {
-    return _base.isState(state);
-  };
+  isState(state) {
+    return this._base.isState(state);
+  }
 
   /**
    * Checks to see if the motor is stopped.
-   * @return {Boolean} true if stopped; Otherwise, false.
+   * @property {Boolean} isStopped - true if stopped; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isStopped = function() {
-    return _base.isState(MotorState.Stop);
-  };
+  get isStopped() {
+    return this._base.isState(MotorState.Stop);
+  }
 
   /**
-   * Gets the number of steps per revolution.
-   * @return {Number} The steps per revolution.
+   * Gets or sets the number of steps per revolution.
+   * @property {Number} stepsPerRevolution - The number of steps per revolution.
    * @override
    */
-  this.getStepsPerRevolution = function() {
-    return _stepsPerRevolution;
-  };
+  get stepsPerRevolution() {
+    return this._stepsPerRevolution;
+  }
+
+  set stepsPerRevolution(steps) {
+    this._stepsPerRevolution = steps || 0;
+  }
 
   /**
-   * Sets the number of steps per revolution.
-   * @param  {Number} steps The steps per revolution.
+   * Gets or sets an array of bytes representing the step sequence.
+   * @property {Array} stepSequence - The step sequence.
    * @override
    */
-  this.setStepsPerRevolution = function(steps) {
-    _stepsPerRevolution = steps || 0;
-  };
+  get stepSequence() {
+    return this._stepSequence;
+  }
 
-  /**
-   * Fets the step sequence.
-   * @return {Array} An array of bytes representing the step sequence.
-   * @override
-   */
-  this.getStepSequence = function() {
-    return _stepSequence;
-  };
+  set stepSequence(seq) {
+    this._stepSequence = seq || [];
+  }
 
   /**
    * Stops the motor's movement.
    * @override
    */
-  this.stop = function() {
-    _base.stop();
-  };
+  stop() {
+    this._base.stop();
+  }
 
   /**
    * Tells the motor to move forward for the specified amount of time.
@@ -275,9 +287,9 @@ function StepperMotorBase() {
    * until stopped.
    * @override
    */
-  this.forward = function(millis) {
-    _base.forward(millis);
-  };
+  forward(millis) {
+    this._base.forward(millis);
+  }
 
   /**
    * Tells the motor to move in reverse for the specified amount of time.
@@ -286,34 +298,27 @@ function StepperMotorBase() {
    * until stopped.
    * @override
    */
-  this.reverse = function(millis) {
-    _base.reverse(millis);
-  };
-
-  /**
-   * Sets the step sequence.
-   * @param  {Array} seq An array of bytes representing the step sequence.
-   * @override
-   */
-  this.setStepSequence = function(seq) {
-    _stepSequence = seq || [];
-  };
+  reverse(millis) {
+    this._base.reverse(millis);
+  }
 
   /**
    * Gets the step interval in milliseconds.
-   * @return {Number} The step interval in milliseconds.
+   * @property {Number} stepIntervalMillis - The step interval.
+   * @readonly
    */
-  this.getStepIntervalMillis = function() {
-    return _stepIntervalMillis;
-  };
+  get stepIntervalMillis() {
+    return this._stepIntervalMillis;
+  }
 
   /**
    * Gets the step interval in nanoseconds.
-   * @return {Number} The step interval in nanoseconds.
+   * @property {Number} stepIntervalNanos - The step interval.
+   * @readonly
    */
-  this.getStepIntervalNanos = function() {
-    return _stepIntervalNanos;
-  };
+  get stepIntervalNanos() {
+    return this._stepIntervalNanos;
+  }
 
   /**
    * Sets the step interval.
@@ -321,10 +326,10 @@ function StepperMotorBase() {
    * @param  {Number} nanoseconds The nanoseconds between steps.
    * @override
    */
-  this.setStepInterval = function(millis, nanos) {
-    _stepIntervalMillis = millis || 0;
-    _stepIntervalNanos = nanos || 0;
-  };
+  setStepInterval(millis, nanos) {
+    this._stepIntervalMillis = millis || 0;
+    this._stepIntervalNanos = nanos || 0;
+  }
 
   /**
    * Step the motor the specified steps.
@@ -332,35 +337,32 @@ function StepperMotorBase() {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.step = function(steps) {
+  step(steps) {
     if (steps === 0) {
-      self.setState(MotorState.Stop);
+      this.state = MotorState.Stop;
       return;
     }
 
     if (steps < 0) {
-      self.setState(MotorState.Reverse);
+      this.state = MotorState.Reverse;
     }
     else if (steps > 0) {
-      self.setState(MotorState.Forward);
+      this.state = MotorState.Forward;
     }
-  };
+  }
 
   /**
    * Rotate the specified revolutions.
    * @param  {Number} revolutions The number of revolutions to rotate.
    * @override
    */
-  this.rotate = function(revolutions) {
-    var steps = Math.round(_stepsPerRevolution * revolutions);
-    var stepsActual = parseInt(steps.toString());
-    self.onRotationStarted(new MotorRotateEvent(stepsActual));
-    self.step(stepsActual);
-    self.onRotationStopped();
-  };
+  rotate(revolutions) {
+    let steps = Math.round(this._stepsPerRevolution * revolutions);
+    let stepsActual = parseInt(steps.toString());
+    this.onRotationStarted(new MotorRotateEvent(stepsActual));
+    this.step(stepsActual);
+    this.onRotationStopped();
+  }
 }
-
-StepperMotorBase.prototype.constructor = StepperMotorBase;
-inherits(StepperMotorBase, StepperMotor);
 
 module.exports = StepperMotorBase;

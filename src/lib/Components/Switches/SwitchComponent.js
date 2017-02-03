@@ -22,41 +22,49 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var inherits = require('util').inherits;
-var SwitchBase = require('./SwitchBase.js');
-var Switch = require('./Switch.js');
-var SwitchState = require('./SwitchState.js');
-var PinState = require('../../IO/PinState.js');
-var PinMode = require('../../IO/PinMode.js');
-var Gpio = require('../../IO/Gpio.js');
-var SwitchStateChangeEvent = require('./SwitchStateChangeEvent.js');
-var ArgumentNullException = require('../../ArgumentNullException.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
-var InvalidOperationException = require('../../InvalidOperationException.js');
+const util = require('util');
+const SwitchBase = require('./SwitchBase.js');
+const Switch = require('./Switch.js');
+const SwitchState = require('./SwitchState.js');
+const PinState = require('../../IO/PinState.js');
+const PinMode = require('../../IO/PinMode.js');
+const Gpio = require('../../IO/Gpio.js');
+const SwitchStateChangeEvent = require('./SwitchStateChangeEvent.js');
+const ArgumentNullException = require('../../ArgumentNullException.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
+const InvalidOperationException = require('../../InvalidOperationException.js');
+
+const OFF_STATE = PinState.Low;
+const ON_STATE = PinState.High;
 
 /**
 * @classdesc A component that is an abstraction of a standard switch. This is
 * an implementation of SwitchBase.
-* @param {Gpio} pin The input pin the switch is attached to.
-* @throws {ArgumentNullException} if pin is null or undefined.
-* @constructor
 * @extends {SwitchBase}
 */
-function SwitchComponent(pin) {
-	SwitchBase.call(this);
+class SwitchComponent extends SwitchBase {
+	/**
+	 * Initializes a new instance of the jsrpi.Components.Switches.SwitchComponent
+	 * class with the pin the switch is attached to.
+	 * @param {Gpio} pin The input pin the switch is attached to.
+	 * @throws {ArgumentNullException} if pin is null or undefined.
+	 * @constructor
+	 */
+	constructor(pin) {
+		super();
 
-	if (util.isNullOrUndefined(pin)) {
-		throw new ArgumentNullException("'pin' param cannot be null or undefined.");
+		if (util.isNullOrUndefined(pin)) {
+			throw new ArgumentNullException("'pin' param cannot be null or undefined.");
+		}
+
+		this._isPolling = false;
+		this._pollTimer = null;
+		this._pin = pin;
+		this._pin.provision();
+		this._pin.on(Gpio.EVENT_STATE_CHANGED, (evt) => {
+			this._onPinStateChanged(evt);
+		});
 	}
-
-	var OFF_STATE = PinState.Low;
-	var ON_STATE = PinState.High;
-	var self = this;
-	var _base = new SwitchBase();
-	var _pin = pin;
-	var _isPolling = false;
-	var _pollTimer = null;
 
 	/**
 	* Handles the pin state change event. This verifies the state has actually
@@ -64,131 +72,38 @@ function SwitchComponent(pin) {
 	* @param  {PinStateChangeEvent} psce The pin state change event info.
 	* @private
 	*/
-	var onPinStateChanged = function(psce) {
-		if (psce.getNewState() !== psce.getOldState()) {
-			var evt = new SwitchStateChangeEvent(SwitchState.On, SwitchState.Off);
-			if (psce.getNewState() === ON_STATE) {
+	_onPinStateChanged(psce) {
+		if (psce.newState !== psce.oldState) {
+			let evt = new SwitchStateChangeEvent(SwitchState.On, SwitchState.Off);
+			if (psce.newState === ON_STATE) {
 				evt = new SwitchStateChangeEvent(SwitchState.Off, SwitchState.On);
 			}
 
-			_base.onSwitchStateChanged(evt);
+			this.onSwitchStateChanged(evt);
 		}
-	};
-
-	_pin.provision();
-	_pin.on(Gpio.EVENT_STATE_CHANGED, onPinStateChanged);
-
-	/**
-	* Component name property.
-	* @property {String}
-	*/
-	this.componentName = _base.componentName;
-
-	/**
-	* Tag property.
-	* @property {Object}
-	*/
-	this.tag = _base.tag;
+	}
 
 	/**
 	* Gets the GPIO pin this switch is attached to.
-	* @returns {Gpio} The GPIO this switch is attached to.
-	*/
-	this.getPin = function() {
-		return _pin;
-	};
-
-	/**
-	* Gets the property collection.
-	* @return {Array} A custom property collection.
-	*                  @override
-	*/
-	this.getPropertyCollection = function() {
-		return _base.getPropertyCollection();
-	};
-
-	/**
-	* Checks to see if the property collection contains the specified key.
-	* @param  {String}  key The key name of the property to check for.
-	* @return {Boolean} true if the property collection contains the key;
-	* Otherwise, false.
+	* @property {Gpio} pin - The underlying physical pin.
+	* @readonly
 	* @override
 	*/
-	this.hasProperty = function(key) {
-		return _base.hasProperty(key);
-	};
-
-	/**
-	* Sets the value of the specified property. If the property does not already exist
-	* in the property collection, it will be added.
-	* @param  {String} key   The property name (key).
-	* @param  {String} value The value to assign to the property.
-	*/
-	this.setProperty = function(key, value) {
-		_base.setProperty(key, value);
-	};
-
-	/**
-	* Determines whether or not this instance has been disposed.
-	* @return {Boolean} true if disposed; Otherwise, false.
-	* @override
-	*/
-	this.isDisposed = function() {
-		return _base.isDisposed();
-	};
-
-	/**
-	* Removes all event listeners.
-	* @override
-	*/
-	this.removeAllListeners = function() {
-		_base.removeAllListeners();
-	};
-
-	/**
-	* Attaches a listener (callback) for the specified event name.
-	* @param  {String}   evt      The name of the event.
-	* @param  {Function} callback The callback function to execute when the
-	* event is raised.
-	* @throws {ObjectDisposedException} if this instance has been disposed.
-	* @override
-	*/
-	this.on = function(evt, callback) {
-		_base.on(evt, callback);
-	};
-
-	/**
-	* Emits the specified event.
-	* @param  {String} evt  The name of the event to emit.
-	* @param  {Object} args The object that provides arguments to the event.
-	* @throws {ObjectDisposedException} if this instance has been disposed.
-	* @override
-	*/
-	this.emit = function(evt, args) {
-		_base.emit(evt, args);
-	};
-
-	/**
-	* Fires the switch state change event.
-	* @param  {SwitchStateChangeEvent} switchStateEvent The event info object.
-	* @throws {ObjectDisposedException} if this instance has been disposed.
-	* @override
-	*/
-	this.onSwitchStateChanged = function(switchStateEvent) {
-		_base.onSwitchStateChanged(switchStateEvent);
-	};
+	get pin() {
+		return this._pin;
+	}
 
 	/**
 	* Gets the state of the switch.
-	* @return {SwitchState} The state of the switch.
+	* @property {SwitchState} state - The switch state.
 	* @override
 	*/
-	this.getState = function() {
-		if (_pin.state() === ON_STATE) {
+	get state() {
+		if (this._pin.state === ON_STATE) {
 			return SwitchState.On;
 		}
 		return SwitchState.Off;
-	};
+	}
 
 	/**
 	* Gets whether or not this switch is in the specified state.
@@ -197,56 +112,62 @@ function SwitchComponent(pin) {
 	* Otherwise, false.
 	* @override
 	*/
-	this.isState = function(state) {
-		return (self.getState() === state);
-	};
+	isState(state) {
+		return (this.state === state);
+	}
 
 	/**
 	* Gets whether or not this switch is in the on position.
-	* @return {Boolean} true if on; Otherwise, false.
+	* @property {Boolean} isOn - true if on; Otherwise, false.
+	* @readonly
 	* @override
 	*/
-	this.isOn = function() {
-		return self.isState(SwitchState.On);
-	};
+	get isOn() {
+		return this.isState(SwitchState.On);
+	}
 
 	/**
 	* Gets whether or not this switch is in the off position.
-	* @return {Boolean} true if off; Otherwise, false.
+	* @property {Boolean} isOff - true if off; Otherwise, false.
+	* @readonly
 	* @override
 	*/
-	this.isOff = function() {
-		return self.isState(SwitchState.Off);
-	};
+	get isOff() {
+		return this.isState(SwitchState.Off);
+	}
 
 	/**
 	* Checks to see if the switch is in poll mode, where it reads the switch
 	* state every 500ms and fires state change events when the state changes.
-	* @return {Boolean} true if the switch is polling; Otherwise, false.
+	* @property {Boolean} isPolling - true if the switch is polling; Otherwise,
+	* false.
+	* @readonly
 	*/
-	this.isPolling = function() {
-		return _isPolling;
-	};
+	get isPolling() {
+		return this._isPolling;
+	}
 
 	/**
 	* Executes the poll cycle. This simply polls the pin, which in turn fires
 	* pin state change events that we handle internally by firing switch state
 	* change events. This only occurs if polling is enabled.
+	* @private
 	*/
-	var executePoll = function() {
-		if (_isPolling) {
-			_pin.read();
+	_executePoll() {
+		if (this.isPolling) {
+			this._pin.read();
 		}
-	};
+	}
 
 	/**
 	* Starts the poll timer. Every time the timer elapses, executePoll() will be
 	* called.
+	* @private
 	*/
-	var startPollTimer = function() {
-		_isPolling = true;
-		_pollTimer = setInterval(executePoll, 200);
-	};
+	_startPollTimer() {
+		this._isPolling = true;
+		this._pollTimer = setInterval(() => { this._executePoll(); }, 200);
+	}
 
 	/**
 	* Polls the switch status.
@@ -255,67 +176,56 @@ function SwitchComponent(pin) {
 	* @throws {InvalidOperationException} if this switch is attached to a pin
 	* that has not been configured as an input.
 	*/
-	this.poll = function() {
-		if (_base.isDisposed()) {
+	poll() {
+		if (this.isDisposed) {
 			throw new ObjectDisposedException('SwitchComponent');
 		}
 
-		if (_pin.mode() !== PinMode.IN) {
+		if (this._pin.mode !== PinMode.IN) {
 			throw new InvalidOperationException("The pin this button is attached to" +
 			" must be configured as an input.");
 		}
 
-		if (_isPolling) {
+		if (this.isPolling) {
 			return;
 		}
-		startPollTimer();
-	};
+
+		this._startPollTimer();
+	}
 
 	/**
 	* Interrupts the poll cycle.
 	*/
-	this.interruptPoll = function() {
-		if (!_isPolling) {
+	interruptPoll() {
+		if (!this.isPolling) {
 			return;
 		}
 
-		if (!util.isNullOrUndefined(_pollTimer)) {
-			clearInterval(_pollTimer);
-			_pollTimer = null;
+		if (!util.isNullOrUndefined(this._pollTimer)) {
+			clearInterval(this._pollTimer);
+			this._pollTimer = null;
 		}
-		_isPolling = false;
-	};
+
+		this._isPolling = false;
+	}
 
 	/**
 	* Releases all resources used by the GpioBase object.
 	* @override
 	*/
-	this.dispose = function() {
-		if (_base.isDisposed()) {
+	dispose() {
+		if (this.isDisposed) {
 			return;
 		}
 
-		self.interruptPoll();
-		if (!util.isNullOrUndefined(_pin)) {
-			_pin.dispose();
-			_pin = undefined;
+		this.interruptPoll();
+		if (!util.isNullOrUndefined(this._pin)) {
+			this._pin.dispose();
+			this._pin = undefined;
 		}
 
-		_base.dispose();
-	};
-
-	/**
-	* Gets the string representation of this relay component instance. This is
-	* basically just an alias to the componentName property.
-	* @return {String} The name of this switch component.
-	*                   @override
-	*/
-	this.toString = function() {
-		return self.componentName;
-	};
+		super.dispose();
+	}
 }
-
-SwitchComponent.prototype.constructor = SwitchComponent;
-inherits(SwitchComponent, SwitchBase);
 
 module.exports = SwitchComponent;

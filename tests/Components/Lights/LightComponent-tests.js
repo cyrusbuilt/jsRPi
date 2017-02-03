@@ -1,81 +1,80 @@
 'use strict';
 
-var util = require('util');
-var inherits = require('util').inherits;
-var GpioBase = require('../../../src/lib/IO/GpioBase.js');
-var GpioPins = require('../../../src/lib/IO/GpioPins.js');
-var PinMode = require('../../../src/lib/IO/PinMode.js');
-var PinState = require('../../../src/lib/IO/PinState.js');
-var PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
-var LightComponent = require('../../../src/lib/Components/Lights/LightComponent.js');
-var Light = require('../../../src/lib/Components/Lights/Light.js');
+const util = require('util');
+const GpioBase = require('../../../src/lib/IO/GpioBase.js');
+const GpioPins = require('../../../src/lib/IO/GpioPins.js');
+const PinMode = require('../../../src/lib/IO/PinMode.js');
+const PinState = require('../../../src/lib/IO/PinState.js');
+const PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
+const LightComponent = require('../../../src/lib/Components/Lights/LightComponent.js');
+const Light = require('../../../src/lib/Components/Lights/Light.js');
 
-function FakeGpio(pin, mode, value) {
-  GpioBase.call(this, pin, mode, value);
 
-  var self = this;
-  var _overriddenState = value;
-  if (util.isNullOrUndefined(_overriddenState)) {
-    _overriddenState = PinState.Low;
-  }
+class FakeGpio extends GpioBase {
+    constructor(pin, mode, value) {
+        super(pin, mode, value);
 
-  this.read = function() {
-    return _overriddenState;
-  };
-
-  this.write = function(ps) {
-    if (_overriddenState !== ps) {
-      var addr = pin.value;
-      var evt = new PinStateChangeEvent(_overriddenState, ps, addr);
-      _overriddenState = ps;
-      self.onPinStateChange(evt);
+        this._overriddenState = value;
+        if (util.isNullOrUndefined(this._overriddenState)) {
+            this._overriddenState = PinState.Low;
+        }
     }
-  };
+
+    read() {
+        return this._overriddenState;
+    }
+
+    write(ps) {
+        if (this._overriddenState !== ps) {
+            let addr = this.innerPin.value;
+            let evt = new PinStateChangeEvent(this._overriddenState, ps, addr);
+            this._overriddenState = ps;
+            this.onPinStateChange(evt);
+        }
+    }
 }
 
-FakeGpio.prototype.constructor = FakeGpio;
-inherits(FakeGpio, GpioBase);
 
 module.exports.LightComponentTests = {
   disposeAndIsDisposedTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
-    var testLight = new LightComponent(fakePin);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
+    let testLight = new LightComponent(fakePin);
 
     assert.expect(2);
-    assert.ok(!testLight.isDisposed(), "Light is already disposed.");
+    assert.ok(!testLight.isDisposed, "Light is already disposed.");
 
     testLight.dispose();
-    assert.ok(testLight.isDisposed(), "Light is not disposed");
+    assert.ok(testLight.isDisposed, "Light is not disposed");
     assert.done();
   },
   lightOnTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
-    var testLight = new LightComponent(fakePin);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
+    let testLight = new LightComponent(fakePin);
 
     assert.expect(2);
-    assert.ok(!testLight.isOn(), "Light is already on");
+    assert.ok(!testLight.isOn, "Light is already on");
 
     testLight.turnOn();
-    assert.ok(testLight.isOn(), "Light did not turn on");
+    assert.ok(testLight.isOn, "Light did not turn on");
     assert.done();
   },
   lightOffTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
-    var testLight = new LightComponent(fakePin);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
+    let testLight = new LightComponent(fakePin);
 
     assert.expect(2);
-    assert.ok(testLight.isOff(), "Light is already on");
+    assert.ok(testLight.isOff, "Light is already on");
 
     testLight.turnOn();
-    assert.ok(!testLight.isOff(), "Light did not turn on");
+    assert.ok(!testLight.isOff, "Light did not turn on");
     assert.done();
   },
   lightStateChangeTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
-    var testLight = new LightComponent(fakePin);
-    testLight.on(Light.EVENT_STATE_CHANGED, function(changeEvent) {
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
+    let testLight = new LightComponent(fakePin);
+    testLight.on(Light.EVENT_STATE_CHANGED, (changeEvent) => {
       assert.expect(1);
-      assert.ok(changeEvent.isOn(), "Light did not turn on");
+      assert.ok(changeEvent.isOn, "Light did not turn on");
       assert.done();
     });
 

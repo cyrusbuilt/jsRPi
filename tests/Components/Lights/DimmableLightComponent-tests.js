@@ -1,125 +1,125 @@
 'use strict';
 
-var util = require('util');
-var inherits = require('util').inherits;
-var GpioBase = require('../../../src/lib/IO/GpioBase.js');
-var GpioPins = require('../../../src/lib/IO/GpioPins.js');
-var PinMode = require('../../../src/lib/IO/PinMode.js');
-var PinState = require('../../../src/lib/IO/PinState.js');
-var PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
-var Light = require('../../../src/lib/Components/Lights/Light.js');
-var DimmableLightComponent = require('../../../src/lib/Components/Lights/DimmableLightComponent.js');
+const util = require('util');
+const GpioBase = require('../../../src/lib/IO/GpioBase.js');
+const GpioPins = require('../../../src/lib/IO/GpioPins.js');
+const PinMode = require('../../../src/lib/IO/PinMode.js');
+const PinState = require('../../../src/lib/IO/PinState.js');
+const PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
+const Light = require('../../../src/lib/Components/Lights/Light.js');
+const DimmableLightComponent = require('../../../src/lib/Components/Lights/DimmableLightComponent.js');
 
-function FakeGpio(pin, mode, value) {
-  GpioBase.call(this, pin, mode, value);
+class FakeGpio extends GpioBase {
+    constructor(pin, mode, value) {
+        super(pin, mode, value);
 
-  var self = this;
-  var _overriddenState = value;
-  var _pwm = 0;
-  if (util.isNullOrUndefined(_overriddenState)) {
-    _overriddenState = PinState.Low;
-  }
-
-  this.read = function() {
-    return _overriddenState;
-  };
-
-  this.write = function(ps) {
-    if (_overriddenState !== ps) {
-      var addr = pin.value;
-      var evt = new PinStateChangeEvent(_overriddenState, ps, addr);
-      _overriddenState = ps;
-      self.onPinStateChange(evt);
+        this._overriddenState = value;
+        this._pwm = 0;
+        if (util.isNullOrUndefined(this._overriddenState)) {
+            this._overriddenState = PinState.Low;
+        }
     }
-  };
 
-  this.setPWM = function(pwm) {
-    _pwm = pwm || 0;
-  };
+    read() {
+        return this._overriddenState;
+    }
 
-  this.getPWM = function() {
-    return _pwm;
-  };
+    write(ps) {
+        if (this._overriddenState !== ps) {
+            let addr = this.innerPin.value;
+            let evt = new PinStateChangeEvent(this._overriddenState, ps, addr);
+            this._overriddenState = ps;
+            this.onPinStateChange(evt);
+        }
+    }
+
+    set pwm(p) {
+        this._pwm = p || 0;
+    }
+
+    get pwm() {
+        return this._pwm;
+    }
 }
-
-FakeGpio.prototype.constructor = FakeGpio;
-inherits(GpioBase, FakeGpio);
 
 
 module.exports.DimmableLightComponentTests = {
   disposeAndIsDisposedTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
-    var testLight = new DimmableLightComponent(fakePin, 0, 100);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
+    let testLight = new DimmableLightComponent(fakePin, 0, 100);
 
     assert.expect(2);
-    assert.ok(!testLight.isDisposed(), "Light is already disposed.");
+    assert.ok(!testLight.isDisposed, "Light is already disposed.");
 
     testLight.dispose();
-    assert.ok(testLight.isDisposed(), "Light is not disposed");
+    assert.ok(testLight.isDisposed, "Light is not disposed");
     assert.done();
   },
   setLevelTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
-    var testLight = new DimmableLightComponent(fakePin, 0, 100);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
+    let testLight = new DimmableLightComponent(fakePin, 0, 100);
 
     assert.expect(2);
-    assert.equals(testLight.getLevel(), 0, "Test light level is non-zero: " + testLight.getLevel());
+    assert.equals(testLight.level, 0, "Test light level is non-zero: " + testLight.level.toString());
 
-    testLight.setLevel(56);
-    assert.equals(testLight.getLevel(), 56, "Test light level is " + testLight.getLevel() + ", should be 56");
+    testLight.level = 56;
+    assert.equals(testLight.level, 56, "Test light level is " + testLight.level.toString() + ", should be 56");
     assert.done();
   },
   turnOnTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
-    var testLight = new DimmableLightComponent(fakePin, 0, 100);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
+    let testLight = new DimmableLightComponent(fakePin, 0, 100);
 
     assert.expect(2);
-    assert.ok(!testLight.isOn(), "Test light is already on");
+    assert.ok(!testLight.isOn, "Test light is already on");
 
     testLight.turnOn();
-    assert.ok(testLight.isOn(), "The light is still off");
+    assert.ok(testLight.isOn, "The light is still off");
     assert.done();
   },
   turnOffTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
-    var testLight = new DimmableLightComponent(fakePin, 0, 100);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
+    let testLight = new DimmableLightComponent(fakePin, 0, 100);
 
     testLight.turnOn();
     assert.expect(2);
-    assert.ok(!testLight.isOff(), "Light is still off");
+    assert.ok(!testLight.isOff, "Light is still off");
 
     testLight.turnOff();
-    assert.ok(testLight.isOff(), "Light is still on");
+    assert.ok(testLight.isOff, "Light is still on");
     assert.done();
   },
   stateChangeTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
-    var testLight = new DimmableLightComponent(fakePin, 0, 100);
-    testLight.on(Light.EVENT_STATE_CHANGED, function(stateChanged) {
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
+    let testLight = new DimmableLightComponent(fakePin, 0, 100);
+    testLight.on(Light.EVENT_STATE_CHANGED, (stateChanged) => {
       assert.expect(1);
-      assert.ok(stateChanged.isOn(), "The light did not turn on");
+      assert.ok(stateChanged.isOn, "The light did not turn on");
       assert.done();
     });
 
     testLight.turnOn();
   },
   levelChangeTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
-    var testLight = new DimmableLightComponent(fakePin, 0, 100);
-    testLight.on(Light.EVENT_LEVEL_CHANGED, function(levelChanged) {
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
+    let testLight = new DimmableLightComponent(fakePin, 0, 100);
+    testLight.on(Light.EVENT_LEVEL_CHANGED, (levelChanged) => {
       assert.expect(1);
-      assert.equals(levelChanged.getLevel(), 56, "Light level: " + levelChanged.getLevel() + ", should be 56");
+      assert.equals(levelChanged.level, 56, "Light level: " + levelChanged.level.toString() + ", should be 56");
       assert.done();
     });
 
-    testLight.setLevel(56);
+    testLight.level = 56;
   },
   getLevelPercentageTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
-    var testLight = new DimmableLightComponent(fakePin, 0, 100);
-    testLight.setLevel(23);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.PWM, PinState.Low);
+    let testLight = new DimmableLightComponent(fakePin, 0, 100);
+    testLight.level = 23;
+
+    let percentage = testLight.getLevelPercentage(testLight.level);
+
     assert.expect(1);
-    assert.equals(testLight.getLevelPercentage(), 23, "Level percentage: " + testLight.getLevelPercentage() + ", should be 23");
+    assert.equals(percentage, 23, "Level percentage: " + percentage.toString() + ", should be 23");
     assert.done();
   }
 };

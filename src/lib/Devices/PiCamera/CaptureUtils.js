@@ -28,7 +28,7 @@
  * @requires ImageEncoding
  */
 
-var ImageEncoding = require('./ImageEncoding.js');
+const ImageEncoding = require('./ImageEncoding.js');
 
 /**
  * Gets the encoding file extension.
@@ -36,8 +36,8 @@ var ImageEncoding = require('./ImageEncoding.js');
  * @return {String}          The file extension associated with the specified
  * encoding.
  */
-var getEncodingFileExtension = function(encoding) {
-  var ext = "";
+const getEncodingFileExtension = function(encoding) {
+  let ext = "";
   switch (encoding) {
     case ImageEncoding.Bitmap:
       ext = "bmp";

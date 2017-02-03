@@ -1,58 +1,55 @@
 'use strict';
 
-var util = require('util');
-var inherits = require('util').inherits;
-var GpioBase = require('../../../src/lib/IO/GpioBase.js');
-var GpioPins = require('../../../src/lib/IO/GpioPins.js');
-var PinMode = require('../../../src/lib/IO/PinMode.js');
-var PinState = require('../../../src/lib/IO/PinState.js');
-var PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
-var MotionSensor = require('../../../src/lib/Components/Sensors/MotionSensor.js');
-var MotionSensorComponent = require('../../../src/lib/Components/Sensors/MotionSensorComponent.js');
+const util = require('util');
+const GpioBase = require('../../../src/lib/IO/GpioBase.js');
+const GpioPins = require('../../../src/lib/IO/GpioPins.js');
+const PinMode = require('../../../src/lib/IO/PinMode.js');
+const PinState = require('../../../src/lib/IO/PinState.js');
+const PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
+const MotionSensor = require('../../../src/lib/Components/Sensors/MotionSensor.js');
+const MotionSensorComponent = require('../../../src/lib/Components/Sensors/MotionSensorComponent.js');
 
 
-function FakeGpio(pin, mode, value) {
-  GpioBase.call(this, pin, mode, value);
+class FakeGpio extends GpioBase {
+    constructor(pin, mode, value) {
+        super(pin, mode, value);
 
-  var self = this;
-  var _overriddenState = value;
-  if (util.isNullOrUndefined(_overriddenState)) {
-    _overriddenState = PinState.Low;
-  }
-
-  this.read = function() {
-    return _overriddenState;
-  };
-
-  this.write = function(ps) {
-    if (_overriddenState !== ps) {
-      var addr = pin.value;
-      var evt = new PinStateChangeEvent(_overriddenState, ps, addr);
-      _overriddenState = ps;
-      self.onPinStateChange(evt);
+        this._overriddenState = value;
+        if (util.isNullOrUndefined(this._overriddenState)) {
+            this._overriddenState = PinState.Low;
+        }
     }
-  };
-}
 
-FakeGpio.prototype.constructor = FakeGpio;
-inherits(FakeGpio, GpioBase);
+    read() {
+        return this._overriddenState;
+    }
+
+    write(ps) {
+        if (this._overriddenState !== ps) {
+            let addr = this.innerPin.value;
+            let evt = new PinStateChangeEvent(this._overriddenState, ps, addr);
+            this._overriddenState = ps;
+            this.onPinStateChange(evt);
+        }
+    }
+}
 
 
 module.exports.MotionSensorComponentTests = {
   disposeAndIsDisposedTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-    var sensor = new MotionSensorComponent(fakePin);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+    let sensor = new MotionSensorComponent(fakePin);
 
     assert.expect(2);
-    assert.ok(!sensor.isDisposed(), "Sensor already disposed");
+    assert.ok(!sensor.isDisposed, "Sensor already disposed");
 
     sensor.dispose();
-    assert.ok(sensor.isDisposed(), "Sensor did not dispose");
+    assert.ok(sensor.isDisposed, "Sensor did not dispose");
     assert.done();
   },
   setHasPropertyTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-    var sensor = new MotionSensorComponent(fakePin);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+    let sensor = new MotionSensorComponent(fakePin);
     sensor.setProperty("foo", "bar");
 
     assert.expect(1);
@@ -60,40 +57,43 @@ module.exports.MotionSensorComponentTests = {
     assert.done();
   },
   pollIsPollingTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-    var sensor = new MotionSensorComponent(fakePin);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+    let sensor = new MotionSensorComponent(fakePin);
 
     assert.expect(2);
-    assert.ok(!sensor.isPolling(), "Sensor is alrady polling");
+    assert.ok(!sensor.isPolling, "Sensor is alrady polling");
 
     sensor.poll();
-    assert.ok(sensor.isPolling(), "Sensor is not polling");
+    assert.ok(sensor.isPolling, "Sensor is not polling");
 
     sensor.interruptPoll();
     assert.done();
   },
   isMotionDetectedTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-    var sensor = new MotionSensorComponent(fakePin);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+    let sensor = new MotionSensorComponent(fakePin);
 
     assert.expect(2);
-    assert.ok(!sensor.isMotionDetected(), "Motion was detected");
+    assert.ok(!sensor.isMotionDetected, "Motion was detected");
 
     fakePin.write(PinState.High);
-    assert.ok(sensor.isMotionDetected(), "Motion was not detected");
+    assert.ok(sensor.isMotionDetected, "Motion was not detected");
     assert.done();
   },
   motionDetetedEventTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-    var sensor = new MotionSensorComponent(fakePin);
-    sensor.on(MotionSensor.EVENT_MOTION_STATE_CHANGED, function(stateChanged) {
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+    let sensor = new MotionSensorComponent(fakePin);
+    sensor.on(MotionSensor.EVENT_MOTION_STATE_CHANGED, (stateChanged) => {
       assert.expect(2);
-      assert.ok(stateChanged.isMotionDetected(), "Motion not detected");
+      assert.ok(stateChanged.isMotionDetected, "Motion not detected");
 
-      var tsLastCheck = sensor.getLastMotionTimestamp();
-      var tsStateChange = stateChanged.getTimestamp();
+      let tsLastCheck = sensor.lastMotionTimestamp;
+      let tsStateChange = stateChanged.timestamp;
       if (!util.isNullOrUndefined(tsLastCheck)) {
-        assert.equals(tsLastCheck.getTime(), tsStateChange.getTime(), "Timestamps do not match");
+          let actual = tsLastCheck.getTime();
+          let expected = tsStateChange.getTime();
+          let result = ((expected === actual) || (actual <= expected + 2));
+          assert.ok(result, "Timestamps do not match");
       }
 
       assert.done();
@@ -102,7 +102,7 @@ module.exports.MotionSensorComponentTests = {
     sensor.poll();
     fakePin.write(PinState.High);
 
-    setTimeout(function() {
+    setTimeout(() => {
       sensor.interruptPoll();
     }, 225);
   }

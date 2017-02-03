@@ -22,43 +22,50 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var PowerState = require('./PowerState.js');
+const util = require('util');
+const PowerState = require('./PowerState.js');
 
 /**
  * @classdesc The event that gets raised when a power control device changes state.
- * @param {PowerState} oldState The previous state of the device.
- * @param {PowerState} newState The new state of the device.
- * @constructor
  * @event
  */
-function PowerStateChangeEvent(oldState, newState) {
-  var _oldState = oldState;
-  if (util.isNullOrUndefined(_oldState)) {
-    _oldState = PowerState.Unknown;
-  }
+class PowerStateChangeEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Power.PowerStateChangeEvent
+   * class with the old and new states.
+   * @param {PowerState} oldState The previous state of the device.
+   * @param {PowerState} newState The new state of the device.
+   * @constructor
+   */
+  constructor(oldState, newState) {
+    this._oldState = oldState;
+    if (util.isNullOrUndefined(this._oldState)) {
+      this._oldState = PowerState.Unknown;
+    }
 
-  var _newState = newState;
-  if (util.isNullOrUndefined(_newState)) {
-    _newState = PowerState.Unknown;
+    this._newState = newState;
+    if (util.isNullOrUndefined(this._newState)) {
+      this._newState = PowerState.Unknown;
+    }
   }
 
   /**
    * Gets the old state.
-   * @return {PowerState} The old state.
+   * @property {PowerState} oldState - The previous state.
+   * @readonly
    */
-  this.getOldState = function() {
-    return _oldState;
-  };
+  get oldState() {
+    return this._oldState;
+  }
 
   /**
    * Gets the new state.
-   * @return {PowerState} The new state.
+   * @property {PowerState} newState - The new (current) state.
+   * @readonly
    */
-  this.getNewState = function() {
-    return _newState;
-  };
+  get newState() {
+    return this._newState;
+  }
 }
 
-PowerStateChangeEvent.prototype.constructor = PowerStateChangeEvent;
 module.exports = PowerStateChangeEvent;

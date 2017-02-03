@@ -21,58 +21,77 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var inherits = require('util').inherits;
-var Sensor = require('./Sensor.js');
-var SensorState = require('./SensorState.js');
-var ComponentBase = require('../ComponentBase.js');
-var EventEmitter = require('events').EventEmitter;
-var ArgumentNullException = require('../../ArgumentNullException.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
+const util = require('util');
+const Sensor = require('./Sensor.js');
+const SensorState = require('./SensorState.js');
+const ComponentBase = require('../ComponentBase.js');
+const EventEmitter = require('events').EventEmitter;
+const ArgumentNullException = require('../../ArgumentNullException.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
  * @classdesc Base class for sensor abstraction components.
- * @param {Gpio} pin The input pin to sample the sensor data from.
- * @throws {ArgumentNullException} if pin is null or undefined.
- * @constructor
  * @implements {Sensor}
  * @extends {ComponentBase}
  * @extends {EventEmitter}
  */
-function SensorBase(pin) {
-  Sensor.call(this);
+class SensorBase extends Sensor {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Sensors.SensorBase class
+   * with the pin the sensor is attached to.
+   * @param {Gpio} pin The input pin to sample the sensor data from.
+   * @throws {ArgumentNullException} if pin is null or undefined.
+   * @constructor
+   */
+  constructor(pin) {
+    super();
 
-  if (util.isNullOrUndefined(pin)) {
-    throw new ArgumentNullException("'pin' cannot be null or undefined.");
+    if (util.isNullOrUndefined(pin)) {
+      throw new ArgumentNullException("'pin' cannot be null or undefined.");
+    }
+
+    this._base = new ComponentBase();
+    this._emitter = new EventEmitter();
+    this._state = SensorState.Open;
+    this._pin = pin;
+    this._pin.provision();
   }
 
-  var self = this;
-  var _base = new ComponentBase();
-  var _emitter = new EventEmitter();
-  var _state = SensorState.Open;
-  var _pin = pin;
-  _pin.provision();
-
   /**
-   * Component name property.
-   * @property {String}
-   */
-  this.componentName = _base.componentName;
-
-  /**
-   * Tag property.
-   * @property {Object}
-   */
-  this.tag = _base.tag;
-
-  /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
+   * Gets or sets the name of this component.
+   * @property {String} componentName - The name of the component.
    * @override
    */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
+  get componentName() {
+    return this._base.componentName;
+  }
+
+  set componentName(name) {
+    this._base.componentName = name;
+  }
+
+  /**
+   * Gets or sets the object this component is tagged with.
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
+
+  /**
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
+  * @override
+  */
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
    * Checks to see if the property collection contains the specified key.
@@ -81,57 +100,61 @@ function SensorBase(pin) {
    * Otherwise, false.
    * @override
    */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
    * Sets the value of the specified property. If the property does not already exist
 	 * in the property collection, it will be added.
    * @param  {String} key   The property name (key).
    * @param  {String} value The value to assign to the property.
+   * @override
    */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
    * Determines whether or not this instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
+   * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+  get isDisposed() {
+    return this._base.isDisposed;
+  }
 
   /**
-   * Releases all resources used by the SensorBase object.
+   * In subclasses, performs application-defined tasks associated with freeing,
+   * releasing, or resetting resources.
    * @override
    */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  dispose() {
+    if (this._base.isDisposed) {
       return;
     }
 
-    if (!util.isNullOrUndefined(_pin)) {
-      _pin.dispose();
-      _pin = undefined;
+    if (!util.isNullOrUndefined(this._pin)) {
+      this._pin.dispose();
+      this._pin = undefined;
     }
 
-    _emitter.removeAllListeners();
-    _emitter = undefined;
-    _base.dispose();
-  };
+    this._state = SensorState.Open;
+    this._emitter.removeAllListeners();
+    this._emitter = undefined;
+    this._base.dispose();
+  }
 
   /**
    * Removes all event listeners.
    * @override
    */
-  this.removeAllListeners = function() {
-    if (!_base.isDisposed()) {
-      _emitter.removeAllListeners();
+  removeAllListeners() {
+    if (!this._base.isDisposed) {
+      this._emitter.removeAllListeners();
     }
-  };
+  }
 
   /**
    * Attaches a listener (callback) for the specified event name.
@@ -141,12 +164,12 @@ function SensorBase(pin) {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.on = function(evt, callback) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("SensorBase");
+  on(evt, callback) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.on(evt, callback);
-  };
+    this._emitter.on(evt, callback);
+  }
 
   /**
    * Emits the specified event.
@@ -155,20 +178,21 @@ function SensorBase(pin) {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.emit = function(evt, args) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("SensorBase");
+  emit(evt, args) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.emit(evt, args);
-  };
+    this._emitter.emit(evt, args);
+  }
 
   /**
    * Gets the state of the sensor.
-   * @return {SensorState} The state of the sensor.
+   * @property {SensorState} state - The state of the sensor.
+   * @override
    */
-  this.getState = function() {
-    return _state;
-  };
+  get state() {
+    return this._state;
+  }
 
   /**
    * Checks to see if the sensor is in the specified state.
@@ -177,35 +201,38 @@ function SensorBase(pin) {
    * Otherwise, false.
    * @override
    */
-  this.isState = function(state) {
-    return (self.getState() === state);
-  };
+  isState(state) {
+    return (this.state === state);
+  }
 
   /**
    * Gets a value indicating whether this sensor is open.
-   * @return {Boolean} true if open; Otherwise, false.
+   * @property {Boolean} isOpen - true if open; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isOpen = function() {
-    return self.isState(SensorState.Open);
-  };
+  get isOpen() {
+    return this.isState(SensorState.Open);
+  }
 
   /**
    * Gets a value indicating whether this sensor is closed.
-   * @return {Boolean} true if closed; Otherwise, false.
+   * @property {Boolean} isClosed - true if closed; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isClosed = function() {
-    return self.isState(SensorState.Closed);
-  };
+  get isClosed() {
+    return this.isState(SensorState.Closed);
+  }
 
   /**
    * Gets the pin being used to sample sensor data.
-   * @return {Gpio} The pin being used to sample sensor data.
+   * @property {Gpio} pin - The underlying physical pin.
+   * @readonly
    */
-  this.getPin = function() {
-    return _pin;
-  };
+  get pin() {
+    return this._pin;
+  }
 
   /**
    * Fires the sensor state change event.
@@ -214,17 +241,15 @@ function SensorBase(pin) {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.onSensorStateChange = function(stateChangeEvent) {
-    if (_base.isDisposed()) {
+  onSensorStateChange(stateChangeEvent) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("SensorBase");
     }
 
-    var e = _emitter;
-    var evt = stateChangeEvent;
-    process.nextTick(function() {
-      e.emit(Sensor.EVENT_STATE_CHANGED, evt);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(Sensor.EVENT_STATE_CHANGED, stateChangeEvent);
+    });
+  }
 
   /**
    * Converts the current instance to it's string representation. This method
@@ -232,12 +257,9 @@ function SensorBase(pin) {
    * @return {String} The component name.
    * @override
    */
-  this.toString = function() {
-    return self.componentName;
-  };
+  toString() {
+    return this.componentName;
+  }
 }
-
-SensorBase.prototype.constructor = SensorBase;
-inherits(SensorBase, Sensor);
 
 module.exports = SensorBase;

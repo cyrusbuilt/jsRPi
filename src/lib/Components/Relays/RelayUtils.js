@@ -29,14 +29,14 @@
  * @requires RelayState
  */
 
-var RelayState = require('./RelayState.js');
+const RelayState = require('./RelayState.js');
 
 /**
  * Gets the inverse of the specified state.
  * @param  {RelayState} state The relay state to invert.
  * @return {RelayState}       The inverse of the specified state.
  */
-var getInverseState = function(state) {
+const getInverseState = function(state) {
   if (state === RelayState.Open) {
     return RelayState.Closed;
   }

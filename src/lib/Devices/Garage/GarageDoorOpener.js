@@ -21,19 +21,22 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Opener = require('../Access/Opener.js');
+const Opener = require('../Access/Opener.js');
 
 /**
  * Garage door opener abstraction interface.
  * @interface
  * @extends {Opener}
  */
-function GarageDoorOpener() {
-  Opener.call(this);
+class GarageDoorOpener extends Opener {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.Garage.GarageDoorOpener
+   * interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
 }
-
-GarageDoorOpener.prototype.constructor = GarageDoorOpener;
-inherits(GarageDoorOpener, Opener);
 
 module.exports = GarageDoorOpener;

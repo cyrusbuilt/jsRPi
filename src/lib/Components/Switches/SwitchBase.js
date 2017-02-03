@@ -22,131 +22,153 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Switch = require('./Switch.js');
-var ComponentBase = require('../ComponentBase.js');
-var EventEmitter = require('events').EventEmitter;
-var SwitchState = require('./SwitchState.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
+const Switch = require('./Switch.js');
+const ComponentBase = require('../ComponentBase.js');
+const EventEmitter = require('events').EventEmitter;
+const SwitchState = require('./SwitchState.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
 * @classdesc Base class for switch component abstractions.
-* @constructor
 * @implements {Switch}
 * @extends {ComponentBase}
 * @extends {EventEmitter}
 */
-function SwitchBase() {
-	Switch.call(this);
+class SwitchBase extends Switch {
+	/**
+	 * Initializes a new instance of the jsrpi.Components.Switches.SwitchBase class.
+	 * @constructor
+	 */
+	constructor() {
+		super();
 
-	var self = this;
-	var _base = new ComponentBase();
-	var _emitter = new EventEmitter();
-	var _state = SwitchState.Off;
+		this._base = new ComponentBase();
+		this._emitter = new EventEmitter();
+		this._state = SwitchState.Off;
+	}
 
 	/**
-	* Component name property.
-	* @property {String}
-	*/
-	this.componentName = _base.componentName;
+   * Gets or sets the name of this component.
+   * @property {String} componentName - The component name.
+   * @override
+   */
+  get componentName() {
+    return this._base.componentName;
+  }
 
-	/**
-	* Tag property.
-	* @property {Object}
-	*/
-	this.tag = _base.tag;
+  set componentName(name) {
+    this._base.componentName = name;
+  }
 
-	/**
-	* Gets the property collection.
-	* @return {Array} A custom property collection.
-	*                  @override
-	*/
-	this.getPropertyCollection = function() {
-		return _base.getPropertyCollection();
-	};
+  /**
+   * Gets or sets the object this component is tagged with.
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
 
-	/**
-	* Checks to see if the property collection contains the specified key.
-	* @param  {String}  key The key name of the property to check for.
-	* @return {Boolean} true if the property collection contains the key;
-	* Otherwise, false.
-	* @override
-	*/
-	this.hasProperty = function(key) {
-		return _base.hasProperty(key);
-	};
+  set tag(t) {
+    this._base.tag = t;
+  }
 
-	/**
-	* Sets the value of the specified property. If the property does not already exist
-	* in the property collection, it will be added.
-	* @param  {String} key   The property name (key).
-	* @param  {String} value The value to assign to the property.
-	*/
-	this.setProperty = function(key, value) {
-		_base.setProperty(key, value);
-	};
+  /**
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
+  * @override
+  */
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
-	/**
-	* Determines whether or not this instance has been disposed.
-	* @return {Boolean} true if disposed; Otherwise, false.
-	* @override
-	*/
-	this.isDisposed = function() {
-		return _base.isDisposed();
-	};
+  /**
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
-	/**
-	* Releases all resources used by the SensorBase object.
-	* @override
-	*/
-	this.dispose = function() {
-		if (_base.isDisposed()) {
-			return;
-		}
+  /**
+   * Sets the value of the specified property. If the property does not already exist
+   * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   * @override
+   */
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
-		_emitter.removeAllListeners();
-		_emitter = undefined;
-		_base.dispose();
-	};
+  /**
+   * Determines whether or not this instance has been disposed.
+   * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+   * @readonly
+   * @override
+   */
+  get isDisposed() {
+    return this._base.isDisposed;
+  }
 
-	/**
-	* Removes all event listeners.
-	* @override
-	*/
-	this.removeAllListeners = function() {
-		if (!_base.isDisposed()) {
-			_emitter.removeAllListeners();
-		}
-	};
+  /**
+   * In subclasses, performs application-defined tasks associated with freeing,
+   * releasing, or resetting resources.
+   * @override
+   */
+  	dispose() {
+    	if (this._base.isDisposed) {
+      		return;
+    	}
 
-	/**
-	* Attaches a listener (callback) for the specified event name.
-	* @param  {String}   evt      The name of the event.
-	* @param  {Function} callback The callback function to execute when the
-	* event is raised.
-	* @throws {ObjectDisposedException} if this instance has been disposed.
-	* @override
-	*/
-	this.on = function(evt, callback) {
-		if (_base.isDisposed()) {
-			throw new ObjectDisposedException("SensorBase");
-		}
-		_emitter.on(evt, callback);
-	};
+    	this._state = SwitchState.Off;
+    	this._emitter.removeAllListeners();
+    	this._emitter = undefined;
+    	this._base.dispose();
+  	}
 
-	/**
-	* Emits the specified event.
-	* @param  {String} evt  The name of the event to emit.
-	* @param  {Object} args The object that provides arguments to the event.
-	* @throws {ObjectDisposedException} if this instance has been disposed.
-	* @override
-	*/
-	this.emit = function(evt, args) {
-		if (_base.isDisposed()) {
-			throw new ObjectDisposedException("SensorBase");
-		}
-		_emitter.emit(evt, args);
-	};
+  	/**
+   	* Removes all event listeners.
+   	* @override
+   	*/
+  	removeAllListeners() {
+    	if (!this._base.isDisposed) {
+      	this._emitter.removeAllListeners();
+    	}
+  	}
+
+  	/**
+   	* Attaches a listener (callback) for the specified event name.
+   	* @param  {String}   evt      The name of the event.
+   	* @param  {Function} callback The callback function to execute when the
+   	* event is raised.
+   	* @throws {ObjectDisposedException} if this instance has been disposed.
+   	* @override
+   	*/
+  	on(evt, callback) {
+    	if (this._base.isDisposed) {
+      	throw new ObjectDisposedException("GpioBase");
+    	}
+    	this._emitter.on(evt, callback);
+  	}
+
+  	/**
+   	* Emits the specified event.
+   	* @param  {String} evt  The name of the event to emit.
+   	* @param  {Object} args The object that provides arguments to the event.
+   	* @throws {ObjectDisposedException} if this instance has been disposed.
+   	* @override
+   	*/
+  	emit(evt, args) {
+    	if (this._base.isDisposed) {
+      		throw new ObjectDisposedException("GpioBase");
+    	}
+    	this._emitter.emit(evt, args);
+  	}
 
 	/**
 	* Fires the switch state change event.
@@ -154,25 +176,24 @@ function SwitchBase() {
 	* @throws {ObjectDisposedException} if this instance has been disposed.
 	* @override
 	*/
-	this.onSwitchStateChanged = function(switchStateEvent) {
-		if (_base.isDisposed()) {
+	onSwitchStateChanged(switchStateEvent) {
+		if (this._base.isDisposed) {
 			throw new ObjectDisposedException("SwitchBase");
 		}
 
-		var e = _emitter;
-		var evt = switchStateEvent;
-		process.nextTick(function() {
-			e.emit(Switch.EVENT_STATE_CHANGED, evt);
-		}.bind(this));
-	};
+		setImmediate(() => {
+			this.emit(Switch.EVENT_STATE_CHANGED, switchStateEvent);
+		});
+	}
 
 	/**
 	* In a derived class, gets the state of the switch.
-	* @return {SwitchState} The state of the switch.
+	* @property {SwitchState} state - The switch state.
+	* @override
 	*/
-	this.getState = function() {
-		return _state;
-	};
+	get state() {
+		return this._state;
+	}
 
 	/**
 	* Gets whether or not this switch is in the specified state.
@@ -181,27 +202,29 @@ function SwitchBase() {
 	* Otherwise, false.
 	* @override
 	*/
-	this.isState = function(state) {
-		return (self.getState() === state);
-	};
+	isState(state) {
+		return (this.state === state);
+	}
 
 	/**
 	* Gets whether or not this switch is in the on position.
-	* @return {Boolean} true if on; Otherwise, false.
+	* @property {Boolean} isOn - true if on; Otherwise, false.
+	* @readonly
 	* @override
 	*/
-	this.isOn = function() {
-		return self.isState(SwitchState.On);
-	};
+	get isOn() {
+		return this.isState(SwitchState.On);
+	}
 
 	/**
 	* Gets whether or not this switch is in the off position.
-	* @return {Boolean} true if off; Otherwise, false.
+	* @property {Boolean} isOff - true if off; Otherwise, false.
+	* @readonly
 	* @override
 	*/
-	this.isOff = function() {
-		return self.isState(SwitchState.Off);
-	};
+	get isOff() {
+		return this.isState(SwitchState.Off);
+	}
 
 	/**
 	* Converts the current instance to it's string representation. This method
@@ -209,12 +232,9 @@ function SwitchBase() {
 	* @return {String} The component name.
 	* @override
 	*/
-	this.toString = function() {
-		return self.componentName;
-	};
+	toString() {
+		return this.componentName;
+	}
 }
-
-SwitchBase.prototype.constructor = SwitchBase;
-inherits(SwitchBase, Switch);
 
 module.exports = SwitchBase;

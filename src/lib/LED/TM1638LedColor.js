@@ -27,7 +27,7 @@
  * TM1638 LED segment colors.
  * @enum {Number}
  */
-var TM1638LedColor = {
+const TM1638LedColor = {
   /**
    * LED segments will be red.
    * @type {Number}

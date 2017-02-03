@@ -13,7 +13,6 @@ call npm update -g
 
 :: Install global packages first.
 call npm install grunt-cli -g
-call npm install webpack -g
 call npm install npm-check-updates -g
 
 :: Install developer dependencies
@@ -21,11 +20,15 @@ call npm install grunt --save-dev
 call npm install grunt-contrib-clean --save-dev
 call npm install grunt-contrib-jshint --save-dev
 call npm install grunt-jsdoc --save-dev
-call npm install grunt-jsdoc-ng --save-dev
+call npm install ink-docstrap --save-dev
 call npm install jshint  --save-dev
 call npm install nodeunit --save-dev
+call npm install grunt-contrib-nodeunit --save-dev
+call npm install webpack --save-dev
+call npm install webpack-dev-server --save-dev
 call npm install grunt-webpack --save-dev
 call npm install node-loader --save-dev
+call npm install grunt-contrib-watch --save-dev
 
 :: Install project dependencies.
 :: NOTE: To install pi-spi (SPI library for Node.js and Raspberry Pi),

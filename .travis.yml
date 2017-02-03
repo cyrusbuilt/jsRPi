@@ -1,0 +1,27 @@
+sudo: true
+language: node_js
+node_js:
+  - "6"
+
+cache:
+  directories:
+    - node_modules
+
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    packages:
+    - gcc-4.8
+    - g++-4.8
+
+install:
+  - npm install
+  - ./install_deps.sh
+
+script:
+  - npm run jshint
+  - npm run test
+
+
+

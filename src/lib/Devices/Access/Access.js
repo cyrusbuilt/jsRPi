@@ -26,6 +26,7 @@
  * control devices such as door openers, etc.
  *
  * @module Access
+ * @namespace jsrpi.Devices.Access
  */
 
 module.exports = {

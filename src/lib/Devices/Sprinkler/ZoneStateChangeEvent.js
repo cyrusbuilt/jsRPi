@@ -26,52 +26,62 @@ var util = require('util');
 
 /**
 * The event that gets raised when a sprinkler zone changes state.
-* @param {Boolean} oldState The previous state. Set true if the old state was on.
-* @param {Boolean} newState The current state. Set true if the new state is on.
-* @param {Number} zone      Gets the zone that changed state.
-* @constructor
 * @event
 */
-function ZoneStateChangeEvent(oldState, newState, zone) {
-	var _oldState = oldState;
-	if (util.isNullOrUndefined(_oldState)) {
-		_oldState = false;
-	}
+class ZoneStateChangeEvent {
+	/**
+	 * Initializes a new instance of the jsrpi.Devices.Sprinkler.ZoneStateChangeEvent
+	 * class with the zone and new and old states.
+	 * @param {Boolean} oldState The previous state. Set true if the old state was on.
+	 * @param {Boolean} newState The current state. Set true if the new state is on.
+	 * @param {Number} zone      Gets the zone that changed state.
+	 * @constructor
+	 */
+	constructor(oldState, newState, zone) {
+		this._oldState = oldState;
+		if (util.isNullOrUndefined(this._oldState)) {
+			this._oldState = false;
+		}
 
-	var _newState = newState;
-	if (util.isNullOrUndefined(_newState)) {
-		_newState = false;
-	}
+		this._newState = newState;
+		if (util.isNullOrUndefined(this._newState)) {
+			this._newState = false;
+		}
 
-	var _zone = zone;
-	if (util.isNullOrUndefined(_zone)) {
-		_zone = -1;
+		this._zone = zone;
+		if (util.isNullOrUndefined(this._zone)) {
+			this._zone = -1;
+		}
 	}
 
 	/**
 	* Gets the previous state of the zone.
-	* @return {Boolean} true if the old state was on; Otherwise, false.
+	* @property {Boolean} oldState - true if the old state was on; Otherwise,
+	* false.
+	* @readonly
 	*/
-	this.getOldState = function() {
-		return _oldState;
-	};
+	get oldState() {
+		return this._oldState;
+	}
 
 	/**
 	* Gets the current state of the zone.
-	* @return {Boolean} true if the current stat is on; Otherwise, false.
+	* @property {Boolean} newState - true if the current stat is on; Otherwise,
+	* false.
+	* @readonly
 	*/
-	this.getNewState = function() {
-		return _newState;
-	};
+	get newState() {
+		return this._newState;
+	}
 
 	/**
 	* Gets the zone that changed state.
-	* @return {Number} The zone number of the changing zone.
+	* @property {Number} zone - The zone number of the changing zone.
+	* @readonly
 	*/
-	this.getZone = function() {
-		return _zone;
-	};
+	get zone() {
+		return this._zone;
+	}
 }
 
-ZoneStateChangeEvent.prototype.constructor = ZoneStateChangeEvent;
 module.exports = ZoneStateChangeEvent;

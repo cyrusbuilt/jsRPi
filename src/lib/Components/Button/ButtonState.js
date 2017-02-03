@@ -26,7 +26,7 @@
  * Possible button states.
  * @enum {Number}
  */
-var ButtonState = {
+const ButtonState = {
   /**
    * The button is pressed.
    * @type {Number}

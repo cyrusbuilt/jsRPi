@@ -22,45 +22,65 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Disposable = require('../Disposable.js');
+const Disposable = require('../Disposable.js');
 
 /**
  * A hardware abstraction component interface.
  * @interface
  */
-function Component() {
-  Disposable.call(this);
+class Component extends Disposable {
+  /**
+   * Initializes a new instanc of the jsrpi.Components.Component interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+
+    this._componentName = "";
+    this._tag = null;
+  }
+
+  /**
+   * Gets or sets the name of this component.
+   * @property {String} componentName - The component name.
+   */
+  get componentName() {
+    return this._componentName;
+  }
+
+  set componentName(name) {
+    this._componentName = name;
+  }
+
+  /**
+   * Gets or sets the object this component is tagged with (if set).
+   * @property {Object} tag - The tag.
+   */
+  get tag() {
+    return this._tag;
+  }
+
+  set tag(t) {
+    this._tag = t;
+  }
+
+  /**
+   * In an implementing class, gets the property collection.
+   * @property {Array} propertyCollection - The property collection.
+   * @readonly
+   */
+  get propertyCollection() {
+    return null;
+  }
+
+  /**
+   * In an implementing class, checks to see if the property collection contains
+   * the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   */
+  hasProperty(key) { return false; }
 }
-
-/**
- * Component name property.
- * @property {String}
- */
-Component.prototype.componentName = "";
-
-/**
- * Tag property.
- * @property {Object}
- */
-Component.prototype.tag = null;
-
-/**
- * In an implementing class, gets the property collection.
- * @return {Array} A custom property collection.
- */
-Component.prototype.getPropertyCollection = function() {};
-
-/**
- * In an implementing class, checks to see if the property collection contains
- * the specified key.
- * @param  {String} key The key name of the property to check for.
- * @return {Boolean}    true if the property collection contains the key;
- * Otherwise, false.
- */
-Component.prototype.hasProperty = function(key) {};
-
-Component.prototype.constructor = Component;
-inherits(Component, Disposable);
 
 module.exports = Component;

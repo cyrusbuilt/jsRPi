@@ -25,6 +25,7 @@
  * @fileOverview Contains classes and interfaces for working with gate openers.
  *
  * @module Gate
+ * @namespace jsrpi.Devices.Gate
  */
 
 module.exports = {

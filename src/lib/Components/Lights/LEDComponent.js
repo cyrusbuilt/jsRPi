@@ -22,211 +22,106 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var inherits = require('util').inherits;
-var LEDBase = require('./LEDBase.js');
-var PinState = require('../../IO/PinState.js');
-var PinMode = require('../../IO/PinMode.js');
-var ArgumentNullException = require('../../ArgumentNullException.js');
-var InvalidOperationException = require('../../InvalidOperationException.js');
-var LightStateChangeEvent = require('./LightStateChangeEvent.js');
+const util = require('util');
+const LEDBase = require('./LEDBase.js');
+const PinState = require('../../IO/PinState.js');
+const PinMode = require('../../IO/PinMode.js');
+const ArgumentNullException = require('../../ArgumentNullException.js');
+const InvalidOperationException = require('../../InvalidOperationException.js');
+const LightStateChangeEvent = require('./LightStateChangeEvent.js');
 
-var ON_STATE = PinState.High;
-var OFF_STATE = PinState.Low;
+const ON_STATE = PinState.High;
+const OFF_STATE = PinState.Low;
 
 /**
  * @classdesc A component that is an abstraction of an LED.
- * @param {Gpio} pin The output pin the LED is wired to.
- * @throws {ArgumentNullException} if the pin is null or undefined.
- * @constructor
  * @extends {LEDBase}
  */
-function LEDComponent(pin) {
-  LEDBase.call(this);
+class LEDComponent extends LEDBase {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Lights.LEDComponent
+   * class with the pin the LED is attached to.
+   * @param {Gpio} pin The output pin the LED is wired to.
+   * @throws {ArgumentNullException} if the pin is null or undefined.
+   * @constructor
+   */
+  constructor(pin) {
+    super();
 
-  if (util.isNullOrUndefined(pin)) {
-    throw new ArgumentNullException("'pin' param cannot be null or undefined.");
+    if (util.isNullOrUndefined(pin)) {
+      throw new ArgumentNullException("'pin' param cannot be null or undefined.");
+    }
+
+    this._blinkElaspsed = 0;
+    this._blinkDuration = 0;
+    this._blinkDelay = 0;
+    this._blinkTimer = null;
+    this._pin = pin;
+    this._pin.provision();
   }
-
-  var self = this;
-  var _base = new LEDBase();
-  var _blinkElaspsed = 0;
-  var _blinkDuration = 0;
-  var _blinkDelay = 0;
-  var _blinkTimer = null;
-  var _pin = pin;
-  _pin.provision();
 
 	/**
 	 * Gets the underlying pin the LED is attached to.
-	 * @returns {Gpio} The underlying pin.
+	 * @property {Gpio} pin - The underlying physical pin.
+	 * @readonly
 	 */
-	this.getPin = function() {
-		return _pin;
-	};
-	
-  /**
-   * Component name property.
-   * @property {String}
-   */
-  this.componentName = _base.componentName;
-
-  /**
-   * Tag property.
-   * @property {Object}
-   */
-  this.tag = _base.tag;
-
-  /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
-   * @override
-   */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
-
-  /**
-   * Checks to see if the property collection contains the specified key.
-   * @param  {String} key The key name of the property to check for.
-   * @return {Boolean}    true if the property collection contains the key;
-   * Otherwise, false.
-   * @override
-   */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
-
-  /**
-   * Sets the value of the specified property. If the property does not already exist
-	 * in the property collection, it will be added.
-   * @param  {String} key   The property name (key).
-   * @param  {String} value The value to assign to the property.
-   */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
-
-  /**
-   * Determines whether or not this instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
-   * @override
-   */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
-
-  /**
-   * Releases all resources used by the GpioBase object.
-   * @override
-   */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
-      return;
-    }
-
-    if (!util.isNullOrUndefined(_pin)) {
-      _pin.dispose();
-      _pin = undefined;
-    }
-
-    _base.removeAllListeners();
-    _base.dispose();
-  };
-
-  /**
-   * Removes all event listeners.
-   * @override
-   */
-  this.removeAllListeners = function() {
-    _base.removeAllListeners();
-  };
-
-  /**
-   * Attaches a listener (callback) for the specified event name.
-   * @param  {String}   evt      The name of the event.
-   * @param  {Function} callback The callback function to execute when the
-   * event is raised.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   */
-  this.on = function(evt, callback) {
-    _base.on(evt, callback);
-  };
-
-  /**
-   * Emits the specified event.
-   * @param  {String} evt  The name of the event to emit.
-   * @param  {Object} args The object that provides arguments to the event.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   */
-  this.emit = function(evt, args) {
-    _base.emit(evt, args);
-  };
-
-  /**
-   * Fires the light state change event.
-   * @param  {LightStateChangeEvent} lightChangeEvent The state change event
-   * object.
-   * @override
-   */
-  this.onLightStateChange = function(lightChangeEvent) {
-    _base.onLightStateChange(lightChangeEvent);
-  };
+	get pin() {
+		return this._pin;
+	}
 
   /**
    * Gets a value indicating whether this light is on.
-   * @return {Boolean} true if the light is on; Otherwise, false.
+   * @property {Boolean} isOn - true if the light is on; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isOn = function() {
-    return (_pin.state() === ON_STATE);
-  };
-	
+  get isOn() {
+    return (this._pin.state === ON_STATE);
+  }
+
   /**
    * Switches the light on.
    * @override
    */
-  this.turnOn = function() {
-    if (_pin.mode() !== PinMode.OUT) {
+  turnOn() {
+    if (this._pin.mode !== PinMode.OUT) {
       throw new InvalidOperationException("Pin is not configured as an output.");
     }
 
-    if (_pin.state() !== ON_STATE) {
-      _pin.write(PinState.High);
-      _base.onLightStateChange(new LightStateChangeEvent(true));
+    if (this._pin.state !== ON_STATE) {
+      this._pin.write(PinState.High);
+      this.onLightStateChange(new LightStateChangeEvent(true));
     }
-  };
+  }
 
   /**
    * Switches the light off.
    * @override
    */
-  this.turnOff = function() {
-    if (_pin.mode() !== PinMode.OUT) {
+  turnOff() {
+    if (this._pin.mode !== PinMode.OUT) {
       throw new InvalidOperationException("Pin is not configured as an output.");
     }
 
-    if (_pin.state() !== OFF_STATE) {
-      _pin.write(PinState.Low);
-      _base.onLightStateChange(new LightStateChangeEvent(false));
+    if (this._pin.state !== OFF_STATE) {
+      this._pin.write(PinState.Low);
+      this.onLightStateChange(new LightStateChangeEvent(false));
     }
-  };
+  }
 
   /**
    * Resets the blink interval timer.
    * @private
    */
-  var resetBlink = function() {
-    if (!util.isNullOrUndefined(_blinkTimer)) {
-      clearInterval(_blinkTimer);
-      _blinkElaspsed = 0;
-      _blinkDuration = 0;
-      _blinkDelay = 0;
-      _blinkTimer = null;
+  _resetBlink() {
+    if (!util.isNullOrUndefined(this._blinkTimer)) {
+      clearInterval(this._blinkTimer);
+      this._blinkElaspsed = 0;
+      this._blinkDuration = 0;
+      this._blinkDelay = 0;
+      this._blinkTimer = null;
     }
-  };
+  }
 
   /**
    * The blink interval callback function. This checks to see if still within
@@ -234,16 +129,16 @@ function LEDComponent(pin) {
    * time, then turns it back off.
    * @private
    */
-  var doBlinkInterval = function() {
-    var millis = (new Date()).getTime();
-    if ((millis - _blinkElaspsed) <= _blinkDuration) {
-      _blinkElaspsed = millis;
-      self.turnOn();
-      self.setTimeout(function() {
-        self.turnOff();
-      }, _blinkDelay);
+  _doBlinkInterval() {
+    let millis = (new Date()).getTime();
+    if ((millis - this._blinkElaspsed) <= this._blinkDuration) {
+      this._blinkElaspsed = millis;
+      this.turnOn();
+      setTimeout(() => {
+        this.turnOff();
+      }, this._blinkDelay);
     }
-  };
+  }
 
   /**
    * Executes a single blink (turn LED on, wait for delay, turn LED off).
@@ -251,12 +146,12 @@ function LEDComponent(pin) {
    * back off.
    * @private
    */
-  var blinkOnce = function(delay) {
-    self.turnOn();
-    setTimeout(function() {
-      self.turnOff();
+  _blinkOnce(delay) {
+    this.turnOn();
+    setTimeout(() => {
+      this.turnOff();
     }, delay);
-  };
+  }
 
   /**
    * Blinks the LED.
@@ -265,30 +160,30 @@ function LEDComponent(pin) {
    * milliseconds). If not specified, then a single blink will occur.
    * @override
    */
-  this.blink = function(delay, duration) {
+  blink(delay, duration) {
     duration = duration || 0;
     if (duration > 0) {
-      _blinkDuration = duration;
-      _blinkDelay = delay;
-      _blinkElaspsed = (new Date()).getTime();
-      _blinkTimer = setInterval(doBlinkInterval, delay);
+      this._blinkDuration = duration;
+      this._blinkDelay = delay;
+      this._blinkElaspsed = (new Date()).getTime();
+      this._blinkTimer = setInterval(() => { this._doBlinkInterval(); }, delay);
     }
     else {
-      blinkOnce(delay);
+      this._blinkOnce(delay);
     }
-  };
+  }
 
   /**
    * Pulses the state of the LED.
    * @param  {Number} duration The amount of time to pulse the LED.
    * @override
    */
-  this.pulse = function(duration) {
+  pulse(duration) {
     duration = duration || 0;
     if (duration > 0) {
-      _pin.pulse(duration);
+      this._pin.pulse(duration);
     }
-  };
+  }
 
   /**
    * Converts the current instance into its string representation. In this case,
@@ -296,12 +191,28 @@ function LEDComponent(pin) {
    * @return {String} The component name.
    * @override
    */
-  this.toString = function() {
-    return self.componentName;
-  };
-}
+  toString() {
+    return this.componentName;
+  }
 
-LEDComponent.prototype.constructor = LEDComponent;
-inherits(LEDComponent, LEDBase);
+  /**
+   * Releases all resources used by the GpioBase object.
+   * @override
+   */
+  dispose() {
+    if (this.isDisposed) {
+      return;
+    }
+
+    if (!util.isNullOrUndefined(this._pin)) {
+      this._pin.dispose();
+      this._pin = undefined;
+    }
+
+    this._resetBlink();
+    this.removeAllListeners();
+    super.dispose();
+  }
+}
 
 module.exports = LEDComponent;

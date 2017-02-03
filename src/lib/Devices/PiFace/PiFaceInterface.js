@@ -21,49 +21,62 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Device = require('../Device.js');
+const Device = require('../Device.js');
 
 /**
  * An interface for a PiFace device abstraction.
  * @interface
  * @extends {Device}
  */
-function PiFaceInterface() {
-  Device.call(this);
+class PiFaceInterface extends Device {
+    /**
+     * Initializes a new instance of the jsrpi.Devices.PiFace.PiFaceInterface
+     * interface.
+     * @constructor
+     */
+  constructor() {
+      super();
+  }
+
+  /**
+   * In a derived class, gets the input pins.
+   * @property {Array} inputPins -  An array of PiFaceGPIO objects representing
+   * PiFace inputs.
+   * @readonly
+   */
+  get inputPins() { return []; }
+
+  /**
+   * In a derived class, gets the output pins.
+   * @property {Array} outputPins - An array of PiFaceGPIO objects representing
+   * PiFace outputs.
+   * @readonly
+   */
+  get outputPins() { return []; }
+
+  /**
+   * In a derived class, gets the relays.
+   * @property {Array} relays - An array of Relay objects representing the
+   * relays on the PiFace.
+   * @readonly
+   */
+  get relays() { return []; }
+
+  /**
+   * In a derived class, gets the switches.
+   * @property {Array} switches - An array of Switch objects representing the
+   * switches on the PiFace.
+   * @readonly
+   */
+  get switches() { return []; }
+
+  /**
+   * In a derived class, gets the LEDs.
+   * @property {Array} LEDs -  An array of LEDInterface objects representing the
+   * LEDs on the PiFace.
+   * @readonly
+   */
+  get LEDs() { return []; }
 }
-
-PiFaceInterface.prototype.constructor = PiFaceInterface;
-inherits(PiFaceInterface, Device);
-
-/**
- * In a derived class, gets the input pins.
- * @return {Array} An array of PiFaceGPIO objects representing PiFace inputs.
- */
-PiFaceInterface.prototype.getInputPins = function() { return []; };
-
-/**
- * In a derived class, gets the output pins.
- * @return {Array} An array of PiFaceGPIO objects representing PiFace outputs.
- */
-PiFaceInterface.prototype.getOutputPins = function() { return []; };
-
-/**
- * In a derived class, gets the relays.
- * @return {Array} An array of Relay objects representing the relays on the PiFace.
- */
-PiFaceInterface.prototype.getRelays = function() { return []; };
-
-/**
- * In a derived class, gets the switches.
- * @return {Array} An array of Switch objects representing the switches on the PiFace.
- */
-PiFaceInterface.prototype.getSwitches = function() { return []; };
-
-/**
- * In a derived class, gets the LEDs.
- * @return {Array} An array of LEDInterface objects representing the LEDs on the PiFace.
- */
-PiFaceInterface.prototype.getLEDs = function() { return []; };
 
 module.exports = PiFaceInterface;

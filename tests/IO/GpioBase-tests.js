@@ -1,109 +1,103 @@
 'use strict';
 
-var util = require('util');
-var inherits = require('util').inherits;
-var GpioBase = require('../../src/lib/IO/GpioBase.js');
-var GpioPins = require('../../src/lib/IO/GpioPins.js');
-var PinMode = require('../../src/lib/IO/PinMode.js');
-var PinState = require('../../src/lib/IO/PinState.js');
-var BoardRevision = require('../../src/lib/BoardRevision.js');
-var PinStateChangeEvent = require('../../src/lib/IO/PinStateChangeEvent.js');
-var Gpio = require('../../src/lib/IO/Gpio.js');
+const util = require('util');
+const GpioBase = require('../../src/lib/IO/GpioBase.js');
+const GpioPins = require('../../src/lib/IO/GpioPins.js');
+const PinMode = require('../../src/lib/IO/PinMode.js');
+const PinState = require('../../src/lib/IO/PinState.js');
+const BoardRevision = require('../../src/lib/BoardRevision.js');
+const PinStateChangeEvent = require('../../src/lib/IO/PinStateChangeEvent.js');
+const Gpio = require('../../src/lib/IO/Gpio.js');
 
-function FakeGpio(pin, mode, value) {
-  GpioBase.call(this, pin, mode, value);
-
-  var self = this;
-  var _overriddenState = value || PinState.Low;
-
-  this.read = function() {
-    return _overriddenState;
-  };
-
-  this.write = function(ps) {
-    if (_overriddenState !== ps) {
-      var addr = pin.value;
-      var evt = new PinStateChangeEvent(_overriddenState, ps, addr);
-      _overriddenState = ps;
-      self.onPinStateChange(evt);
+class FakeGpio extends GpioBase {
+    constructor(pin, mode, value) {
+        super(pin, mode, value);
+        this._overriddenState = value || PinState.Low;
     }
-  };
-}
 
-FakeGpio.prototype.constructor = FakeGpio;
-inherits(FakeGpio, GpioBase);
+    read() {
+        return this._overriddenState;
+    }
+
+    write(ps) {
+        if (this._overriddenState !== ps) {
+            let addr = this.innerPin.value;
+            let evt = new PinStateChangeEvent(this._overriddenState, ps, addr);
+            this._overriddenState = ps;
+            this.onPinStateChange(evt);
+        }
+    }
+}
 
 module.exports.GpioBaseTests = {
   testDisposeAndIsDisposed: function(assert) {
-    var fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+    let fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
     assert.expect(2);
-    assert.ok(!fg.isDisposed(), "Gpio is already disposed.");
+    assert.ok(!fg.isDisposed, "Gpio is already disposed.");
 
     fg.dispose();
-    assert.ok(fg.isDisposed(), "Gpio did not dispose");
+    assert.ok(fg.isDisposed, "Gpio did not dispose");
     assert.done();
   },
   testBoardRevision: function(assert) {
-    var fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+    let fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
     fg.changeBoardRevision(BoardRevision.Rev2);
 
-    assert.equals(fg.getRevision(), BoardRevision.Rev2, "Board is not Rev2");
+    assert.equals(fg.revision, BoardRevision.Rev2, "Board is not Rev2");
     assert.done();
   },
   testRead: function(assert) {
-    var fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+    let fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
     assert.expect(1);
     assert.equals(fg.read(), PinState.Low, "Pin state is not PinState.Low");
     assert.done();
   },
   testState: function(assert) {
-    var fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.High);
+    let fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.High);
     assert.expect(1);
-    assert.equals(fg.state(), PinState.High, "Pin state is not PinState.High");
+    assert.equals(fg.state, PinState.High, "Pin state is not PinState.High");
     assert.done();
   },
   testWrite: function(assert) {
     assert.expect(2);
 
-    var fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-    assert.equals(fg.state(), PinState.Low, "Initial pin state is not PinState.Low");
+    let fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+    assert.equals(fg.state, PinState.Low, "Initial pin state is not PinState.Low");
 
     fg.write(PinState.High);
-    assert.equals(fg.state(), PinState.High, "Written pin state is not PinState.High");
+    assert.equals(fg.state, PinState.High, "Written pin state is not PinState.High");
     assert.done();
   },
   testGetInnerPin: function(assert) {
-    var fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-    var p = fg.getInnerPin();
+    let fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+    let p = fg.innerPin;
 
     assert.expect(1);
     assert.equals(p.value, GpioPins.GPIO01.value, "Expected pin is not GpioPins.GPIO01");
     assert.done();
   },
   testGetMode: function(assert) {
-    var fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-    var m = fg.mode();
+    let fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
 
     assert.expect(1);
-    assert.equals(m, PinMode.IN, "Gpio not configured as input");
+    assert.equals(fg.mode, PinMode.IN, "Gpio not configured as input");
     assert.done();
   },
   testSetMode: function(assert) {
     assert.expect(2);
 
-    var fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-    assert.equals(fg.mode(), PinMode.IN, "Initial pin mode is not PinMode.IN");
+    let fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
+    assert.equals(fg.mode, PinMode.IN, "Initial pin mode is not PinMode.IN");
 
-    fg.setMode(PinMode.OUT);
-    assert.equals(fg.mode(), PinMode.OUT, "Pin mode did not change to PinMode.OUT");
+    fg.mode = PinMode.OUT;
+    assert.equals(fg.mode, PinMode.OUT, "Pin mode did not change to PinMode.OUT");
     assert.done();
   },
   testAddress: function(assert) {
-    var fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
-    var addr = fg.address();
+    let fg = new FakeGpio(GpioPins.GPIO01, PinMode.IN, PinState.Low);
 
     assert.expect(1);
-    assert.equals(addr, GpioPins.GPIO01.value, "Pin address is not 1");
+    assert.equals(fg.address, GpioPins.GPIO01.value, "Pin address is not 1");
     assert.done();
   },
 
@@ -118,15 +112,15 @@ module.exports.GpioBaseTests = {
   // *** the unit test will fail due to the number of assertions.
 
   // testPulseAndStateChange: function(assert) {
-  //   var changeCount = 0;
-  //   var fg = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
+  //   let changeCount = 0;
+  //   let fg = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
   //   console.log("State before pulse: " + fg.read());
   //   fg.on(Gpio.EVENT_STATE_CHANGED, function(stateChanged) {
   //     console.log("Pin went high");
   //     assert.expect(2);
-  //     assert.equals(stateChanged.getNewState(), PinState.High, "Pin state is not PinState.High");
+  //     assert.equals(stateChanged.newState, PinState.High, "Pin state is not PinState.High");
   //
-  //     //assert.equals(stateChanged.getNewState(), PinState.Low, "Pin state did not return to PinState.Low");
+  //     //assert.equals(stateChanged.newState, PinState.Low, "Pin state did not return to PinState.Low");
   //     assert.done();
   //   });
   //
@@ -139,11 +133,11 @@ module.exports.GpioBaseTests = {
   // }
 
   testPinStateChange: function(assert) {
-    var fg = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
-    fg.on(Gpio.EVENT_STATE_CHANGED, function(stateChanged) {
+    let fg = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
+    fg.on(Gpio.EVENT_STATE_CHANGED, (stateChanged) => {
       assert.expect(2);
-      assert.equals(stateChanged.getOldState(), PinState.Low, "Begginning state was not PinState.Low");
-      assert.equals(stateChanged.getNewState(), PinState.High, "Resulting state is not PinState.High");
+      assert.equals(stateChanged.oldState, PinState.Low, "Begginning state was not PinState.Low");
+      assert.equals(stateChanged.newState, PinState.High, "Resulting state is not PinState.High");
       assert.done();
     });
 

@@ -23,21 +23,27 @@
 
 /**
  * @classdesc The event that gets raised when a pilot light event occurs.
- * @param {Boolean} lightIsOn Set true if the pilot light is lit.
- * @constructor
  * @event
  */
-function FireplacePilotLightEvent(lightIsOn) {
-  var _isLightOn = lightIsOn || false;
+class FireplacePilotLightEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.FireplacePilotLightEvent
+   * class with a flag to indicate whether or not the pilot light is lit.
+   * @param {Boolean} lightIsOn Set true if the pilot light is lit.
+   * @constructor
+   */
+  constructor(lightIsOn) {
+    this._isLightOn = lightIsOn || false;
+  }
 
   /**
    * Gets a value indicating whether or not the pilot light is on.
-   * @return {Boolean} true if the light is on; Otherwise, false.
+   * @property {Boolean} lightIsOn - true if the light is on; Otherwise, false.
+   * @readonly
    */
-  this.lightIsOn = function() {
-    return _isLightOn;
-  };
+  get lightIsOn() {
+    return this._isLightOn;
+  }
 }
 
-FireplacePilotLightEvent.prototype.constructor = FireplacePilotLightEvent;
 module.exports = FireplacePilotLightEvent;

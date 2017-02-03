@@ -27,7 +27,7 @@
  * Baud rates.
  * @enum {Number}
  */
-var BaudRates = {
+const BaudRates = {
   /**
    * 1200 BAUD.
    * @type {Number}

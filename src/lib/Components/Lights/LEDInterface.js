@@ -22,37 +22,39 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Light = require('./Light.js');
+const Light = require('./Light.js');
 
 /**
  * An interface for LED abstraction components.
  * @interface
  * @extends {Light}
  */
-function LEDInterface() {
-  Light.call(this);
+class LEDInterface extends Light {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Lights.LEDInterface
+   * interface.
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derivative class, toggles the state of the LED.
+   */
+  toggle() {}
+
+  /**
+   * In a derivative, blinks the LED.
+   * @param  {Number} delay    The delay between state change.
+   * @param  {Number} duration The amount of time to blink the LED (in milliseconds).
+   */
+  blink(delay, duration) {}
+
+  /**
+   * In a derivative class, pulses the state of the LED.
+   * @param  {Number} duration The amount of time to pulse the LED.
+   */
+  pulse(duration) {}
 }
-
-LEDInterface.prototype.constructor = LEDInterface;
-inherits(LEDInterface, Light);
-
-/**
- * In a derivative class, toggles the state of the LED.
- */
-LEDInterface.prototype.toggle = function() {};
-
-/**
- * In a derivative, blinks the LED.
- * @param  {Number} delay    The delay between state change.
- * @param  {Number} duration The amount of time to blink the LED (in milliseconds).
- */
-LEDInterface.prototype.blink = function(delay, duration) {};
-
-/**
- * In a derivative class, pulses the state of the LED.
- * @param  {Number} duration The amount of time to pulse the LED.
- */
-LEDInterface.prototype.pulse = function(duration) {};
 
 module.exports = LEDInterface;

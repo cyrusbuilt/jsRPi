@@ -26,7 +26,7 @@
  * The state of the motor.
  * @enum {Number}
  */
-var MotorState = {
+const MotorState = {
   /**
    * The motor is stopped.
    * @type {Number}

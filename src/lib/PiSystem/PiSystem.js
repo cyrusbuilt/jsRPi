@@ -26,6 +26,7 @@
  * with the Raspberry Pi host itself.
  *
  * @module PiSystem
+ * @namespace jsrpi.PiSystem
  */
 
 module.exports = {

@@ -23,24 +23,30 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 /**
- * The event that gets raised when a motor rotation occurs.
- * @param {Number} steps The steps being taken. 0 steps = stopped. Greater than
- * 0 = the number of steps forward. Less than 0 = the number of steps moving
- * backward.
- * @constructor
+ * @classdesc The event that gets raised when a motor rotation occurs.
  * @event
  */
-function MotorRotateEvent(steps) {
-  var _steps = steps || 0;
+class MotorRotateEvent {
+  /**
+   * Initializes a new intance of the jsrpi.Components.Motors.MotorRotateEvent
+   * class with the number of steps being taken.
+   * @param {Number} steps The steps being taken. 0 steps = stopped. Greater than
+   * 0 = the number of steps forward. Less than 0 = the number of steps moving
+   * backward.
+   * @constructor
+   */
+  constructor(steps) {
+    this._steps = steps || 0;
+  }
 
   /**
-   * Gets the steps.
-   * @return {Number} The number of steps.
+   * Gets the number of steps.
+   * @property {Number} steps - The number of steps rotated.
+   * @readonly
    */
-  this.getSteps = function() {
-    return _steps;
-  };
+  get steps() {
+    return this._steps;
+  }
 }
 
-MotorRotateEvent.prototype.constructor = MotorRotateEvent;
 module.exports = MotorRotateEvent;

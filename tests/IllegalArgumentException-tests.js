@@ -1,10 +1,10 @@
 'use strict';
 
-var IllegalArgumentException = require('../src/lib/IllegalArgumentException.js');
+const IllegalArgumentException = require('../src/lib/IllegalArgumentException.js');
 
 module.exports.illegalArgumentExceptionTests = {
   testThrow: function(assert) {
-    var result = false;
+    let result = false;
     try {
       throw new IllegalArgumentException("The argument is illegal");
     }

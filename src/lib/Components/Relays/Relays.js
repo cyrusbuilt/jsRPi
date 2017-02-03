@@ -26,6 +26,7 @@
  * @fileOverview Contains classes and interfaces for manipulating relays.
  *
  * @module Relays
+ * @namespace jsrpi.Components.Relays
  */
 
 module.exports = {

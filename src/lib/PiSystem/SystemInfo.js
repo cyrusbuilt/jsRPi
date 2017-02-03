@@ -35,18 +35,18 @@
  * @requires BoardType
  */
 
-var os = require('os');
-var ExecUtils = require("../ExecUtils.js");
-var StringUtils = require("../StringUtils.js");
-var InvalidOperationException = require("../InvalidOperationException.js");
-var BoardType = require("./BoardType.js");
+const os = require('os');
+const ExecUtils = require("../ExecUtils.js");
+const StringUtils = require("../StringUtils.js");
+const InvalidOperationException = require("../InvalidOperationException.js");
+const BoardType = require("./BoardType.js");
 
 /**
  * Internal CPU info cache.
  * @type {Array}
  * @package
  */
-var _cpuInfo = null;
+let _cpuInfo = null;
 
 /**
  * Gets information about the CPU and returns the value from the specified
@@ -56,14 +56,14 @@ var _cpuInfo = null;
  * @return {String}        The value of the specified CPU attribute.
  * @package
  */
-var getCpuInfo = function(target) {
+const getCpuInfo = function(target) {
   if (_cpuInfo == null) {
     _cpuInfo = [];
-    var result = ExecUtils.executeCommand("cat /proc/cpuinfo");
+    let result = ExecUtils.executeCommand("cat /proc/cpuinfo");
     if (result != null) {
-      var line = StringUtils.EMPTY;
-      var parts = [];
-      for (var i = 0; i < result.length; i++) {
+      let line = StringUtils.EMPTY;
+      let parts = [];
+      for (let i = 0; i < result.length; i++) {
         line = result[i];
         parts = line.split(':');
         if ((parts.length >= 2) &&
@@ -86,7 +86,7 @@ var getCpuInfo = function(target) {
  * Gets the processor.
  * @return {String} The processor.
  */
-var getProcessor = function() {
+const getProcessor = function() {
   return getCpuInfo("Processor");
 };
 
@@ -94,7 +94,7 @@ var getProcessor = function() {
  * Get the Bogo MIPS.
  * @return {String} The Bogo MIPS.
  */
-var getBogoMIPS = function() {
+const getBogoMIPS = function() {
   return getCpuInfo("BogoMIPS");
 };
 
@@ -102,7 +102,7 @@ var getBogoMIPS = function() {
  * Gets the CPU features.
  * @return {Array} The CPU features.
  */
-var getCpuFeatures = function() {
+const getCpuFeatures = function() {
   return getCpuInfo("Features").split(' ');
 };
 
@@ -110,7 +110,7 @@ var getCpuFeatures = function() {
  * Gets the CPU implementer.
  * @return {String} The CPU implementer.
  */
-var getCpuImplementer = function() {
+const getCpuImplementer = function() {
   return getCpuInfo("CPU implementer");
 };
 
@@ -118,7 +118,7 @@ var getCpuImplementer = function() {
  * Gets the CPU architecture.
  * @return {String} The CPU architecture.
  */
-var getCpuArchitecture = function() {
+const getCpuArchitecture = function() {
   return getCpuInfo("CPU architecture");
 };
 
@@ -126,7 +126,7 @@ var getCpuArchitecture = function() {
  * Gets the CPU variant.
  * @return {String} The CPU variant.
  */
-var getCpuVariant = function() {
+const getCpuVariant = function() {
   return getCpuInfo("CPU variant");
 };
 
@@ -134,7 +134,7 @@ var getCpuVariant = function() {
  * Gets the CPU part.
  * @return {String} The CPU part.
  */
-var getCpuPart = function() {
+const getCpuPart = function() {
   return getCpuInfo("CPU part");
 };
 
@@ -142,7 +142,7 @@ var getCpuPart = function() {
  * Gets the CPU revision.
  * @return {String} The CPU revision.
  */
-var getCpuRevision = function() {
+const getCpuRevision = function() {
   return getCpuInfo("CPU revision");
 };
 
@@ -150,7 +150,7 @@ var getCpuRevision = function() {
  * Gets the hardware the system is implemented on.
  * @return {String} The hardware.
  */
-var getHardware = function() {
+const getHardware = function() {
   return getCpuInfo("Hardware");
 };
 
@@ -158,7 +158,7 @@ var getHardware = function() {
  * Gets the system revision.
  * @return {String} The system revision.
  */
-var getSystemRevision = function() {
+const getSystemRevision = function() {
   return getCpuInfo("Revision");
 };
 
@@ -166,7 +166,7 @@ var getSystemRevision = function() {
  * Gets the serial number.
  * @return {String} The serial number.
  */
-var getSerial = function() {
+const getSerial = function() {
   return getCpuInfo("Serial");
 };
 
@@ -174,7 +174,7 @@ var getSerial = function() {
  * Gets the name of the OS.
  * @return {String} The OS name.
  */
-var getOsName = function() {
+const getOsName = function() {
   return os.type();
 };
 
@@ -182,7 +182,7 @@ var getOsName = function() {
  * Gets the OS version.
  * @return {String} The OS version.
  */
-var getOsVersion = function() {
+const getOsVersion = function() {
   return os.release();
 };
 
@@ -190,7 +190,7 @@ var getOsVersion = function() {
  * Gets the OS architecture.
  * @return {String} The OS architecture.
  */
-var getOsArch = function() {
+const getOsArch = function() {
   return os.arch();
 };
 
@@ -199,9 +199,9 @@ var getOsArch = function() {
  * @return {String} The OS firmware build.
  * @throws {InvalidOperationException} if an unexpected response is received.
  */
-var getOsFirmwareBuild = function() {
-  var results = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd version");
-  var val = StringUtils.EMPTY;
+const getOsFirmwareBuild = function() {
+  let results = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd version");
+  let val = StringUtils.EMPTY;
   if (results != null) {
     var line = StringUtils.EMPTY;
     for (var i = 0; i < results.length; i++) {
@@ -225,12 +225,12 @@ var getOsFirmwareBuild = function() {
  * @return {String} The OS firwmware date.
  * @throws {InvalidOperationException} if an unexpected response is received.
  */
-var getOsFirmwareDate = function() {
-  var results = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd version");
-  var val = StringUtils.EMPTY;
+const getOsFirmwareDate = function() {
+  let results = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd version");
+  let val = StringUtils.EMPTY;
   if (results != null) {
-    var line = StringUtils.EMPTY;
-    for (var i = 0; i < results.length; i++) {
+    let line = StringUtils.EMPTY;
+    for (let i = 0; i < results.length; i++) {
       line = results[i];
       val = line;
       break;
@@ -249,19 +249,19 @@ var getOsFirmwareDate = function() {
  * @return {Array} The memory info.
  * @private
  */
-var getMemory = function() {
-  var values = [];
-  var result = ExecUtils.executeCommand("free -b");
+const getMemory = function() {
+  let values = [];
+  let result = ExecUtils.executeCommand("free -b");
   if (result != null) {
-    var parts = [];
-    var part = StringUtils.EMPTY;
-    var line = StringUtils.EMPTY;
-    var linePart = StringUtils.EMPTY;
-    var val = 0;
-    for (var i = 0; i < result.length; i++) {
+    let parts = [];
+    let part = StringUtils.EMPTY;
+    let line = StringUtils.EMPTY;
+    let linePart = StringUtils.EMPTY;
+    let val = 0;
+    for (let i = 0; i < result.length; i++) {
       if (StringUtils.startsWith(line, "Mem:")) {
         parts = line.split(' ');
-        for (var j = 0; j < parts.length; j++) {
+        for (let j = 0; j < parts.length; j++) {
           part = parts[j];
           linePart = StringUtils.trim(part);
           if ((!StringUtils.isNullOrEmpty(linePart)) &&
@@ -279,8 +279,8 @@ var getMemory = function() {
  * Gets the total amount of system memory.
  * @return {Number} If successful, the total system memory; Otherwise, -1.
  */
-var getMemoryTotal = function() {
-  var values = getMemory();
+const getMemoryTotal = function() {
+  let values = getMemory();
   if ((values != null) && (values.length > 0)) {
     return values[0];  // Total memory value is the first position.
   }
@@ -292,8 +292,8 @@ var getMemoryTotal = function() {
  * @return {Number} If successful, the amount of memory that is in use;
  * Otherwise, -1.
  */
-var getMemoryUsed = function() {
-  var values = getMemory();
+const getMemoryUsed = function() {
+  let values = getMemory();
   if ((values != null) && (values.length > 1)) {
     return values[1];  // Used memory value is the second position.
   }
@@ -304,8 +304,8 @@ var getMemoryUsed = function() {
  * Gets the free memory available.
  * @return {Number} If successful, the amount of memory available; Otherwise, -1.
  */
-var getMemoryFree = function() {
-  var values = getMemory();
+const getMemoryFree = function() {
+  let values = getMemory();
   if ((values != null) && (values.length > 2)) {
     return values[2];  // Free memory value is the third position.
   }
@@ -316,8 +316,8 @@ var getMemoryFree = function() {
  * Gets the amount of shared memory.
  * @return {Number} If successful, the shared memory; Otherwise, -1.
  */
-var getMemoryShared = function() {
-  var values = getMemory();
+const getMemoryShared = function() {
+  let values = getMemory();
   if ((values != null) && (values.length > 3)) {
     return values[3];  // Shared memory value is the fourth position.
   }
@@ -328,8 +328,8 @@ var getMemoryShared = function() {
  * Gets the buffer memory.
  * @return {Number} If successful, the buffer memory; Otherwise, -1.
  */
-var getMemoryBuffers = function() {
-  var values = getMemory();
+const getMemoryBuffers = function() {
+  let values = getMemory();
   if ((values != null) && (values.length > 4)) {
     return values[4];  // Buffer memory value is the fifth position.
   }
@@ -340,8 +340,8 @@ var getMemoryBuffers = function() {
  * Gets the amount of cache memory.
  * @return {Number} If successful, the cache memory; Otherwise, -1.
  */
-var getMemoryCached = function() {
-  var values = getMemory();
+const getMemoryCached = function() {
+  let values = getMemory();
   if ((values != null) && (values.length > 5)) {
     return values[5];  // Cache memory value is the sixth position.
   }
@@ -352,12 +352,12 @@ var getMemoryCached = function() {
  * Gets the type of the board the executing script is running on.
  * @return {BoardType} The board type.
  */
-var getBoardType = function() {
+const getBoardType = function() {
   // The following info obtained from:
 	// http://www.raspberrypi.org/archives/1929
 	// http://raspberryalphaomega.org.uk/?p=428
 	// http://www.raspberrypi.org/phpBB3/viewtopic.php?p=281039#p281039
-  var bt = BoardType.Unknown;
+  let bt = BoardType.Unknown;
   switch (getSystemRevision()) {
     case "0002":  // Model B Revision 1
     case "0003":  // Model B Revision 1 + Fuses mod and D14 removed
@@ -383,19 +383,19 @@ var getBoardType = function() {
  * @throws {InvalidOperationException} if invalid command ("measure_temp") or
  * response.
  */
-var getCpuTemperature = function() {
+const getCpuTemperature = function() {
   // CPU temperature is in the form
 	// pi@mypi$ /opt/vc/bin/vcgencmd measure_temp
 	// temp=42.3'C
 	// Support for this was added around firmware version 3357xx per info
 	// at http://www.raspberrypi.org/phpBB3/viewtopic.php?p=169909#p169909
-	var result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd measure_temp");
+	let result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd measure_temp");
   if (result != null) {
-    var parts = [];
-    var val = -1;
-    var line = StringUtils.EMPTY;
-    var separators = ["\\\[", "\\\=", "\\\]", "\\\'"];
-    for (var i = 0; i < result.length; i++) {
+    let parts = [];
+    let val = -1;
+    let line = StringUtils.EMPTY;
+    let separators = ["\\\[", "\\\=", "\\\]", "\\\'"];
+    for (let i = 0; i < result.length; i++) {
       line = result[i];
       parts = line.split(new RegExp(separators.join('|'), 'g'), 3);
       val = parseFloat(parts[1]);
@@ -416,14 +416,14 @@ var getCpuTemperature = function() {
  * response.
  * @private
  */
-var getVoltage = function(id) {
-  var result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd measure_volts " + id);
+const getVoltage = function(id) {
+  let result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd measure_volts " + id);
   if (result != null) {
-    var val = -1;
-    var parts = [];
-    var line = StringUtils.EMPTY;
-    var separators = ["\\\[", "\\\=", "\\\V", "\\\]"];
-    for (var i = 0; i < result.length; i++) {
+    let val = -1;
+    let parts = [];
+    let line = StringUtils.EMPTY;
+    let separators = ["\\\[", "\\\=", "\\\V", "\\\]"];
+    for (let i = 0; i < result.length; i++) {
       line = result[i];
       parts = line.split(new RegExp(separators.join('|')), 3);
       val = parseFloat(parts[1]);
@@ -442,7 +442,7 @@ var getVoltage = function(id) {
  * @throws {InvalidOperationException} if invalid command ("measure_temp") or
  * response.
  */
-var getCpuVoltage = function() {
+const getCpuVoltage = function() {
   return getVoltage("core");
 };
 
@@ -452,7 +452,7 @@ var getCpuVoltage = function() {
  * @throws {InvalidOperationException} if invalid command ("measure_temp") or
  * response.
  */
-var getMemoryVoltageSDRamC = function() {
+const getMemoryVoltageSDRamC = function() {
   return getVoltage("sdram_c");
 };
 
@@ -462,7 +462,7 @@ var getMemoryVoltageSDRamC = function() {
  * @throws {InvalidOperationException} if invalid command ("measure_temp") or
  * response.
  */
-var getMemoryVoltageSDRamI = function() {
+const getMemoryVoltageSDRamI = function() {
   return getVoltage("sdram_i");
 };
 
@@ -472,7 +472,7 @@ var getMemoryVoltageSDRamI = function() {
  * @throws {InvalidOperationException} if invalid command ("measure_temp") or
  * response.
  */
-var getMemoryVoltageSDRamP = function() {
+const getMemoryVoltageSDRamP = function() {
   return getVoltage("sdram_p");
 };
 
@@ -484,13 +484,13 @@ var getMemoryVoltageSDRamP = function() {
  * response.
  * @private
  */
-var getCodecEnabled = function(codec) {
-  var enabled = false;
-  var result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd codec_enabled " + codec);
+const getCodecEnabled = function(codec) {
+  let enabled = false;
+  let result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd codec_enabled " + codec);
   if (result != null) {
-    var parts = [];
-    var line = StringUtils.EMPTY;
-    for (var i = 0; i < result.length; i++) {
+    let parts = [];
+    let line = StringUtils.EMPTY;
+    for (let i = 0; i < result.length; i++) {
       line = result[i];
       parts = line.split('=', 2);
       if (StringUtils.trim(parts[1]).toUpperCase() === "ENABLED") {
@@ -506,7 +506,7 @@ var getCodecEnabled = function(codec) {
  * Determines if the H264 codec is enabled.
  * @return {Boolean} true if H264 is enabled; Otherwise, false.
  */
-var isCodecH264Enabled = function() {
+const isCodecH264Enabled = function() {
   return getCodecEnabled("H264");
 };
 
@@ -514,7 +514,7 @@ var isCodecH264Enabled = function() {
  * Determines if the MPG2 codec is enabled.
  * @return {Boolean} true if H264 is enabled; Otherwise, false.
  */
-var isCodecMPG2Enabled = function() {
+const isCodecMPG2Enabled = function() {
   return getCodecEnabled("MPG2");
 };
 
@@ -522,7 +522,7 @@ var isCodecMPG2Enabled = function() {
  * Determines if the WVC1 codec is enabled.
  * @return {Boolean} true if WVC1 is enabled; Otherwise, false.
  */
-var isCodecWVC1Enabled = function() {
+const isCodecWVC1Enabled = function() {
   return getCodecEnabled("WVC1");
 };
 
@@ -531,19 +531,19 @@ var isCodecWVC1Enabled = function() {
  * @param  {String} target The target clock to get the frequency of.
  * @return {Number}        The clock frequency, if successful; Otherwise, -1.
  */
-var getClockFrequency = function(target) {
+const getClockFrequency = function(target) {
   if (target == null) {
     return -1;
   }
 
   target = StringUtils.trim(target);
-  var val = -1;
-  var result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd measure_clock " + target);
+  let val = -1;
+  let result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd measure_clock " + target);
   if (result != null) {
-    var parts = [];
-    var line = StringUtils.EMPTY;
-    var temp = -1;
-    for (var i = 0; i < result.length; i++) {
+    let parts = [];
+    let line = StringUtils.EMPTY;
+    let temp = -1;
+    for (let i = 0; i < result.length; i++) {
       line = result[i];
       parts = line.split('=', 2);
       temp = parseFloat(StringUtils.trim(parts[1]));
@@ -562,12 +562,12 @@ var getClockFrequency = function(target) {
  * @return {String} The BaSH version info.
  * @private
  */
-var getBashVersionInfo = function() {
-  var ver = StringUtils.EMPTY;
+const getBashVersionInfo = function() {
+  let ver = StringUtils.EMPTY;
   try {
-    var result = ExecUtils.executeCommand("bash --version");
-    var line = StringUtils.EMPTY;
-    for (var i = 0; i < result.length; i++) {
+    let result = ExecUtils.executeCommand("bash --version");
+    let line = StringUtils.EMPTY;
+    for (let i = 0; i < result.length; i++) {
       line = result[i];
       if (!StringUtils.isNullOrEmpty(line)) {
         ver = line;  // Return only the first line.
@@ -588,15 +588,15 @@ var getBashVersionInfo = function() {
  * @return {String}     The ABI tag value.
  * @private
  */
-var getReadElfTag = function(tag) {
-  var tagVal = StringUtils.EMPTY;
+const getReadElfTag = function(tag) {
+  let tagVal = StringUtils.EMPTY;
   try {
-    var result = ExecUtils.executeCommand("/usr/bin/readelf -A /proc/self/exe");
+    let result = ExecUtils.executeCommand("/usr/bin/readelf -A /proc/self/exe");
     if (result != null) {
-      var lineParts = [];
-      var part = StringUtils.EMPTY;
-      var line = StringUtils.EMPTY;
-      for (var i = 0; i < result.length; i++) {
+      let lineParts = [];
+      let part = StringUtils.EMPTY;
+      let line = StringUtils.EMPTY;
+      for (let i = 0; i < result.length; i++) {
         line = result[i];
         part = StringUtils.trim(line);
         if ((StringUtils.startsWith(part, tag)) &&
@@ -623,8 +623,8 @@ var getReadElfTag = function(tag) {
  * @return {Boolean}    true if contains the specified ELF tag.
  * @private
  */
-var hasReadElfTag = function(tag) {
-  var tagValue = getReadElfTag(tag);
+const hasReadElfTag = function(tag) {
+  let tagValue = getReadElfTag(tag);
   return !StringUtils.isNullOrEmpty(tagValue);
 };
 
@@ -632,7 +632,7 @@ var hasReadElfTag = function(tag) {
  * Determines if is hard float ABI.
  * @return {Boolean} true if is hard float ABI; Otherwise, false.
  */
-var isHardFloatABI = function() {
+const isHardFloatABI = function() {
   return ((StringUtils.contains(getBashVersionInfo(), "gnueabihf")) ||
           (hasReadElfTag("Tag_ABI_HardFP_use")));
 };
@@ -641,7 +641,7 @@ var isHardFloatABI = function() {
  * Gets the current system time in milliseconds.
  * @return {Number} The current time millis.
  */
-var getCurrentTimeMillis = function() {
+const getCurrentTimeMillis = function() {
   return new Date().getMilliseconds();
 };
 

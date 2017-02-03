@@ -22,46 +22,56 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
+const util = require('util');
 
 /**
- * Button event arguments class.
- * @param {Button} button The button associated with this event.
- * @constructor
+ * @classdesc Button event arguments class.
  * @event
  */
-function ButtonEvent(button) {
-  var _button = button || null;
+class ButtonEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Button.ButtonEvent class
+   * with the button that triggered the event.
+   * @param {Button} button The button associated with this event.
+   * @constructor
+   */
+  constructor(button) {
+    this._button = button || null;
+  }
 
   /**
    * Gets the button associated with this event.
-   * @return {Button} The button assoicated with this event.
+   * @property {Button} button - The button.
+   * @readonly
    */
-  this.getButton = function() {
-    return _button;
-  };
+  get button() {
+    return this._button;
+  }
 
   /**
    * Gets a flag indicating whether or not the button is pressed.
-   * @return {Button} true if the button is pressed; Otherwise, false.
+   * @property {Button} isPressed - true if the button is pressed; Otherwise,
+   * false.
+   * @readonly
    */
-  this.isPressed = function() {
-    if (util.isNullOrUndefined(_button)) {
+  get isPressed() {
+    if (util.isNullOrUndefined(this._button)) {
       return false;
     }
-    return _button.isPressed();
-  };
+    return this._button.isPressed;
+  }
 
   /**
    * Gets a value indicating whether the button is released.
-   * @return {Boolean} true if released; Otherwise, false.
+   * @property {Boolean} isReleased - true if released; Otherwise, false.
+   * @readonly
    */
-  this.isReleased = function() {
-    if (util.isNullOrUndefined(_button)) {
+  get isReleased() {
+    if (util.isNullOrUndefined(this._button)) {
       return false;
     }
-    return _button.isReleased();
-  };
+    return this._button.isReleased;
+  }
 
   /**
    * Gets a flag indicating whether or not the button is in the specified state.
@@ -69,14 +79,12 @@ function ButtonEvent(button) {
    * @return {Boolean}     true if the button is in the specified state;
    * Otherwise, false.
    */
-  this.isState = function(state) {
-    if (util.isNullOrUndefined(_button)) {
+  isState(state) {
+    if (util.isNullOrUndefined(this._button)) {
       return false;
     }
-    return _button.isState(state);
-  };
+    return this._button.isState(state);
+  }
 }
-
-ButtonEvent.prototype.constructor = ButtonEvent;
 
 module.exports = ButtonEvent;

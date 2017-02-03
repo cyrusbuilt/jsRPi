@@ -1,11 +1,11 @@
 'use strict';
 
-var os = require('os');
-var fs = require('fs');
-var IOException = require('../../src/lib/IO/IOException.js');
-var FileInfo = require('../../src/lib/IO/FileInfo.js');
+const os = require('os');
+const fs = require('fs');
+const IOException = require('../../src/lib/IO/IOException.js');
+const FileInfo = require('../../src/lib/IO/FileInfo.js');
 
-var filePath = os.homedir() + "/temp.txt";
+let filePath = os.homedir() + "/temp.txt";
 if (os.platform() === 'win32') {
   filePath = os.homedir() + "\\temp.txt";
 }
@@ -13,7 +13,7 @@ if (os.platform() === 'win32') {
 module.exports.IOExceptionTests = {
   setUp: function(callback) {
     // Check to see if temp file exists.
-    var fd = -1;
+    let fd = -1;
     try {
       fd = fs.openSync(filePath, 'r');
     }
@@ -38,7 +38,7 @@ module.exports.IOExceptionTests = {
   },
   tearDown: function(callback) {
     // Check if temp file exists.
-    var fd = -1;
+    let fd = -1;
     try {
       fd = fs.openSync(filePath, 'r');
     }
@@ -54,8 +54,8 @@ module.exports.IOExceptionTests = {
     callback();
   },
   ioExceptionTest: function(assert) {
-    var result = false;
-    var f = new FileInfo(filePath);
+    let result = false;
+    let f = new FileInfo(filePath);
     f.delete();
 
     try {

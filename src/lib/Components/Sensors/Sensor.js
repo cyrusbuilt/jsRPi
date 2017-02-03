@@ -21,59 +21,66 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Component = require('../Component.js');
-var SensorState = require('./SensorState.js');
+const Component = require('../Component.js');
+const SensorState = require('./SensorState.js');
+
+const STATE_CHANGED = "sensorStateChanged";
 
 /**
  * A sensor abstraction component interface.
  * @interface
  * @extends {Component}
  */
-function Sensor() {
-  Component.call(this);
+class Sensor extends Component {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Sensors.Sensor interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derived class, fires the sensor state change event.
+   * @param  {SensorStateChangeEvent} stateChangeEvent The state change event object.
+   */
+  onSensorStateChange(stateChangeEvent) {}
+
+  /**
+   * In a derived class, gets a value indicating whether this sensor is open.
+   * @property {Boolean} isOpen - true if open; Otherwise, false.
+   * @readonly
+   */
+  get isOpen() { return false; }
+
+  /**
+   * In a derived class, gets a value indicating whether this sensor is closed.
+   * @property {Boolean} isClosed - true if closed; Otherwise, false.
+   * @readonly
+   */
+  get isClosed() { return false; }
+
+  /**
+   * In a derived class, gets the state of the sensor.
+   * @property {SensorState} state - The sensor state.
+   * @readonly
+   */
+  get state() { return SensorState.Open; }
+
+  /**
+   * In derived class, checks to see if the sensor is in the specified state.
+   * @param  {SensorState} state The state to check.
+   * @return {Boolean}       true if the sensor is in the specified state;
+   * Otherwise, false.
+   */
+  isState(state) { return false; }
+
+  /**
+   * The name of the state change event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_STATE_CHANGED() { return STATE_CHANGED; }
 }
-
-Sensor.prototype.constructor = Sensor;
-inherits(Sensor, Component);
-
-/**
- * In a derived class, fires the sensor state change event.
- * @param  {SensorStateChangeEvent} stateChangeEvent The state change event object.
- */
-Sensor.prototype.onSensorStateChange = function(stateChangeEvent) {};
-
-/**
- * In a derived class, gets a value indicating whether this sensor is open.
- * @return {Boolean} true if open; Otherwise, false.
- */
-Sensor.prototype.isOpen = function() { return false; };
-
-/**
- * In a derived class, gets a value indicating whether this sensor is closed.
- * @return {Boolean} true if closed; Otherwise, false.
- */
-Sensor.prototype.isClosed = function() { return false; };
-
-/**
- * In a derived class, gets the state of the sensor.
- * @return {SensorState} The state of the sensor.
- */
-Sensor.prototype.getState = function() { return SensorState.Open; };
-
-/**
- * In derived class, checks to see if the sensor is in the specified state.
- * @param  {SensorState} state The state to check.
- * @return {Boolean}       true if the sensor is in the specified state;
- * Otherwise, false.
- */
-Sensor.prototype.isState = function(state) { return false; };
-
-/**
- * The name of the state change event.
- * @type {String}
- * @const
- */
-Sensor.EVENT_STATE_CHANGED = "sensorStateChanged";
 
 module.exports = Sensor;

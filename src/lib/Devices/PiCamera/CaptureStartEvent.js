@@ -23,21 +23,28 @@
 
 /**
  * @classdesc The event that gets raised when an image capture starts.
- * @param {Number} pid The process ID of the image capture process.
- * @constructor
  * @event
  */
-function CaptureStartEvent(pid) {
-  var _pid = pid || -1;
+class CaptureStartEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.PiCamera.CaptureStartEvent
+   * class with the PID of the executing capture process.
+   * @param {Number} pid The process ID of the image capture process.
+   * @constructor
+   */
+  constructor(pid) {
+    this._pid = pid || -1;
+  }
 
   /**
-   * Gets the process ID of the image capture proces.
-   * @return {Number} The process ID or -1 if the process failed to start.
+   * Gets the process ID of the image capture proces. Returns -1 if the process
+   * failed to start.
+   * @property {Number} pid - The process ID of the image capture process.
+   * @readonly
    */
-  this.getPID = function() {
-    return _pid;
-  };
+  get pid() {
+    return this._pid;
+  }
 }
 
-CaptureStartEvent.prototype.constructor = CaptureStartEvent;
 module.exports = CaptureStartEvent;

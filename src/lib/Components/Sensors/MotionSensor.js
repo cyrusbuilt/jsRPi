@@ -21,50 +21,61 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Component = require('../Component.js');
+const Component = require('../Component.js');
+
+const MOTION_STATE_CHANGED = "motionStateChanged";
 
 /**
  * A motion sensor abstraction component interface.
  * @interface
  * @extends {Component}
  */
-function MotionSensor() {
-  Component.call(this);
+class MotionSensor extends Component {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Sensors.MotionSensor
+   * interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derived class, fires the motion state changed event.
+   * @param {MotionDetectedEvent} motionEvent The motion detected event object.
+   */
+  onMotionStateChanged(motionEvent) {}
+
+  /**
+   * In a derived class, gets the timestamp of the last time motion was detected.
+   * @property {Date} lastMotionTimestamp - The timestamp of when motion was
+   * detected.
+   * @readonly
+   */
+  get lastMotionTimestamp() { return null; }
+
+  /**
+   * In a derived class, the last inactivity timestamp.
+   * @property {Date} lastInactivityTimestamp - The timestamp of the last time
+   * the sensor went idle.
+   * @readonly
+   */
+  get lastInactivityTimestamp() { return null; }
+
+  /**
+   * In a derived class, checks to see if motion was detected.
+   * @property {Boolean} isMotionDetected - true if motion was detected;
+   * Otherwise, false.
+   * @readonly
+   */
+  get isMotionDetected() { return false; }
+
+  /**
+   * The name of the motion state change event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_MOTION_STATE_CHANGED() { return MOTION_STATE_CHANGED; }
 }
-
-MotionSensor.prototype.constructor = MotionSensor;
-inherits(MotionSensor, Component);
-
-/**
- * In a derived class, fires the motion state changed event.
- * @param  {MotionDetectedEvent} motionEvent The motion detected event object.
- */
-MotionSensor.prototype.onMotionStateChanged = function(motionEvent) {};
-
-/**
- * In a derived class, gets the timestamp of the last time motion was detected.
- * @return {Date} The last motion timestamp.
- */
-MotionSensor.prototype.getLastMotionTimestamp = function() {};
-
-/**
- * In a derived class, the last inactivity timestamp.
- * @return {Date} The last inactivity timestamp.
- */
-MotionSensor.prototype.getLastInactivityTimestamp = function() {};
-
-/**
- * In a derived class, checks to see if motion was detected.
- * @return {Boolean} true if motion was detected; Otherwise, false.
- */
-MotionSensor.prototype.isMotionDetected = function() { return false; };
-
-/**
- * The name of the motion state change event.
- * @type {String}
- * @const
- */
-MotionSensor.EVENT_MOTION_STATE_CHANGED = "motionStateChanged";
 
 module.exports = MotionSensor;

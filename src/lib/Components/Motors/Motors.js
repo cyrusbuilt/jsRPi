@@ -26,6 +26,7 @@
  * @fileOverview Contains interfaces and classes for working with motors.
  *
  * @module Motors
+ * @namespace jsrpi.Components.Motors
  */
 
 module.exports = {

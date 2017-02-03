@@ -24,16 +24,25 @@
 /**
  * @classdesc The exception that is thrown when an attempt is made to open
  * a locked opener.
- * @param {String} name The name of the opener.
- * @constructor
+ * @extends {Error}
  */
-function OpenerLockedException(name) {
-  this.name = "OpenerLockedException";
-  this.message = "This opener '" + name + "' is currently in the locked state.";
-  this.stack = (new Error()).stack;
-}
-
-OpenerLockedException.prototype = Object.create(Error.prototype);
-OpenerLockedException.prototype.constructor = OpenerLockedException;
+ class OpenerLockedException extends Error {
+     /**
+     * Initializes a new instance of the jsrpi.Devices.Access.OpenerLockedException
+     * class with the name of the opener.
+     * @param {String} name The name of the opener.
+     * @constructor
+     */
+     constructor(name) {
+         let sMessage = "This opener '" + name + "' is currently in the locked state.";
+         super(sMessage);
+         this.name = this.constructor.name;
+         if (typeof Error.captureStackTrace === 'function') {
+             Error.captureStackTrace(this, this.constructor);
+         } else {
+             this.stack = (new Error(sMessage)).stack;
+         }
+     }
+ }
 
 module.exports = OpenerLockedException;

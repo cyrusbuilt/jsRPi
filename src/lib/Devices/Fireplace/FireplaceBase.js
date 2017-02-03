@@ -21,68 +21,91 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var timespan = require('timespan');
-var inherits = require('util').inherits;
-var FireplaceInterface = require('./FireplaceInterface.js');
-var FireplaceState = require('./FireplaceState.js');
-var FireplaceTimeoutEvent = require('./FireplaceTimeoutEvent.js');
-var DeviceBase = require('../DeviceBase.js');
-var EventEmitter = require('events').EventEmitter;
-var TimeUnit = require('../../PiSystem/TimeUnit.js');
-var InvalidOperationException = require('../../InvalidOperationException.js');
-var SystemInfo = require('../../PiSystem/SystemInfo.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
+const util = require('util');
+const timespan = require('timespan');
+const FireplaceInterface = require('./FireplaceInterface.js');
+const FireplaceState = require('./FireplaceState.js');
+const FireplaceTimeoutEvent = require('./FireplaceTimeoutEvent.js');
+const DeviceBase = require('../DeviceBase.js');
+const EventEmitter = require('events').EventEmitter;
+const TimeUnit = require('../../PiSystem/TimeUnit.js');
+const InvalidOperationException = require('../../InvalidOperationException.js');
+const SystemInfo = require('../../PiSystem/SystemInfo.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
 * @classdesc Base class for fireplace device abstractions.
-* @constructor
 * @implements {FireplaceInterface}
 * @extends {DeviceBase}
 * @extends {EventEmitter}
 */
-function FireplaceBase() {
-  FireplaceInterface.call(this);
+class FireplaceBase extends FireplaceInterface {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.Fireplace.FireplaceBase
+   * class.
+   * @constructor
+   */
+  constructor() {
+    super();
 
-  var self = this;
-  var _base = new DeviceBase();
-  var _emitter = new EventEmitter();
-  var _timeoutDelay = 0;
-  var _timeoutDelayMillis = 0;
-  var _timeoutUnit = TimeUnit.Minutes;
-  var _backgroundTaskTimer = null;
-  var _killTimer = null;
-  var _state = FireplaceState.Off;
+    this._base = new DeviceBase();
+    this._emitter = new EventEmitter();
+    this._timeoutDelay = 0;
+    this._timeoutDelayMillis = 0;
+    this._timeoutUnit = TimeUnit.Minutes;
+    this._backgroundTaskTimer = null;
+    this._killTimer = null;
+    this._state = FireplaceState.Off;
+    this.on(FireplaceInterface.EVENT_STATE_CHANGED, (evt) => {
+        this._internalStateChangeHandler(evt);
+    });
+  }
 
   /**
-  * Device name property.
-  * @property {String}
-  */
-  this.deviceName = _base.deviceName;
+   * Gets or sets the device name
+   * @property {String} deviceName - The name of the device.
+   * @override
+   */
+  get deviceName() {
+    return this._base.deviceName;
+  }
+
+  set deviceName(name) {
+    this._base.deviceName = name;
+  }
 
   /**
-  * Tag property.
-  * @property {Object}
-  */
-  this.tag = _base.tag;
+   * Gets or sets the object this device is tagged with.
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
 
   /**
   * Determines whether or not the current instance has been disposed.
-  * @return {Boolean} true if disposed; Otherwise, false.
+  * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+  get isDisposed () {
+    return this._base.isDisposed;
+  }
 
   /**
-  * Gets the property collection.
-  * @return {Array} A custom property collection.
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
   * @override
   */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
   * Checks to see if the property collection contains the specified key.
@@ -91,9 +114,9 @@ function FireplaceBase() {
   * Otherwise, false.
   * @override
   */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
   * Sets the value of the specified property. If the property does not already exist
@@ -101,17 +124,17 @@ function FireplaceBase() {
   * @param  {String} key   The property name (key).
   * @param  {String} value The value to assign to the property.
   */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
   * Removes all event listeners.
   * @override
   */
-  this.removeAllListeners = function() {
-    _emitter.removeAllListeners();
-  };
+  removeAllListeners() {
+    this._emitter.removeAllListeners();
+  }
 
   /**
   * Attaches a listener (callback) for the specified event name.
@@ -121,12 +144,12 @@ function FireplaceBase() {
   * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.on = function(evt, callback) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("FireplaceBase");
+  on(evt, callback) {
+    if (this.isDisposed) {
+      throw new ObjectDisposedException("OpenerBase");
     }
-    _emitter.on(evt, callback);
-  };
+    this._emitter.on(evt, callback);
+  }
 
   /**
   * Emits the specified event.
@@ -135,66 +158,63 @@ function FireplaceBase() {
   * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.emit = function(evt, args) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("FireplaceBase");
+  emit(evt, args) {
+    if (this.isDisposed) {
+      throw new ObjectDisposedException("OpenerBase");
     }
-    _emitter.emit(evt, args);
-  };
+    this._emitter.emit(evt, args);
+  }
 
   /**
-  * Gets the fireplace state.
-  * @return {FireplaceState} The current state.
+  * Gets or sets the fireplace state.
+  * @property {FireplaceState} state - The opener state.
   * @override
   */
-  this.getState = function() {
-    return _state;
-  };
+  get state() {
+    return this._state;
+  }
 
-  /**
-  * Sets the fireplace state.
-  * @param  {FireplaceState} state The fireplace state.
-  * @override
-  */
-  this.setState = function(state) {
-    _state = state;
-  };
+  set state(s) {
+    this._state = s;
+  }
 
   /**
   * Gets a value indicating whether the fireplace is on.
-  * @return {Boolean} true if the fireplace is on; Otherwise, false.
+  * @property {Boolean} isOn - true if the fireplace is on; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isOn = function() {
-    return (self.getState() === FireplaceState.On);
-  };
+  get isOn() {
+    return (this.state === FireplaceState.On);
+  }
 
   /**
   * Gets a value indicating whether the fireplace is off.
-  * @return {Boolean} true if the fireplace is off; Otherwise, false.
+  * @property {Boolean} isOff - true if the fireplace is off; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isOff = function() {
-    return (self.getState() === FireplaceState.Off);
-  };
+  get isOff() {
+    return (this.state === FireplaceState.Off);
+  }
 
   /**
   * Gets the timeout delay.
   * @return {Number} The timeout delay.
   * @override
   */
-  this.getTimeoutDelay = function() {
-    return _timeoutDelay;
-  };
+  getTimeoutDelay() {
+    return this._timeoutDelay;
+  }
 
   /**
   * Gets the timeout unit of time.
   * @return {TimeUnit} Gets the time unit being used for the timeout delay.
   * @override
   */
-  this.getTimeoutUnit = function() {
-    return _timeoutUnit;
-  };
+  getTimeoutUnit() {
+    return this._timeoutUnit;
+  }
 
   /**
   * Fires the state change event.
@@ -202,17 +222,15 @@ function FireplaceBase() {
   * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.onFireplaceStateChange = function(stateChangeEvent) {
-    if (_base.isDisposed()) {
+  onFireplaceStateChange(stateChangeEvent) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("FireplaceBase");
     }
 
-    var e = _emitter;
-    var evt = stateChangeEvent;
-    process.nextTick(function() {
-      e.emit(FireplaceInterface.EVENT_STATE_CHANGED, evt);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(FireplaceInterface.EVENT_STATE_CHANGED, stateChangeEvent);
+    });
+  }
 
   /**
   * Fires the operation timeout event.
@@ -220,17 +238,15 @@ function FireplaceBase() {
   * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.onOperationTimeout = function(timeoutEvent) {
-    if (_base.isDisposed()) {
+  onOperationTimeout(timeoutEvent) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("FireplaceBase");
     }
 
-    var e = _emitter;
-    var evt = timeoutEvent;
-    process.nextTicket(function() {
-      e.emit(FireplaceInterface.EVENT_OPERATION_TIMEOUT, evt);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(FireplaceInterface.EVENT_OPERATION_TIMEOUT, timeoutEvent);
+    });
+  }
 
   /**
   * Fires the pilot light state change event.
@@ -238,81 +254,77 @@ function FireplaceBase() {
   * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.onPilotLightStateChange = function(pilotStateEvent) {
-    if (_base.isDisposed()) {
+  onPilotLightStateChange(pilotStateEvent) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("FireplaceBase");
     }
 
-    var e = _emitter;
-    var evt = pilotStateEvent;
-    process.nextTicket(function() {
-      e.emit(FireplaceInterface.EVENT_PILOT_LIGHT_STATE_CHANGED, evt);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(FireplaceInterface.EVENT_PILOT_LIGHT_STATE_CHANGED, pilotStateEvent);
+    });
+  }
 
   /**
   * Cancels the timeout task (if running).
   * @private
   */
-  var cancelTimeoutTask = function() {
-    if (!util.isNullOrUndefined(_backgroundTaskTimer)) {
-      clearInterval(_backgroundTaskTimer);
-      _backgroundTaskTimer = null;
+  _cancelTimeoutTask() {
+    if (!util.isNullOrUndefined(this._backgroundTaskTimer)) {
+      clearInterval(this._backgroundTaskTimer);
+      this._backgroundTaskTimer = null;
     }
-  };
+  }
 
   /**
   * An internal handler for the state change event.
   * @param  {FireplaceStateChangeEvent} stateChangeEvent The event object.
   * @private
   */
-  var internalStateChangeHandler = function(stateChangeEvent) {
-    cancelTimeoutTask();
-  };
-
-  self.on(FireplaceInterface.EVENT_STATE_CHANGED, internalStateChangeHandler);
+  _internalStateChangeHandler(stateChangeEvent) {
+    this._cancelTimeoutTask();
+  }
 
   /**
   * Cancels the timeout (if running).
   * @override
   */
-  this.cancelTimeout = function() {
-    cancelTimeoutTask();
-  };
+  cancelTimeout() {
+    this._cancelTimeoutTask();
+  }
 
   /**
   * Gurns the fireplace off.
   * @override
   */
-  this.turnOff = function() {
-    self.setState(FireplaceState.Off);
-  };
+  turnOff() {
+    this.state = FireplaceState.Off;
+  }
 
   /**
   * The action for the background timeout task. This fires the operation
   * timeout event, then turns off the fireplace.
   * @private
   */
-  var taskAction = function() {
-    var evt = new FireplaceTimeoutEvent();
-    self.onOperationTimeout(evt);
-    if (!evt.isHandled()) {
-      self.turnOff();
+  _taskAction() {
+    let evt = new FireplaceTimeoutEvent();
+    this.onOperationTimeout(evt);
+    if (!evt.isHandled) {
+      this.turnOff();
     }
-  };
+  }
 
   /**
   * Starts the background cancellation task.
   * @protected
   */
-  this._startCancelTask = function() {
-    if (!util.isNullOrUndefined(_killTimer)) {
-      _backgroundTaskTimer = setInterval(function() {
-        taskAction();
-        clearInterval(_killTimer);
-      }, _timeoutDelayMillis);
+  _startCancelTask() {
+    if (!util.isNullOrUndefined(this._killTimer)) {
+      this._backgroundTaskTimer = setInterval(() => {
+        this._taskAction();
+        clearInterval(this._killTimer);
+      }, this._timeoutDelayMillis);
     }
-  };
+  }
 
   /**
   * Sets the timeout delay.
@@ -321,44 +333,46 @@ function FireplaceBase() {
   * @throws {InvalidOperationException} if the fireplace is turned off.
   * @override
   */
-  this.setTimeoutDelay = function(delay, unit) {
-    if (self.isOff()) {
+  setTimeoutDelay(delay, unit) {
+    if (this.isOff) {
       throw new InvalidOperationException("Cannot set timeout when the fireplace is off.");
     }
 
-    _timeoutDelay = delay;
-    _timeoutUnit = unit;
+    this._timeoutDelay = delay;
+    this._timeoutUnit = unit;
 
-    self.cancelTimeout();
+    this.cancelTimeout();
 
-    if (_timeoutDelay > 0) {
-      var waitTime = new timespan.TimeSpan(0, 0, 0, 0, 0);
+    if (this._timeoutDelay > 0) {
+      let waitTime = new timespan.TimeSpan(0, 0, 0, 0, 0);
       switch (unit) {
         case TimeUnit.Days:
-        waitTime = timespan.fromDays(delay);
-        break;
+          waitTime = timespan.fromDays(delay);
+          break;
         case TimeUnit.Hours:
-        waitTime = timespan.fromHours(delay);
-        break;
+          waitTime = timespan.fromHours(delay);
+          break;
         case TimeUnit.Minutes:
-        waitTime = timespan.fromMinutes(delay);
-        break;
+          waitTime = timespan.fromMinutes(delay);
+          break;
         case TimeUnit.Seconds:
-        waitTime = timespan.fromSeconds(delay);
-        break;
+          waitTime = timespan.fromSeconds(delay);
+          break;
         case TimeUnit.Milliseconds:
-        waitTime = timespan.fromMilliseconds(delay);
-        break;
+          waitTime = timespan.fromMilliseconds(delay);
+          break;
         default:
-        break;
+          break;
       }
 
-      var killDelay = timespan.fromMilliseconds(SystemInfo.getCurrentTimeMillis());
+      let killDelay = timespan.fromMilliseconds(SystemInfo.getCurrentTimeMillis());
       killDelay.addSeconds(1);
-      _killTimer = setInterval(cancelTimeoutTask, killDelay.milliseconds);
-      self._startCancelTask();
+      this._killTimer = setInterval(() => {
+          this._cancelTimeoutTask();
+      }, killDelay.milliseconds);
+      this._startCancelTask();
     }
-  };
+  }
 
   /**
   * Turns the fireplace on with the specified timeout. If the operation is not
@@ -371,47 +385,44 @@ function FireplaceBase() {
   * If not specified, TimeUnit.Seconds is assumed.
   * @override
   */
-  this.turnOn = function(timeoutDelay, timeoutUnit) {
-    self.setState(FireplaceState.On);
-    timeoutUnit = timeoutUnit || _timeoutUnit;
+  turnOn(timeoutDelay, timeoutUnit) {
+    this.state = FireplaceState.On;
+    timeoutUnit = timeoutUnit || this._timeoutUnit;
     if (!util.isNullOrUndefined(timeoutDelay)) {
       if (timeoutDelay > 0) {
-        self.setTimeout(timeoutDelay, timeoutUnit);
+        this.setTimeoutDelay(timeoutDelay, timeoutUnit);
       }
     }
-  };
+  }
 
   /**
   * Shutdown the fireplace.
   * @override
   */
-  this.shutdown = function() {
-    self.cancelTimeout();
-    self.turnOff();
-  };
+  shutdown() {
+    this.cancelTimeout();
+    this.turnOff();
+  }
 
   /**
   * Releases all resources used by the FireplaceBase object.
   * @override
   */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  dispose() {
+    if (this.isDisposed) {
       return;
     }
 
-    cancelTimeoutTask();
-    if (!util.isNullOrUndefined(_killTimer)) {
-      clearInterval(_killTimer);
-      _killTimer = undefined;
+    this._cancelTimeoutTask();
+    if (!util.isNullOrUndefined(this._killTimer)) {
+      clearInterval(this._killTimer);
+      this._killTimer = undefined;
     }
 
-    _emitter.removeAllListeners();
-    _emitter = undefined;
-    _base.dispose();
-  };
+    this._emitter.removeAllListeners();
+    this._emitter = undefined;
+    this._base.dispose();
+  }
 }
-
-FireplaceBase.prototype.constructor = FireplaceBase;
-inherits(FireplaceBase, FireplaceInterface);
 
 module.exports = FireplaceBase;

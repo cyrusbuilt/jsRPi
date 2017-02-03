@@ -26,6 +26,7 @@
  * opener devices.
  *
  * @module Garage
+ * @namespace jsrpi.Devices.Garage
  */
 
 module.exports = {

@@ -21,213 +21,245 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var DeviceBase = require('../DeviceBase.js');
-var PiFaceInterface = require('./PiFaceInterface.js');
-var PiFacePinFactory = require('../../IO/PiFacePinFactory.js');
-var PiFacePins = require('../../IO/PiFacePins.js');
-var PiFaceGpioDigital = require('../../IO/PiFaceGpioDigital.js');
-var PiFaceRelay = require('./PiFaceRelay.js');
-var PiFaceSwitch = require('./PiFaceSwitch.js');
-var PiFaceLED = require('./PiFaceLED.js');
-var RelayComponent = require('../../Components/Relays/RelayComponent.js');
-var SwitchComponent = require('../../Components/Switches/SwitchComponent.js');
-var LEDComponent = require('../../Components/Lights/LEDComponent.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
+const DeviceBase = require('../DeviceBase.js');
+const PiFaceInterface = require('./PiFaceInterface.js');
+const PiFacePinFactory = require('../../IO/PiFacePinFactory.js');
+const PiFacePins = require('../../IO/PiFacePins.js');
+const PiFaceGpioDigital = require('../../IO/PiFaceGpioDigital.js');
+const PiFaceRelay = require('./PiFaceRelay.js');
+const PiFaceSwitch = require('./PiFaceSwitch.js');
+const PiFaceLED = require('./PiFaceLED.js');
+const RelayComponent = require('../../Components/Relays/RelayComponent.js');
+const SwitchComponent = require('../../Components/Switches/SwitchComponent.js');
+const LEDComponent = require('../../Components/Lights/LEDComponent.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
 * @classdesc Base class for PiFace device abstractions.
-* @param {Number} spiSpeed     The clock speed to set the bus to. Can be powers
-* of 2 (500KHz minimum up to 32MHz maximum). If not specified, the default of
-* SPI_SPEED (1MHz) will be used.]
-* @throws {IOException} if unable to read or write to the SPI bus.
-* @constructor
 * @implements {PiFaceInterface}
 * @extends {DeviceBase}
 */
-function PiFaceBase(spiSpeed) {
-  PiFaceInterface.call(this);
+class PiFaceBase extends PiFaceInterface {
+    /**
+     * Initializes a new instance of the jsrpi.Devices.PiFace.PiFaceBase class
+     * with the clock speed for the SPI bus.
+     * @param {Number} spiSpeed     The clock speed to set the bus to. Can be powers
+     * of 2 (500KHz minimum up to 32MHz maximum). If not specified, the default of
+     * SPI_SPEED (1MHz) will be used.]
+     * @throws {IOException} if unable to read or write to the SPI bus.
+     * @constructor
+     */
+    constructor(spiSpeed) {
+        super();
 
-  var self = this;
-  var _base = new DeviceBase();
-  var _spiSpeed = spiSpeed || PiFaceGpioDigital.SPI_SPEED;
-  var _inputPins = [
-    PiFacePinFactory.createInputPin(PiFacePins.Input00, PiFacePins.Input00.name),
-    PiFacePinFactory.createInputPin(PiFacePins.Input01, PiFacePins.Input01.name),
-    PiFacePinFactory.createInputPin(PiFacePins.Input02, PiFacePins.Input02.name),
-    PiFacePinFactory.createInputPin(PiFacePins.Input03, PiFacePins.Input03.name),
-    PiFacePinFactory.createInputPin(PiFacePins.Input04, PiFacePins.Input04.name),
-    PiFacePinFactory.createInputPin(PiFacePins.Input05, PiFacePins.Input05.name),
-    PiFacePinFactory.createInputPin(PiFacePins.Input06, PiFacePins.Input06.name),
-    PiFacePinFactory.createInputPin(PiFacePins.Input07, PiFacePins.Input07.name)
-  ];
+        this._base = new DeviceBase();
+        this._spiSpeed = spiSpeed || PiFaceGpioDigital.SPI_SPEED;
+        this._inputPins = [
+          PiFacePinFactory.createInputPin(PiFacePins.Input00, PiFacePins.Input00.name),
+          PiFacePinFactory.createInputPin(PiFacePins.Input01, PiFacePins.Input01.name),
+          PiFacePinFactory.createInputPin(PiFacePins.Input02, PiFacePins.Input02.name),
+          PiFacePinFactory.createInputPin(PiFacePins.Input03, PiFacePins.Input03.name),
+          PiFacePinFactory.createInputPin(PiFacePins.Input04, PiFacePins.Input04.name),
+          PiFacePinFactory.createInputPin(PiFacePins.Input05, PiFacePins.Input05.name),
+          PiFacePinFactory.createInputPin(PiFacePins.Input06, PiFacePins.Input06.name),
+          PiFacePinFactory.createInputPin(PiFacePins.Input07, PiFacePins.Input07.name)
+        ];
 
-  var _outputPins = [
-    PiFacePinFactory.createOutputPin(PiFacePins.Output00, PiFacePins.Output00.name),
-    PiFacePinFactory.createOutputPin(PiFacePins.Output01, PiFacePins.Output01.name),
-    PiFacePinFactory.createOutputPin(PiFacePins.Output02, PiFacePins.Output02.name),
-    PiFacePinFactory.createOutputPin(PiFacePins.Output03, PiFacePins.Output03.name),
-    PiFacePinFactory.createOutputPin(PiFacePins.Output04, PiFacePins.Output04.name),
-    PiFacePinFactory.createOutputPin(PiFacePins.Output05, PiFacePins.Output05.name),
-    PiFacePinFactory.createOutputPin(PiFacePins.Output06, PiFacePins.Output06.name),
-    PiFacePinFactory.createOutputPin(PiFacePins.Output07, PiFacePins.Output07.name)
-  ];
+        this._outputPins = [
+          PiFacePinFactory.createOutputPin(PiFacePins.Output00, PiFacePins.Output00.name),
+          PiFacePinFactory.createOutputPin(PiFacePins.Output01, PiFacePins.Output01.name),
+          PiFacePinFactory.createOutputPin(PiFacePins.Output02, PiFacePins.Output02.name),
+          PiFacePinFactory.createOutputPin(PiFacePins.Output03, PiFacePins.Output03.name),
+          PiFacePinFactory.createOutputPin(PiFacePins.Output04, PiFacePins.Output04.name),
+          PiFacePinFactory.createOutputPin(PiFacePins.Output05, PiFacePins.Output05.name),
+          PiFacePinFactory.createOutputPin(PiFacePins.Output06, PiFacePins.Output06.name),
+          PiFacePinFactory.createOutputPin(PiFacePins.Output07, PiFacePins.Output07.name)
+        ];
 
-  var _relays = [
-    new RelayComponent(_outputPins[PiFaceRelay.K0]),
-    new RelayComponent(_outputPins[PiFaceRelay.K1])
-  ];
+        this._relays = [
+          new RelayComponent(this._outputPins[PiFaceRelay.K0]),
+          new RelayComponent(this._outputPins[PiFaceRelay.K1])
+        ];
 
-  var _switches = [
-    new SwitchComponent(_inputPins[PiFaceSwitch.S1]),
-    new SwitchComponent(_inputPins[PiFaceSwitch.S2]),
-    new SwitchComponent(_inputPins[PiFaceSwitch.S3]),
-    new SwitchComponent(_inputPins[PiFaceSwitch.S4])
-  ];
+        this._switches = [
+          new SwitchComponent(this._inputPins[PiFaceSwitch.S1]),
+          new SwitchComponent(this._inputPins[PiFaceSwitch.S2]),
+          new SwitchComponent(this._inputPins[PiFaceSwitch.S3]),
+          new SwitchComponent(this._inputPins[PiFaceSwitch.S4])
+        ];
 
-  var _leds = [
-    new LEDComponent(_outputPins[PiFaceLED.LED0]),
-    new LEDComponent(_outputPins[PiFaceLED.LED1]),
-    new LEDComponent(_outputPins[PiFaceLED.LED2]),
-    new LEDComponent(_outputPins[PiFaceLED.LED3]),
-    new LEDComponent(_outputPins[PiFaceLED.LED4]),
-    new LEDComponent(_outputPins[PiFaceLED.LED5]),
-    new LEDComponent(_outputPins[PiFaceLED.LED6]),
-    new LEDComponent(_outputPins[PiFaceLED.LED7])
-  ];
+        this._leds = [
+          new LEDComponent(this._outputPins[PiFaceLED.LED0]),
+          new LEDComponent(this._outputPins[PiFaceLED.LED1]),
+          new LEDComponent(this._outputPins[PiFaceLED.LED2]),
+          new LEDComponent(this._outputPins[PiFaceLED.LED3]),
+          new LEDComponent(this._outputPins[PiFaceLED.LED4]),
+          new LEDComponent(this._outputPins[PiFaceLED.LED5]),
+          new LEDComponent(this._outputPins[PiFaceLED.LED6]),
+          new LEDComponent(this._outputPins[PiFaceLED.LED7])
+        ];
+    }
 
-  /**
-  * Device name property.
-  * @property {String}
-  */
-  this.deviceName = _base.deviceName;
+    /**
+    * Gets or sets the device name.
+    * @property {String} deviceName - The devie name.
+    * @override
+    */
+    get deviceName() {
+        return this._base.deviceName;
+    }
 
-  /**
-  * Tag property.
-  * @property {Object}
-  */
-  this.tag = _base.tag;
+    set deviceName(name) {
+        this._base.deviceName = name;
+    }
 
-  /**
-  * Determines whether or not the current instance has been disposed.
-  * @return {Boolean} true if disposed; Otherwise, false.
-  * @override
-  */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+    /**
+     * Gets or sets the object to tag this device with.
+     * @property {Object} tag - The tag.
+     * @override
+     */
+    get tag() {
+        return this._base.tag;
+    }
+
+    set tag(t) {
+        this._base.tag = t;
+    }
+
+    /**
+    * Determines whether or not the current instance has been disposed.
+    * @property {Boolean} isDisposed -  true if disposed; Otherwise, false.
+    * @override
+    * @readonly
+    */
+    get isDisposed() {
+        return this._base.isDisposed;
+    }
 
   /**
   * Gets the property collection.
-  * @return {Array} A custom property collection.
+  * @property {Array} propertyCollection -  A custom property collection.
+  * @readonly
   * @override
   */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
-
-  /**
-  * Checks to see if the property collection contains the specified key.
-  * @param  {String}  key The key name of the property to check for.
-  * @return {Boolean} true if the property collection contains the key;
-  * Otherwise, false.
-  * @override
-  */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
-
-  /**
-  * Sets the value of the specified property. If the property does not already exist
-  * in the property collection, it will be added.
-  * @param  {String} key   The property name (key).
-  * @param  {String} value The value to assign to the property.
-  */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
-
-  /**
-  * Returns the string representation of this object. In this case, it simply
-  * returns the component name.
-  * @return {String} The name of this component.
-  */
-  this.toString = function() {
-    return self.deviceName;
-  };
-
-  /**
-  * Releases all managed resources used by this instance.
-  * @override
-  */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
-      return;
+    get propertyCollection() {
+        return this._base.getPropertyCollection;
     }
 
-
-    for (var i = 0; i < _relays.length; i++) {
-      _relays[i].dispose();
+    /**
+    * Checks to see if the property collection contains the specified key.
+    * @param  {String}  key The key name of the property to check for.
+    * @return {Boolean} true if the property collection contains the key;
+    * Otherwise, false.
+    * @override
+    */
+    hasProperty(key) {
+        return this._base.hasProperty(key);
     }
 
-    for (var j = 0; j < _switches.length; j++) {
-      _switches[j].dispose();
+    /**
+    * Sets the value of the specified property. If the property does not already exist
+    * in the property collection, it will be added.
+    * @param  {String} key   The property name (key).
+    * @param  {String} value The value to assign to the property.
+    * @override
+    */
+    setProperty(key, value) {
+        this._base.setProperty(key, value);
     }
 
-    for (var k = 0; k < _leds.length; k++) {
-      _leds[k].dispose();
+    /**
+    * Returns the string representation of this object. In this case, it simply
+    * returns the component name.
+    * @return {String} The name of this component.
+    */
+    toString() {
+        return this.deviceName;
     }
 
-    _relays = undefined;
-    _switches = undefined;
-    _leds = undefined;
-    _inputPins = undefined;
-    _outputPins = undefined;
-    _base.dispose();
-  };
+    /**
+    * Releases all managed resources used by this instance.
+    * @override
+    */
+    dispose() {
+        if (this._base.isDisposed) {
+            return;
+        }
 
-  /**
-  * Gets the input pins.
-  * @return {Array} An array of PiFaceGPIO objects representing PiFace inputs.
-  */
-  this.getInputPins = function() {
-    return _inputPins;
-  };
+        for (let rel of this._relays) {
+            rel.dispose();
+        }
 
-  /**
-  * Gets the output pins.
-  * @return {Array} An array of PiFaceGPIO objects representing PiFace outputs.
-  */
-  this.getOutputPins = function() {
-    return _outputPins;
-  };
+        for (let sw of this._switches) {
+            sw.dispose();
+        }
 
-  /**
-  * Gets the relays.
-  * @return {Array} An array of Relay objects representing the relays on the PiFace.
-  */
-  this.getRelays = function() {
-    return _relays;
-  };
+        for (let led of this._leds) {
+            led.dispose();
+        }
 
-  /**
-  * Gets the switches.
-  * @return {Array} An array of Switch objects representing the switches on the PiFace.
-  */
-  this.getSwitches = function() {
-    return _switches;
-  };
+        this._relays = undefined;
+        this._switches = undefined;
+        this._leds = undefined;
+        this._inputPins = undefined;
+        this._outputPins = undefined;
+        this._base.dispose();
+    }
 
-  /**
-  * Gets the LEDs.
-  * @return {Array} An array of LEDInterface objects representing the LEDs on the PiFace.
-  */
-  this.getLEDs = function() {
-    return _leds;
-  };
+    /**
+    * Gets the input pins.
+    * @property {Array} inputPins - An array of PiFaceGPIO objects representing
+    * PiFace inputs.
+    * @readonly
+    * @override
+    */
+    get inputPins() {
+        return this._inputPins;
+    }
+
+    /**
+    * Gets the output pins.
+    * @property {Array} outputPins - An array of PiFaceGPIO objects representing
+    * PiFace outputs.
+    * @readonly
+    * @override
+    */
+    get outputPins() {
+        return this._outputPins;
+    }
+
+    /**
+    * Gets the relays.
+    * @property {Array} relays - An array of Relay objects representing the
+    * relays on the PiFace.
+    * @readonly
+    * @override
+    */
+    get relays() {
+        return this._relays;
+    }
+
+    /**
+    * Gets the switches.
+    * @property {Array} switches - An array of Switch objects representing the
+    * switches on the PiFace.
+    * @readonly
+    * @override
+    */
+    get switches() {
+        return this._switches;
+    }
+
+    /**
+    * Gets the LEDs.
+    * @property {Array} LEDs -  An array of LEDInterface objects representing
+    * the LEDs on the PiFace.
+    * @readonly
+    * @override
+    */
+    get LEDs() {
+        return this._leds;
+    }
 }
-
-PiFaceBase.prototype.constructor = PiFaceBase;
-inherits(PiFaceBase, PiFaceInterface);
 
 module.exports = PiFaceBase;

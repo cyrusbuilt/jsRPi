@@ -25,7 +25,7 @@
  * The various LEDs on the PiFace.
  * @enum {Number}
  */
-var PiFaceLED = {
+const PiFaceLED = {
 
   /**
    * LED 0

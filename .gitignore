@@ -36,6 +36,17 @@ obj/
 # Node for Visual Studio settings directory.
 .settings/
 
+# Visual Studio Code settings directory.
+.vscode/
+
+# IntelliJ project files
+.idea/
+
 # ignore build output
-dist/*.js
 build/
+docs/
+
+
+.idea/vcs.xml
+
+.project

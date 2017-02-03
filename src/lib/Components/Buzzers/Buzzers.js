@@ -26,6 +26,7 @@
  * @fileOverview Contains interfaces and classes for working with buzzers.
  *
  * @module Buzzers
+ * @namespace jsrpi.Components.Buzzers
  */
 
 module.exports = {

@@ -25,7 +25,7 @@
  * Possible states the fireplace can be in.
  * @enum {Number}
  */
-var FireplaceState = {
+const FireplaceState = {
   /**
    * The fireplace is on.
    * @type {Number}

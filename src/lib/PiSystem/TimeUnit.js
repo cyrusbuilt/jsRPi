@@ -27,7 +27,7 @@
  * Time units of measure.
  * @enum {number}
  */
-var TimeUnit = {
+const TimeUnit = {
   /**
    * Time in years.
    * @type {Number}

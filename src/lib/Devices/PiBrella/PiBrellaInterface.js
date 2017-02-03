@@ -21,115 +21,136 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Device = require('../Device.js');
+const Device = require('../Device.js');
 
 /**
  * PiBrella device abastraction interface.
  * @interface
  * @extends {Device}
  */
-function PiBrellaInterface() {
-  Device.call(this);
+class PiBrellaInterface extends Device {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.PiBrella.PiBrellaInterface
+   * interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derived class, gets the red LED.
+   * @property {GpioStandard} redLED - The red LED.
+   * @readonly
+   */
+  get redLED() { return null; }
+
+  /**
+   * In a derived class, gets the yellow LED.
+   * @property {GpioStandard} yellowLED - The yellow LED.
+   * @readonly
+   */
+  get yellowLED() { return null; }
+
+  /**
+   * In a derived class, gets the green LED.
+   * @property {GpioStandard} greenLED - The green LED.
+   * @readonly
+   */
+  get greenLED() { return null; }
+
+  /**
+   * In a derived class, gets the LEDs (array of GpioStandard output objects).
+   * @property {Array} LEDs - An array of all of the LEDs.
+   * @readonly
+   */
+  get LEDs() { return []; }
+
+  /**
+   * In a derived class, gets the PiBrella button input.
+   * @property {GpioStandard} button - The button.
+   * @readonly
+   */
+  get button() { return null; }
+
+  /**
+   * In a derived class, gets the buzzer output component.
+   * @property {GpioStandard} buzzer - The buzzer.
+   * @readonly
+   */
+  get buzzer() { return null; }
+
+  /**
+   * In a derived class, gets PiBrella input A.
+   * @property {GpioStandard} inputA - The input A.
+   * @readonly
+   */
+  get inputA() { return null; }
+
+  /**
+   * In a derived class, gets PiBrella input B.
+   * @property {GpioStandard} inputB - The input B.
+   * @readonly
+   */
+  get inputB() { return null; }
+
+  /**
+   * In a derived class, gets PiBrella input C.
+   * @property {GpioStandard} inputC - The input C.
+   * @readonly
+   */
+  get inputC() { return null; }
+
+  /**
+   * In a derived class, gets PiBrella input D.
+   * @property {GpioStandard} inputD - The input D.
+   * @readonly
+   */
+  get inputD() { return null; }
+
+  /**
+   * In a derived class, gets all the PiBrella inputs (array of GpioStandard
+   * inputs).
+   * @property {GpioStandard} inputs - An array of all of the inputs.
+   * @readonly
+   */
+  get inputs() { return []; }
+
+  /**
+   * In a derived class, gets PiBrella output E.
+   * @property {GpioStandard} outputE - The output E.
+   * @readonly
+   */
+  get outputE() { return null; }
+
+  /**
+   * In a derived class, gets PiBrella output F.
+   * @property {GpioStandard} outputF - The output F.
+   * @readonly
+   */
+  get outputF() { return null; }
+
+  /**
+   * In a derived class, gets PiBrella output G.
+   * @property {GpioStandard} outputG - The output G.
+   * @readonly
+   */
+  get outputG() { return null; }
+
+  /**
+   * In a derived class, gets PiBrella output H.
+   * @property {GpioStandard} outputH - The output H.
+   * @readonly
+   */
+  get outputH() { return null; }
+
+  /**
+   * In a derived class, gets all the PiBrella outputs (array of GpioStandard
+   * outputs).
+   * @property {Array} outputs - An array of all the outputs.
+   * @readonly
+   */
+  get outputs() { return []; }
 }
-
-PiBrellaInterface.prototype.constructor = PiBrellaInterface;
-inherits(PiBrellaInterface, Device);
-
-/**
- * In a derived class, gets the red LED.
- * @return {GpioStandard} The red LED output component.
- */
-PiBrellaInterface.prototype.getRedLED = function() { return null; };
-
-/**
- * In a derived class, gets the yellow LED.
- * @return {GpioStandard} The yellow LED output component.
- */
-PiBrellaInterface.prototype.getYellowLED = function() { return null; };
-
-/**
- * In a derived class, gets the green LED.
- * @return {GpioStandard} The green LED output component.
- */
-PiBrellaInterface.prototype.getGreenLED = function() { return null; };
-
-/**
- * In a derived class, gets the LEDs.
- * @return {Array} The LEDs (array of GpioStandard output objects).
- */
-PiBrellaInterface.prototype.getLEDs = function() { return []; };
-
-/**
- * In a derived class, gets the button.
- * @return {GpioStandard} The PiBrella button input.
- */
-PiBrellaInterface.prototype.getButton = function() { return null; };
-
-/**
- * In a derived class, gets the buzzer.
- * @return {GpioStandard} The buzzer output component.
- */
-PiBrellaInterface.prototype.getBuzzer = function() { return null; };
-
-/**
- * In a derived class, gets PiBrella input A.
- * @return {GpioStandard} Input A.
- */
-PiBrellaInterface.prototype.getInputA = function() { return null; };
-
-/**
- * In a derived class, gets PiBrella input B.
- * @return {GpioStandard} Input B.
- */
-PiBrellaInterface.prototype.getInputB = function() { return null; };
-
-/**
- * In a derived class, gets PiBrella input C.
- * @return {GpioStandard} Input C.
- */
-PiBrellaInterface.prototype.getInputC = function() { return null; };
-
-/**
- * In a derived class, gets PiBrella input D.
- * @return {GpioStandard} Input D.
- */
-PiBrellaInterface.prototype.getInputD = function() { return null; };
-
-/**
- * In a derived class, gets all the PiBrella inputs.
- * @return {GpioStandard} The inputs (array of GpioStandard inputs).
- */
-PiBrellaInterface.prototype.getInputs = function() { return []; };
-
-/**
- * In a derived class, gets PiBrella output E.
- * @return {GpioStandard} Output E.
- */
-PiBrellaInterface.prototype.getOutputE = function() { return null; };
-
-/**
- * In a derived class, gets PiBrella output F.
- * @return {GpioStandard} Output F.
- */
-PiBrellaInterface.prototype.getOutputF = function() { return null; };
-
-/**
- * In a derived class, gets PiBrella output G.
- * @return {GpioStandard} Output G.
- */
-PiBrellaInterface.prototype.getOutputG = function() { return null; };
-
-/**
- * In a derived class, gets PiBrella output H.
- * @return {GpioStandard} Output H.
- */
-PiBrellaInterface.prototype.getOutputH = function() { return null; };
-
-/**
- * In a derived class, gets all the PiBrella outputs.
- * @return {Array} The outputs (array of GpioStandard outputs).
- */
-PiBrellaInterface.prototype.getOutputs = function() { return []; };
 
 module.exports = PiBrellaInterface;

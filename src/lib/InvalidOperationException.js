@@ -26,17 +26,24 @@
 /**
  * @classdesc The exception that is thrown when an operation is attempted on an
  * object whose current state does not support it.
- * @param {String} sMessage A description of the error.
- * @constructor
  * @extends {Error}
  */
-function InvalidOperationException(sMessage) {
-  this.name = "InvalidOperationException";
-  this.message = sMessage;
-  this.stack = (new Error()).stack;
-}
-
-InvalidOperationException.prototype = Object.create(Error.prototype);
-InvalidOperationException.prototype.constructor = InvalidOperationException;
+ class InvalidOperationException extends Error {
+     /**
+     * Initializes a new instance of the jsrpi.InvalidOperationException class
+     * with a message describing the error.
+     * @param {String} sMessage A description of the error.
+     * @constructor
+     */
+     constructor(sMessage) {
+         super(sMessage);
+         this.name = this.constructor.name;
+         if (typeof Error.captureStackTrace === 'function') {
+             Error.captureStackTrace(this, this.constructor);
+         } else {
+             this.stack = (new Error(sMessage)).stack;
+         }
+     }
+ }
 
 module.exports = InvalidOperationException;

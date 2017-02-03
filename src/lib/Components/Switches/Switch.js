@@ -22,59 +22,73 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Component = require('../Component.js');
-var SwitchState = require('./SwitchState.js');
+const Component = require('../Component.js');
+const SwitchState = require('./SwitchState.js');
+
+const STATE_CHANGED = "switchStateChanged";
 
 /**
  * An interface for switch device abstractions.
  * @interface
  * @extends {Component}
  */
-function Switch() {
-  Component.call(this);
+class Switch extends Component {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Switches.Switch interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derived class, fires the switch state change event.
+   * @param  {SwitchStateChangeEvent} switchStateEvent The event info object.
+   */
+  onSwitchStateChanged(switchStateEvent) {}
+
+  /**
+   * In a derived class, gets whether or not this switch is in the on position.
+   * @property {Boolean} isOn - true if on; Otherwise, false.
+   * @readonly
+   */
+  get isOn() { return false; }
+
+  /**
+   * In a derived class, gets whether or not this switch is in the off position.
+   * @property {Boolean} isOff - true if off; Otherwise, false.
+   * @readonly
+   */
+  get isOff() { return false; }
+
+  /**
+   * In a derived class, gets the state of the switch.
+   * @property {SwitchState} state - The switch state.
+   * @readonly
+   */
+  get state() { return SwitchState.Off; }
+
+  /**
+   * In a derived class, gets whether or not this switch is in the specified state.
+   * @param  {SwitchState} state The state to check against.
+   * @return {Boolean}       true if this switch is in the specified state;
+   * Otherwise, false.
+   */
+  isState(state) { return false; }
+
+  /**
+   * Gets the underlying physical pin this switch is attached to.
+   * @property {Gpio} pin - The pin.
+   * @readonly
+   */
+  get pin() { return null; }
+
+  /**
+   * The name of the state change event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_STATE_CHANGED() { return STATE_CHANGED; }
 }
-
-Switch.prototype.constructor = Switch;
-inherits(Switch, Component);
-
-/**
- * In a derived class, fires the switch state change event.
- * @param  {SwitchStateChangeEvent} switchStateEvent The event info object.
- */
-Switch.prototype.onSwitchStateChanged = function(switchStateEvent) {};
-
-/**
- * In a derived class, gets whether or not this switch is in the on position.
- * @return {Boolean} true if on; Otherwise, false.
- */
-Switch.prototype.isOn = function() { return false; };
-
-/**
- * In a derived class, gets whether or not this switch is in the off position.
- * @return {Boolean} true if off; Otherwise, false.
- */
-Switch.prototype.isOff = function() { return false; };
-
-/**
- * In a derived class, gets the state of the switch.
- * @return {SwitchState} The state of the switch.
- */
-Switch.prototype.getState = function() { return SwitchState.Off; };
-
-/**
- * In a derived class, gets whether or not this switch is in the specified state.
- * @param  {SwitchState} state The state to check against.
- * @return {Boolean}       true if this switch is in the specified state;
- * Otherwise, false.
- */
-Switch.prototype.isState = function(state) { return false; };
-
-/**
- * The name of the state change event.
- * @type {String}
- * @const
- */
-Switch.EVENT_STATE_CHANGED = "switchStateChanged";
 
 module.exports = Switch;

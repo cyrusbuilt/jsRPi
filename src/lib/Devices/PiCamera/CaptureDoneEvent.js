@@ -23,21 +23,27 @@
 
 /**
  * @classdesc The event that gets raised with an image capture finishes.
- * @param {Number} exitCode The exit code of the capture process.
- * @constructor
  * @event
  */
-function CaptureDoneEvent(exitCode) {
-  var _exitCode = exitCode || 0;
+class CaptureDoneEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.PiCamera.CaptureDoneEvent
+   * class with the exit code of the capture process.
+   * @param {Number} exitCode The exit code of the capture process.
+   * @constructor
+   */
+  constructor(exitCode) {
+    this._exitCode = exitCode || 0;
+  }
 
   /**
    * Gets the exit code of the image capture process.
-   * @return {Number} The exit code.
+   * @property {Number} exitCode - The exit code of the image capture process.
+   * @readonly
    */
-  this.getExitCode = function() {
-    return _exitCode;
-  };
+  get exitCode() {
+    return this._exitCode;
+  }
 }
 
-CaptureDoneEvent.prototype.constructor = CaptureDoneEvent;
 module.exports = CaptureDoneEvent;

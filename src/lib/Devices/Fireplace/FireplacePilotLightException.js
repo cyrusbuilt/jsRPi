@@ -24,15 +24,23 @@
 /**
  * @classdesc The exception that occurs when the pilot light sensor cannot
  * detect the pilot light.
- * @constructor
  */
-function FireplacePilotLightException() {
-  this.name = "FireplacePilotLightException";
-  this.message = "The pilot light sensor cannot detect the pilot light.";
-  this.stack = (new Error()).stack;
-}
-
-FireplacePilotLightException.prototype = Object.create(Error.prototype);
-FireplacePilotLightException.prototype.constructor = FireplacePilotLightException;
+ class FireplacePilotLightException extends Error {
+     /**
+     * Initializes a new instance of the jsrpi.Devices.Fireplace.FireplacePilotLightException
+     * class.
+     * @constructor
+     */
+     constructor() {
+         let sMessage = "The pilot light sensor cannot detect the pilot light.";
+         super(sMessage);
+         this.name = this.constructor.name;
+         if (typeof Error.captureStackTrace === 'function') {
+             Error.captureStackTrace(this, this.constructor);
+         } else {
+             this.stack = (new Error(sMessage)).stack;
+         }
+     }
+ }
 
 module.exports = FireplacePilotLightException;

@@ -28,7 +28,7 @@
  * The state of a given pin.
  * @enum {Number}
  */
-var PinState = {
+const PinState = {
   /**
    * The pin is high (on) which means it is outputting > 3.3V (typically 5V).
    * @type {Number}

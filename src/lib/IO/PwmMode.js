@@ -27,7 +27,7 @@
  * Which PWM mode to use.
  * @enum {Number}
  */
-var PwmMode = {
+const PwmMode = {
   /**
    * Balanced mode.
    * @type {Number}

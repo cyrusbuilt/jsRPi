@@ -22,6 +22,13 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
+/**
+ * @fileOverview Contains classes and interfaces for working with switches.
+ *
+ * @module Switches
+ * @namespace jsrpi.Components.Switches
+ */
+
 module.exports = {
   SwitchState : require('./SwitchState.js'),
   SwitchStateChangeEvent : require('./SwitchStateChangeEvent.js'),

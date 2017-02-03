@@ -25,23 +25,29 @@
 
 
 /**
- * Pin poll failure event.
- * @param {Error} cause The Error (exception) that is the cause of the event.
- * @constructor
+ * @classdesc Pin poll failure event.
  * @event
  */
-function PinPollFailEvent(cause) {
-  var _failCause = cause;
+class PinPollFailEvent {
+  /**
+   * Initializes a new instance of the jsrpi.IO.PinPollFailEvent class with the
+   * exception that is the cause of the event.
+   * @param {Error} cause The Error (exception) that is the cause of the event.
+   * @constructor
+   */
+  constructor(cause) {
+    this._failCause = cause;
+  }
 
   /**
    * Gets the Error (exception) that is the cause of the failure event.
-   * @return {Error} The Error (exception) that is the cause of the event.
+   * @property {Error} failureCause - The Error or Exception that caused the
+   * failure.
+   * @readonly
    */
-  this.getFailureCause = function() {
-    return _failCause;
-  };
+  get failureCause() {
+    return this._failCause;
+  }
 }
-
-PinPollFailEvent.prototype.constructor = PinPollFailEvent;
 
 module.exports = PinPollFailEvent;

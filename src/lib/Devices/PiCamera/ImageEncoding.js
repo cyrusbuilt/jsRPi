@@ -25,7 +25,7 @@
  * Image encoding formats.
  * @enum {Number}
  */
-var ImageEncoding = {
+const ImageEncoding = {
   /**
    * JPEG image encoding. NOTE: This is the only supported format that
 	 * is hardware accelerated. All other image types will take much longer

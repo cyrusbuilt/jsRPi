@@ -26,7 +26,7 @@
  * Display on/off controls.
  * @enum {Number}
  */
-var DisplayOnOffControl = {
+const DisplayOnOffControl = {
   /**
    * Turn the display on.
    * @type {Number}

@@ -21,81 +21,109 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var GateOpener = require('./GateOpener.js');
-var OpenerDevice = require('../Access/OpenerDevice.js');
+const GateOpener = require('./GateOpener.js');
+const OpenerDevice = require('../Access/OpenerDevice.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
 * @classdesc Base class for gate opener abstractions.
-* @param {Relay} relay                The relay that controls the door.
-* @param {Sensor} doorSensor          The sensor that indicates the state of
-* the door.
-* @param {SensorState} doorSensorOpenState The sensor state that indicates the
-* door is open.
-* @param {Switch} lok                 The switch that controls the lock.
-* @constructor
 * @implements {GateOpener}
 * @extends {OpenerDevice}
 */
-function GateOpenerBase(relay, doorSensor, doorSensorOpenState, lok) {
-  GateOpener.call(this);
-
-  var self = this;
-  var _base = new OpenerDevice(relay, doorSensor, doorSensorOpenState, lok);
+class GateOpenerBase extends GateOpener {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.Gate.GateOpenerBase
+   * class with the control relay, door sensor, lock switch, and the sensor
+   * state used to consider the door open.
+   * @param {Relay} relay                The relay that controls the door.
+   * @param {Sensor} doorSensor          The sensor that indicates the state of
+   * the door.
+   * @param {SensorState} doorSensorOpenState The sensor state that indicates the
+   * door is open.
+   * @param {Switch} lok                 The switch that controls the lock.
+   * @constructor
+   */
+  constructor(relay, doorSensor, doorSensorOpenState, lok) {
+    super();
+    
+    this._base = new OpenerDevice(relay, doorSensor, doorSensorOpenState, lok);
+  }
 
   /**
-  * Device name property.
-  * @property {String}
-  */
-  this.deviceName = _base.deviceName;
+   * Gets or sets the device name
+   * @property {String} deviceName - The device name.
+   * @override
+   */
+  get deviceName() {
+    return this._base.deviceName;
+  }
+
+  set deviceName(name) {
+    this._base.deviceName = name;
+  }
 
   /**
-  * Tag property.
-  * @property {Object}
-  */
-  this.tag = _base.tag;
+   * Gets or sets the object this device is tagged with.
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
 
   /**
-  * Gets relay being used to trigger the opener motor.
-  * @returns {Relay} The relay used to the trigger the opener motor.
+  * Gets the relay being used to trigger the opener motor.
+  * @property {Relay} triggerRelay - The trigger relay.
+  * @readonly
+  * @override
   */
-  this.getTriggerRelay = function() {
-    return _base.getTriggerRelay();
-  };
+  get triggerRelay() {
+    return this._base.triggerRelay;
+  }
 
   /**
   * Gets the sensor used to determine the opener's state.
-  * @returns {Sensor} The sensor used to determine the state.
+  * @property {Sensor} stateSensor - The opener state sensor.
+  * @readonly
+  * @override
   */
-  this.getStateSensor = function() {
-    return _base.getStateSensor();
-  };
+  get stateSensor() {
+    return this._base.stateSensor;
+  }
 
   /**
   * Gets the switch being used to lock the opener.
-  * @returns {Switch} Switch used to enable/disable the lock.
+  * @property {Switch} lockSwitch - The lock switch.
+  * @readonly
+  * @override
   */
-  this.getLockSwitch = function() {
-    return _base.getLockSwitch();
-  };
+  get lockSwitch() {
+    return this._base.lockSwitch;
+  }
 
   /**
   * Determines whether or not the current instance has been disposed.
-  * @return {Boolean} true if disposed; Otherwise, false.
+  * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+  get isDisposed() {
+    return this._base.isDisposed;
+  }
 
   /**
-  * Gets the property collection.
-  * @return {Array} A custom property collection.
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
   * @override
   */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
   * Checks to see if the property collection contains the specified key.
@@ -104,9 +132,9 @@ function GateOpenerBase(relay, doorSensor, doorSensorOpenState, lok) {
   * Otherwise, false.
   * @override
   */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
   * Sets the value of the specified property. If the property does not already exist
@@ -114,17 +142,17 @@ function GateOpenerBase(relay, doorSensor, doorSensorOpenState, lok) {
   * @param  {String} key   The property name (key).
   * @param  {String} value The value to assign to the property.
   */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
   * Removes all event listeners.
   * @override
   */
-  this.removeAllListeners = function() {
-    _base.removeAllListeners();
-  };
+  removeAllListeners() {
+    this._base.removeAllListeners();
+  }
 
   /**
   * Attaches a listener (callback) for the specified event name.
@@ -134,9 +162,12 @@ function GateOpenerBase(relay, doorSensor, doorSensorOpenState, lok) {
   * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.on = function(evt, callback) {
-    _base.on(evt, callback);
-  };
+  on(evt, callback) {
+    if (this.isDisposed) {
+      throw new ObjectDisposedException("GateOpenerBase");
+    }
+    this._base.on(evt, callback);
+  }
 
   /**
   * Emits the specified event.
@@ -145,99 +176,108 @@ function GateOpenerBase(relay, doorSensor, doorSensorOpenState, lok) {
   * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.emit = function(evt, args) {
-    _base.emit(evt, args);
-  };
+  emit(evt, args) {
+    if (this.isDisposed) {
+      throw new ObjectDisposedException("GateOpenerBase");
+    }
+    this._base.emit(evt, args);
+  }
 
   /**
   * Raises the opener state change event.
   * @param  {OpenerStateChangeEvent} stateChangeEvent The event object.
   * @override
   */
-  this.onOpenerStateChange = function(stateChangeEvent) {
-    _base.onOpenerStateChange(stateChangeEvent);
-  };
+  onOpenerStateChange(stateChangeEvent) {
+    this._base.onOpenerStateChange(stateChangeEvent);
+  }
 
   /**
   * Raises the lock state change event.
   * @param  {OpenerLockChangeEvent} lockStateChangeEvent The event object.
   * @override
   */
-  this.onLockStateChange = function(lockStateChangeEvent) {
-    _base.onLockStateChange(lockStateChangeEvent);
-  };
+  onLockStateChange(lockStateChangeEvent) {
+    this._base.onLockStateChange(lockStateChangeEvent);
+  }
 
   /**
   * Releases all resources used by the OpenerDevice object.
   * @override
   */
-  this.dispose = function() {
-    _base.dispose();
-  };
+  dispose() {
+    this._base.dispose();
+  }
 
   /**
   * Gets a value indicating whether this opener is locked and thus, cannot be
   * opened.
-  * @return {Boolean} true if locked; Otherwise, false.
-  *                    @override
+  * @property {Boolean} isLocked - true if locked; Otherwise, false.
+  * @readonly
+  * @override
   */
-  this.isLocked = function() {
-    return _base.isLocked();
-  };
+  get isLocked() {
+    return this._base.isLocked;
+  }
 
   /**
   * Gets the state of this opener.
-  * @return {OpenerState} The state of the opener.
+  * @property {OpenerState} state - The state of the opener.
   * @override
   */
-  this.getState = function() {
-    return _base.getState();
-  };
+  get state() {
+    return this._base.state;
+  }
 
   /**
   * Gets a value indicating whether this opener is open.
-  * @return {Boolean} true if open; Otherwise, false.
-  *                    @override
+  * @property {Boolean} isOpen - true if open; Otherwise, false.
+  * @readonly
+  * @override
   */
-  this.isOpen = function() {
-    return _base.isOpen();
-  };
+  get isOpen() {
+    return this._base.isOpen;
+  }
 
   /**
   * Fets a value indicating whether this opner is in the the process of opening.
-  * @return {Boolean} true if opening; Otherwise, false.
+  * @property {Boolean} isOpening - true if opening; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isOpening = function() {
-    return _base.isOpening();
-  };
+  get isOpening() {
+    return this._base.isOpening;
+  }
 
   /**
   * Fets a value indicating whether this opener is closed.
-  * @return {Boolean} true if closed; Otherwise, false.
+  * @property {Boolean} isClosed - true if closed; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isClosed = function() {
-    return _base.isClosed();
-  };
+  get isClosed() {
+    return this._base.isClosed;
+  }
 
   /**
   * Fets a value indicating whether this opener is in the process of closing.
-  * @return {Boolean} true if closing; Otherwise, false.
+  * @property {Boolean} isClosing - true if closing; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isClosing = function() {
-    return _base.isClosing();
-  };
+  get isClosing() {
+    return this._base.isClosing;
+  }
 
   /**
   * Returns the string representation of this object. In this case, it simply
   * returns the component name.
   * @return {String} The name of this component.
+  * @override
   */
-  this.toString = function() {
-    return self.deviceName;
-  };
+  toString() {
+    return this.deviceName;
+  }
 
   /**
   * Instructs the device to open.
@@ -245,9 +285,9 @@ function GateOpenerBase(relay, doorSensor, doorSensorOpenState, lok) {
   * @throws {OpenerLockedException} If the opener is currently locked.
   * @override
   */
-  this.open = function() {
-    _base.open();
-  };
+  open() {
+    this._base.open();
+  }
 
   /**
   * Instructs the device to close.
@@ -255,30 +295,29 @@ function GateOpenerBase(relay, doorSensor, doorSensorOpenState, lok) {
   * @throws {OpenerLockedException} If the opener is currently locked.
   * @override
   */
-  this.close = function() {
-    _base.close();
-  };
+  close() {
+    this._base.close();
+  }
 
   /**
   * Manually overrides the state of the lock. This can be used to force lock or
   * force unlock the opener. This will cause this opener to ignore the state of
   * the lock (if specified) and only read the specified lock state.
   * @param  {SwitchState} overridedState The state to override with.
+  * @override
   */
-  this.overrideLock = function(overridedState) {
-    _base.overrideLock(overridedState);
-  };
+  overrideLock(overridedState) {
+    this._base.overrideLock(overridedState);
+  }
 
   /**
   * Disables the lock override. This will cause this opener to resume reading
   * the actual state of the lock (if specified).
+  * @override
   */
-  this.disableOverride = function() {
-    _base.disableOverride();
-  };
+  disableOverride() {
+    this._base.disableOverride();
+  }
 }
-
-GateOpenerBase.prototype.constructor = GateOpenerBase;
-inherits(GateOpenerBase, GateOpener);
 
 module.exports = GateOpenerBase;

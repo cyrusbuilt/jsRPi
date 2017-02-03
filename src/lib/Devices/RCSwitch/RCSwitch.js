@@ -27,6 +27,7 @@
  * remote-controlled switching devices.
  *
  * @module RCSwtich
+ * @namespace jsrpi.Devices.RCSwitch
  */
 
 module.exports = {

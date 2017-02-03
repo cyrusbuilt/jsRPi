@@ -22,44 +22,51 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var MotorState = require('./MotorState.js');
+const util = require('util');
+const MotorState = require('./MotorState.js');
 
 /**
- * The event that gets raised when a motor changes state.
- * @param {MotorState} oldState The state the motor was in prior to the change.
- * @param {MotorState} newState The current state of the motor since the change
- * occurred.
- * @constructor
+ * @classdesc The event that gets raised when a motor changes state.
  * @event
  */
-function MotorStateChangeEvent(oldState, newState) {
-  var _oldState = oldState;
-  if (util.isNullOrUndefined(_oldState)) {
-    _oldState = MotorState.Stop;
-  }
+class MotorStateChangeEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Motors.MotorStateChangeEvent
+   * class with the old and new state of the motor.
+   * @param {MotorState} oldState The state the motor was in prior to the change.
+   * @param {MotorState} newState The current state of the motor since the change
+   * occurred.
+   * @constructor
+   */
+  constructor(oldState, newState) {
+    this._oldState = oldState;
+    if (util.isNullOrUndefined(this._oldState)) {
+      this._oldState = MotorState.Stop;
+    }
 
-  var _newState = newState;
-  if (util.isNullOrUndefined(_newState)) {
-    _newState = MotorState.Stop;
+    this._newState = newState;
+    if (util.isNullOrUndefined(this._newState)) {
+      this._newState = MotorState.Stop;
+    }
   }
 
   /**
    * Gets the state the motor was in prior to the change.
-   * @return {MotorState} The last motor state.
+   * @property {MotorState} oldState - The previous state.
+   * @readonly
    */
-  this.getOldState = function() {
-    return _oldState;
-  };
+  get oldState() {
+    return this._oldState;
+  }
 
   /**
    * Gets the new (current) state.
-   * @return {MotorState} The current motor state.
+   * @property {MotorState} newState - The new (current) state.
+   * @readonly
    */
-  this.getNewState = function() {
-    return _newState;
-  };
+  get newState() {
+    return this._newState;
+  }
 }
 
-MotorStateChangeEvent.prototype.constructor = MotorStateChangeEvent;
 module.exports = MotorStateChangeEvent;

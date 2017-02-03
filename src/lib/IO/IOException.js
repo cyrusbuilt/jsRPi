@@ -25,17 +25,24 @@
 
 /**
  * @classdesc The exception that is throw when an I/O error occurs.
- * @param {String} sMessage A message describing the eception.
- * @constructor
  * @extends {Error}
  */
-function IOException(sMessage) {
-  this.name = "IOException";
-  this.message = sMessage;
-  this.stack = (new Error()).stack;
-}
-
-IOException.prototype = Object.create(Error.prototype);
-IOException.prototype.constructor = IOException;
+ class IOException extends Error {
+     /**
+     * Initializes a new instance of the jsrpi.IO.IOException with a message
+     * describing the exception.
+     * @param {String} sMessage A message describing the exception.
+     * @constructor
+     */
+     constructor(sMessage) {
+         super(sMessage);
+         this.name = this.constructor.name;
+         if (typeof Error.captureStackTrace === 'function') {
+             Error.captureStackTrace(this, this.constructor);
+         } else {
+             this.stack = (new Error(sMessage)).stack;
+         }
+     }
+ }
 
 module.exports = IOException;

@@ -22,106 +22,110 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Disposable = require('../../Disposable.js');
-var ButtonState = require('./ButtonState.js');
+const Component = require('../Component.js');
+const ButtonState = require('./ButtonState.js');
 
-var STATE_CHANGED = "stateChanged";
-var STATE_PRESSED = "buttonPressed";
-var STATE_RELEASED = "buttonReleased";
-var STATE_HOLD = "buttonHold";
+const STATE_CHANGED = "stateChanged";
+const STATE_PRESSED = "buttonPressed";
+const STATE_RELEASED = "buttonReleased";
+const STATE_HOLD = "buttonHold";
 
 /**
  * A button device abstraction component interface.
  * @interface
+ * @extends {Component}
  */
-function Button() {
-  Disposable.call(this);
+class Button extends Component {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Button.Button interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In an implementing class, gets a value indicating whether this instance is
+   * pressed.
+   * @property {Boolean} isPressed - true if pressed; Otherwise, false.
+   * @readonly
+   */
+  get isPressed() { return false; }
+
+  /**
+   * In an implementing class, gets a value indicating whether the button is
+   * released.
+   * @property {Boolean} isReleased - true if released; Otherwise, false.
+   * @readonly
+   */
+  get isReleased() { return false; }
+
+  /**
+   * In an implementing class, gets the button state.
+   * @property {ButtonState} state - The button state.
+   */
+  get state() { return ButtonState.Unknown; }
+
+  /**
+   * In an implementing class, checks to see if the button is in a state matching
+   * the specified state.
+   * @param  {ButtonState} state The state to check.
+   * @return {Boolean} true if the button is in the specified state; Otherwise,
+   * false.
+   */
+  isState(state) { return false; }
+
+  /**
+   * Fires the button state changed event.
+   * @param  {ButtonEvent} btnEvent The event info.
+   */
+  onStateChanged(btnEvent) {}
+
+  /**
+   * Fires the button pressend event.
+   * @param  {ButtonEvent} btnEvent The event info.
+   */
+  onButtonPressed(btnEvent) {}
+
+  /**
+   * Fires the button released event.
+   * @param  {ButtonEvent} btnEvent The event info.
+   */
+  onButtonReleased(btnEvent) {}
+
+  /**
+   * Fires the button hold event.
+   * @param  {ButtonEvent} btnEvent The event info.
+   */
+  onButtonHold(btnEvent) {}
+
+  /**
+   * The name of the state changed event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_STATE_CHANGED() { return STATE_CHANGED; }
+
+  /**
+   * The name of the button pressed event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_PRESSED() { return STATE_PRESSED; }
+
+  /**
+   * The name of the button released event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_RELEASED() { return STATE_RELEASED; }
+
+  /**
+   * The name of the button hold event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_HOLD() { return STATE_HOLD; }
 }
-
-/**
- * In an implementing class, gets a value indicating whether this instance is
- * pressed.
- * @return {Boolean} true if pressed; Otherwise, false.
- */
-Button.prototype.isPressed = function() { return false; };
-
-/**
- * In an implementing class, gets a value indicating whether the button is
- * released.
- * @return {Boolean} true if released; Otherwise, false.
- */
-Button.prototype.isReleased = function() { return false; };
-
-/**
- * In an implementing class, gets the button state.
- * @return {ButtonState} Gets the state of the button.
- */
-Button.prototype.getState = function() { return ButtonState.Unknown; };
-
-/**
- * In an implementing class, checks to see if the button is in a state matching
- * the specified state.
- * @param  {ButtonState} state The state to check.
- * @return {Boolean}       true if the button is in the specified state;
- * Otherwise, false.
- */
-Button.prototype.isState = function(state) { return false; };
-
-/**
- * Fires the button state changed event.
- * @param  {ButtonEvent} btnEvent The event info.
- */
-Button.prototype.onStateChanged = function(btnEvent) {};
-
-/**
- * Fires the button pressend event.
- * @param  {ButtonEvent} btnEvent The event info.
- */
-Button.prototype.onButtonPressed = function(btnEvent) {};
-
-/**
- * Fires the button released event.
- * @param  {ButtonEvent} btnEvent The event info.
- */
-Button.prototype.onButtonReleased = function(btnEvent) {};
-
-/**
- * Fires the button hold event.
- * @param  {ButtonEvent} btnEvent The event info.
- */
-Button.prototype.onButtonHold = function(btnEvent) {};
-
-/**
- * The name of the state changed event.
- * @type {String}
- * @const
- */
-Button.EVENT_STATE_CHANGED = STATE_CHANGED;
-
-/**
- * The name of the button pressed event.
- * @type {String}
- * @const
- */
-Button.EVENT_PRESSED = STATE_PRESSED;
-
-/**
- * The name of the button released event.
- * @type {String}
- * @const
- */
-Button.EVENT_RELEASED = STATE_RELEASED;
-
-/**
- * The name of the button hold event.
- * @type {String}
- * @const
- */
-Button.EVENT_HOLD = STATE_HOLD;
-
-
-Button.prototype.constructor = Button;
-inherits(Button, Disposable);
 
 module.exports = Button;

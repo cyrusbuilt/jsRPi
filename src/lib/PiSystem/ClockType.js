@@ -27,7 +27,7 @@
  * The various on-board clock types.
  * @enum {String}
  */
-var ClockType = {
+const ClockType = {
   /**
    * The ARM clock.
    * @type {String}

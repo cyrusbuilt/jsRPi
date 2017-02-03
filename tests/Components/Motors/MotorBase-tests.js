@@ -1,55 +1,57 @@
 'use strict';
 
-var Motor = require('../../../src/lib/Components/Motors/Motor.js');
-var MotorState = require('../../../src/lib/Components/Motors/MotorState.js');
-var MotorBase = require('../../../src/lib/Components/Motors/MotorBase.js');
+const Motor = require('../../../src/lib/Components/Motors/Motor.js');
+const MotorState = require('../../../src/lib/Components/Motors/MotorState.js');
+const MotorBase = require('../../../src/lib/Components/Motors/MotorBase.js');
 
 
 module.exports.MotoBaseTests = {
   disposeAndIsDisposedTest: function(assert) {
-    var motor = new MotorBase();
+    let motor = new MotorBase();
 
     assert.expect(2);
-    assert.ok(!motor.isDisposed(), "Motor already disposed");
+    assert.ok(!motor.isDisposed, "Motor already disposed");
 
     motor.dispose();
-    assert.ok(motor.isDisposed(), "Motor did not dispose");
+    assert.ok(motor.isDisposed, "Motor did not dispose");
     assert.done();
   },
   getSetStateTest: function(assert) {
-    var motor = new MotorBase();
+    let motor = new MotorBase();
 
     assert.expect(2);
-    assert.equals(motor.getState(), MotorState.Stop, "Motor is not stopped");
+    assert.equals(motor.state, MotorState.Stop, "Motor is not stopped");
 
-    motor.setState(MotorState.Forward);
-    assert.equals(motor.getState(), MotorState.Forward, "Motor is not going forward");
+    motor.state = MotorState.Forward;
+    assert.equals(motor.state, MotorState.Forward, "Motor is not going forward");
     assert.done();
   },
   isStateTest: function(assert) {
-    var motor = new MotorBase();
+    let motor = new MotorBase();
+    motor.state = MotorState.Reverse;
+
     assert.expect(1);
-    motor.setState(MotorState.Reverse);
     assert.ok(motor.isState(MotorState.Reverse), "Motor is not reversing");
     assert.done();
   },
   isStoppedTest: function(assert) {
-    var motor = new MotorBase();
+    let motor = new MotorBase();
+
     assert.expect(1);
-    assert.ok(motor.isStopped(), "Motor is not stopped");
+    assert.ok(motor.isStopped, "Motor is not stopped");
     assert.done();
   },
   stopTest: function(assert) {
-    var motor = new MotorBase();
-    motor.setState(MotorState.Forward);
+    let motor = new MotorBase();
+    motor.state = MotorState.Forward;
 
     assert.expect(1);
     motor.stop();
-    assert.ok(motor.isStopped(), "Motor is not stopped");
+    assert.ok(motor.isStopped, "Motor is not stopped");
     assert.done();
   },
   forwardTest: function(assert) {
-    var motor = new MotorBase();
+    let motor = new MotorBase();
     motor.forward(5);
 
     assert.expect(1);
@@ -57,7 +59,7 @@ module.exports.MotoBaseTests = {
     assert.done();
   },
   reverseTest: function(assert) {
-    var motor = new MotorBase();
+    let motor = new MotorBase();
     motor.reverse(5);
 
     assert.expect(1);
@@ -65,9 +67,9 @@ module.exports.MotoBaseTests = {
     assert.done();
   },
   motorForwardEventTest: function(assert) {
-    var eventFired = false;
-    var motor = new MotorBase();
-    motor.on(Motor.EVENT_FORWARD, function() {
+    let eventFired = false;
+    let motor = new MotorBase();
+    motor.on(Motor.EVENT_FORWARD, () => {
       eventFired = true;
       assert.expect(1);
       assert.ok(eventFired, "Forward event did not fire.");
@@ -77,9 +79,9 @@ module.exports.MotoBaseTests = {
     motor.forward(5);
   },
   motorReverseEventTest: function(assert) {
-    var eventFired = false;
-    var motor = new MotorBase();
-    motor.on(Motor.EVENT_REVERSE, function() {
+    let eventFired = false;
+    let motor = new MotorBase();
+    motor.on(Motor.EVENT_REVERSE, () => {
       eventFired = true;
       assert.expect(1);
       assert.ok(eventFired, "Reverse event did not fire.");
@@ -89,9 +91,9 @@ module.exports.MotoBaseTests = {
     motor.reverse(5);
   },
   motorStoppedEventTest: function(assert) {
-    var eventFired = false;
-    var motor = new MotorBase();
-    motor.on(Motor.EVENT_STOPPED, function() {
+    let eventFired = false;
+    let motor = new MotorBase();
+    motor.on(Motor.EVENT_STOPPED, () => {
       eventFired = true;
       assert.expect(1);
       assert.ok(eventFired, "Stop event did not fire.");

@@ -21,54 +21,62 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var SensorState = require('./SensorState.js');
-var Sensor = require('./Sensor.js');
+const util = require('util');
+const SensorState = require('./SensorState.js');
+const Sensor = require('./Sensor.js');
 
 /**
  * @classdesc The event that gets raised when a sensor changes state.
- * @param {Sensor} sensor   The sensor that changed state.
- * @param {SensorState} oldState The previous state.
- * @param {SensorState} newState The current state.
- * @constructor
  * @event
  */
-function SensorStateChangeEvent(sensor, oldState, newState) {
-  var _sensor = sensor;
-  var _oldState = oldState;
-  if (util.isNullOrUndefined(_oldState)) {
-    _oldState = SensorState.Open;
-  }
+class SensorStateChangeEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Sensors.SensorStateChangeEvent
+   * class with the sensor that changed states as well as the new and old states.
+   * @param {Sensor} sensor   The sensor that changed state.
+   * @param {SensorState} oldState The previous state.
+   * @param {SensorState} newState The current state.
+   * @constructor
+   */
+  constructor(sensor, oldState, newState) {
+    this._sensor = sensor;
+    this._oldState = oldState;
+    if (util.isNullOrUndefined(this._oldState)) {
+      this._oldState = SensorState.Open;
+    }
 
-  var _newState = newState;
-  if (util.isNullOrUndefined(_newState)) {
-    _newState = SensorState.Open;
+    this._newState = newState;
+    if (util.isNullOrUndefined(this._newState)) {
+      this._newState = SensorState.Open;
+    }
   }
 
   /**
    * Gets the sensor that changed state.
-   * @return {Sensor} The sensor that changed state.
+   * @property {Sensor} sensor - The sensor.
+   * @readonly
    */
-  this.getSensor = function() {
-    return _sensor;
-  };
+  get sensor() {
+    return this._sensor;
+  }
 
   /**
    * Gets the previous state of the sensor.
-   * @return {SensorState} The previous sensor state.
+   * @property {SensorState} oldState - The previous state.
+   * @readonly
    */
-  this.getOldState = function() {
-    return _oldState;
-  };
+  get oldState() {
+    return this._oldState;
+  }
 
   /**
    * Gets the current sensor state.
-   * @return {SensorState} The current sensor state.
+   * @property {SensorState} newState - The new (current) state.
+   * @readonly
    */
-  this.getNewState = function() {
-    return _newState;
-  };
+  get newState() {
+    return this._newState;
+  }
 }
 
-SensorStateChangeEvent.prototype.constructor = SensorStateChangeEvent;
 module.exports = SensorStateChangeEvent;

@@ -21,28 +21,34 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
+const util = require('util');
 
 /**
 * @classdesc The event that gets raised when an opener lock changes state.
-* @param {Boolean} locked Set true if locked.
-* @constructor
 * @event
 */
-function OpenerLockChangeEvent(locked) {
-  var _isLocked = locked;
-  if (util.isNullOrUndefined(_isLocked)) {
-    _isLocked = false;
+class OpenerLockChangeEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.Access.OpenerLockChangeEvent
+   * clas with a flag indicating whether or not the device is locked.
+   * @param {Boolean} locked Set true if locked.
+   * @constructor
+   */
+  constructor(locked) {
+    this._isLocked = locked;
+    if (util.isNullOrUndefined(this._isLocked)) {
+      this._isLocked = false;
+    }
   }
 
   /**
   * Gets a flag indicating whether or not the opener is locked.
-  * @return {Boolean} true if locked; Otherwise, false.
+  * @property {Boolean} isLocked - true if locked; Otherwise, false.
+  * @readonly
   */
-  this.isLocked = function() {
-    return _isLocked;
-  };
+  get isLocked() {
+    return this._isLocked;
+  }
 }
 
-OpenerLockChangeEvent.prototype.constructor = OpenerLockChangeEvent;
 module.exports = OpenerLockChangeEvent;

@@ -25,6 +25,7 @@
  * @fileOverview Contains classes, interfaces, etc for button device abstractions.
  *
  * @module Buttons
+ * @namespace jsrpi.Components.Button
  */
 
 module.exports = {

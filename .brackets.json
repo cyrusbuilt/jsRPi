@@ -1,8 +1,8 @@
 {
     "closeBrackets": true,
-    "tabSize": 3,
+    "tabSize": 4,
     "useTabChar": true,
-    "spaceUnits": 3,
+    "spaceUnits": 4,
     "showLineNumbers": true,
     "language": {
         "javascript": {

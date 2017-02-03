@@ -21,66 +21,68 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Component = require('../Component.js');
-var TemperatureScale = require('./TemperatureScale.js');
+const Component = require('../Component.js');
+const TemperatureScale = require('./TemperatureScale.js');
+
+const TEMPERATURE_CHANGED = "temperatureChangedEvent";
 
 /**
  * An abstract temperature sensor interface.
  * @interface
  * @extends {Component}
  */
-function TemperatureSensor() {
-  Component.call(this);
+class TemperatureSensor extends Component {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Temperature.TemperatureSensor
+   * interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derived class, gets the raw temperature value.
+   * @return {Number} The raw value read from the sensor.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  getRawTemperature() { return 0; }
+
+  /**
+   * In a derived class, gets or sets the temperature scale.
+   * @property {TemperatureScale} scale - The temperature scale.
+   */
+  get scale() { return TemperatureScale.Farenheit; }
+
+  set scale(s) {}
+
+  /**
+   * In a derived class, fires the temperature change event.
+   * @param  {TemperatureChangeEvent} tempChangeEvent The event object.
+   */
+  onTemperatureChange(tempChangeEvent) {}
+
+  /**
+   * In a derived class, gets the temperature value.
+   * @param  {TemperatureScale} scale The scale to use for measurement.
+   * @return {Number}       The temperature value in the specified scale.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  getTemperature(scale) { return 0; }
+
+  /**
+   * In a derived class, gets the sensor geing used to measure.
+   * @property {DS160} The temperature sensor.
+   * @readonly
+   */
+  get sensor() { return null; }
+
+  /**
+   * Gets the name of the temperature change event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_TEMPERATURE_CHANGED() { return TEMPERATURE_CHANGED; }
 }
-
-TemperatureSensor.prototype.constructor = TemperatureSensor;
-inherits(TemperatureSensor, Component);
-
-/**
- * In a derived class, gets the raw temperature value.
- * @return {Number} The raw value read from the sensor.
- * @throws {ObjectDisposedException} if this instance has been disposed.
- */
-TemperatureSensor.prototype.getRawTemperature = function() { return 0; };
-
-/**
- * In a derived class, gets the temperature scale.
- * @return {TemperatureScale} The scale being used to measure.
- */
-TemperatureSensor.prototype.getScale = function() { return TemperatureScale.Farenheit; };
-
-/**
- * In a derived class, sets the scale to use for measurements.
- * @param  {TemperatureScale} scale The measurement scale.
- */
-TemperatureSensor.prototype.setScale = function(scale) {};
-
-/**
- * In a derived class, fires the temperature change event.
- * @param  {TemperatureChangeEvent} tempChangeEvent The event object.
- */
-TemperatureSensor.prototype.onTemperatureChange = function(tempChangeEvent) {};
-
-/**
- * In a derived class, gets the temperature value.
- * @param  {TemperatureScale} scale The scale to use for measurement.
- * @return {Number}       The temperature value in the specified scale.
- * @throws {ObjectDisposedException} if this instance has been disposed.
- */
-TemperatureSensor.prototype.getTemperature = function(scale) { return 0; };
-
-/**
- * In a derived class, gets the sensor geing used to measure.
- * @return {DS160} The temperature.
- */
-TemperatureSensor.prototype.getSensor = function() { return null; };
-
-/**
- * Gets the name of the temperature change event.
- * @type {String}
- * @const
- */
-TemperatureSensor.EVENT_TEMPERATURE_CHANGED = "temperatureChangedEvent";
 
 module.exports = TemperatureSensor;

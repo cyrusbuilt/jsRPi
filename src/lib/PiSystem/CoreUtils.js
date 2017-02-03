@@ -34,10 +34,10 @@
  * busy loop method and will block execution of all JavaScript.
  * @param  {Number} micros The amount of time in microseconds to sleep.
  */
-var sleepMicroseconds = function(micros) {
-  var start = new Date().getTime();
-  var diff = (micros / 1000);
-  var end = start + diff;
+const sleepMicroseconds = function(micros) {
+  let start = new Date().getTime();
+  let diff = (micros / 1000);
+  let end = start + diff;
   while (new Date().getTime() <= end) {
     // This isn't a *real* sleep. We just spin the CPU because we
 		// aren't operating on a real-time OS, so the best we can do

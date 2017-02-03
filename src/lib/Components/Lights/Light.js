@@ -22,62 +22,67 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Component = require('../Component.js');
+const Component = require('../Component.js');
 
+const STATE_CHANGED = "lightStateChanged";
+const LEVEL_CHANGED = "lightLevelChanged";
 
 /**
  * An interface for light abstraction components.
  * @interface
  * @extends {Component}
  */
-function Light() {
-  Component.call(this);
+class Light extends Component {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Lights.Light interface.
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derivative class, gets a value indicating whether this light is on.
+   * @property {Boolean} isOn - true if the light is on; Otherwise, false.
+   * @readonly
+   */
+  get isOn() { return false; }
+
+  /**
+   * In a derivative class, gets a value indicating whether this light is off.
+   * @property {Boolean} isOff - true if the light is off; Otherwise, false.
+   * @readonly
+   */
+  get isOff() { return false; }
+
+  /**
+   * In a derivative class, switches the light on.
+   */
+  turnOn() {}
+
+  /**
+   * In a derivative class, switches the light off.
+   */
+  turnOff() {}
+
+  /**
+   * In a derivate class, fires the light state change event.
+   * @param  {LightStateChangeEvent} lightChangeEvent The state change event object.
+   */
+  onLightStateChange(lightChangeEvent) {}
+
+  /**
+   * The name of the light state changed event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_STATE_CHANGED() { return STATE_CHANGED; }
+
+  /**
+   * The name of the light level changed event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_LEVEL_CHANGED() { return LEVEL_CHANGED; }
 }
-
-Light.prototype.constructor = Light;
-inherits(Light, Component);
-
-/**
- * In a derivative class, gets a value indicating whether this light is on.
- * @return {Boolean} true if the light is on; Otherwise, false.
- */
-Light.prototype.isOn = function() { return false; };
-
-/**
- * In a derivative class, gets a value indicating whether this light is off.
- * @return {Boolean} true if the light is off; Otherwise, false.
- */
-Light.prototype.isOff = function() { return false; };
-
-/**
- * In a derivative class, switches the light on.
- */
-Light.prototype.turnOn = function() {};
-
-/**
- * In a derivative class, switches the light off.
- */
-Light.prototype.turnOff = function() {};
-
-/**
- * In a derivate class, fires the light state change event.
- * @param  {LightStateChangeEvent} lightChangeEvent The state change event object.
- */
-Light.prototype.onLightStateChange = function(lightChangeEvent) {};
-
-/**
- * The name of the light state changed event.
- * @type {String}
- * @const
- */
-Light.EVENT_STATE_CHANGED = "lightStateChanged";
-
-/**
- * The name of the light level changed event.
- * @type {String}
- * @const
- */
-Light.EVENT_LEVEL_CHANGED = "lightLevelChanged";
 
 module.exports = Light;

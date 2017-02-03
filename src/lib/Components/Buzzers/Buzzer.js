@@ -22,33 +22,35 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Component = require('../Component.js');
+const Component = require('../Component.js');
 
 /**
  * A piezo buzzer device abstraction component interface.
  * @interface
  * @extends {Component}
  */
-function Buzzer() {
-  Component.call(this);
+class Buzzer extends Component {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Buzzers.Buzzer interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derived class, starts the buzzer at the specified frequency and
+   * (optionally) for the specified duration.
+   * @param  {Number} freq     The frequency to buzz at.
+   * @param  {Number} duration The duration in milliseconds. If not specified,
+   * buzzes until stopped.
+   */
+  buzz(freq, duration) {}
+
+  /**
+   * Stops the buzzer.
+   */
+  stop() {}
 }
-
-Buzzer.prototype.constructor = Buzzer;
-inherits(Buzzer, Component);
-
-/**
- * In a derived class, starts the buzzer at the specified frequency and
- * (optionally) for the specified duration.
- * @param  {Number} freq     The frequency to buzz at.
- * @param  {Number} duration The duration in milliseconds. If not specified,
- * buzzes until stopped.
- */
-Buzzer.prototype.buzz = function(freq, duration) {};
-
-/**
- * Stops the buzzer.
- */
-Buzzer.prototype.stop = function() {};
 
 module.exports = Buzzer;

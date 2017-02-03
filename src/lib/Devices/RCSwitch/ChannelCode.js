@@ -25,7 +25,7 @@
  * Possible channel codes.
  * @enum {Number}
  */
-var ChannelCode = {
+const ChannelCode = {
   /**
    * Channel 1.
    * @type {Number}

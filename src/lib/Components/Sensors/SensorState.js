@@ -25,7 +25,7 @@
  * Sensor states.
  * @enum {Number}
  */
-var SensorState = {
+const SensorState = {
   /**
    * The sensor is open.
    * @type {Number}

@@ -1,51 +1,47 @@
 'use strict';
 
-var inherits = require('util').inherits;
-var EventEmitter = require('events').EventEmitter;
-var GpioPins = require('../../src/lib/IO/GpioPins.js');
-var PinState = require('../../src/lib/IO/PinState.js');
-var PinStateChangeEvent = require('../../src/lib/IO/PinStateChangeEvent.js');
+const EventEmitter = require('events').EventEmitter;
+const GpioPins = require('../../src/lib/IO/GpioPins.js');
+const PinState = require('../../src/lib/IO/PinState.js');
+const PinStateChangeEvent = require('../../src/lib/IO/PinStateChangeEvent.js');
 
 // Generic event emitter that fires a PinStateChangeEvent.
-function DummyEmitter() {
-  EventEmitter.call(this);
+class DummyEmitter extends EventEmitter {
+    constructor() {
+        super();
+    }
 
-  var self = this;
+    onPinStateChange(stateChangeEvent) {
+        setImmediate(() => {
+            this.emit("pinStateChanged", stateChangeEvent);
+        });
+    }
 
-  this.onPinStateChange = function(stateChangeEvent) {
-    process.nextTick(function() {
-      self.emit("pinStateChanged", stateChangeEvent);
-    });
-  };
-
-  this.triggerEvent = function() {
-    var pinAddress = GpioPins.GPIO01.value;
-    var oldState = PinState.Low;
-    var newState = PinState.High;
-    var evt = new PinStateChangeEvent(oldState, newState, pinAddress);
-    self.onPinStateChange(evt);
-  };
+    triggerEvent() {
+        let pinAddress = GpioPins.GPIO01.value;
+        let oldState = PinState.Low;
+        let newState = PinState.High;
+        let evt = new PinStateChangeEvent(oldState, newState, pinAddress);
+        this.onPinStateChange(evt);
+    }
 }
-
-DummyEmitter.prototype.constructor = DummyEmitter;
-inherits(DummyEmitter, EventEmitter);
 
 module.exports.PinStateChangeEventTests = {
   testEvent: function(assert) {
-    var d = new DummyEmitter();
+    let d = new DummyEmitter();
     d.on("pinStateChanged", function(stateChangeEvent) {
       assert.expect(3);
 
-      var expected = PinState.Low;
-      var actual = stateChangeEvent.getOldState();
+      let expected = PinState.Low;
+      let actual = stateChangeEvent.oldState;
       assert.equals(actual, expected, "Old state is not PinState.Low");
 
       expected = PinState.High;
-      actual = stateChangeEvent.getNewState();
+      actual = stateChangeEvent.newState;
       assert.equals(actual, expected, "New state is not PinState.High");
 
       expected = 1;
-      actual = stateChangeEvent.getPinAddress();
+      actual = stateChangeEvent.pinAddress;
       assert.equals(actual, expected, "Pin address is not 1");
       assert.done();
     });

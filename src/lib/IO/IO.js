@@ -26,6 +26,7 @@
  * GPIO pins and other I/O buses/devices. This is the core namespace of jsRPi.
  *
  * @module IO
+ * @namespace jsrpi.IO
  */
 
 module.exports = {

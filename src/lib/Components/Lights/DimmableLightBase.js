@@ -22,47 +22,66 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var DimmableLight = require('./DimmableLight.js');
-var ComponentBase = require('../ComponentBase.js');
-var EventEmitter = require('events').EventEmitter;
-var Light = require('./Light.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
+const DimmableLight = require('./DimmableLight.js');
+const ComponentBase = require('../ComponentBase.js');
+const EventEmitter = require('events').EventEmitter;
+const Light = require('./Light.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
  * @classdesc Base class for dimmable light component abstractions.
- * @constructor
  * @implements {DimmableLight}
  * @extends {ComponentBase}
  * @extends {EventEmitter}
  */
-function DimmableLightBase() {
-  DimmableLight.call(this);
-
-  var self = this;
-  var _base = new ComponentBase();
-  var _emitter = new EventEmitter();
-
+class DimmableLightBase extends DimmableLight {
   /**
-   * Component name property.
-   * @property {String}
+   * Initializes a new instance of the jsrpi.Components.Lights.DimmableLightBase
+   * class.
+   * @constructor
    */
-  this.componentName = _base.componentName;
+  constructor() {
+    super();
+
+    this._base = new ComponentBase();
+    this._emitter = new EventEmitter();
+  }
 
   /**
-   * Tag property.
-   * @property {Object}
-   */
-  this.tag = _base.tag;
-
-  /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
+   * Gets or sets the name of this component.
+   * @property {String} componentName - The name of the component.
    * @override
    */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
+  get componentName() {
+    return this._base.componentName;
+  }
+
+  set componentName(name) {
+    this._base.componentName = name;
+  }
+
+  /**
+   * Gets or sets the object this component is tagged with.
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
+
+  /**
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
+  * @override
+  */
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
    * Checks to see if the property collection contains the specified key.
@@ -71,52 +90,55 @@ function DimmableLightBase() {
    * Otherwise, false.
    * @override
    */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
    * Sets the value of the specified property. If the property does not already exist
 	 * in the property collection, it will be added.
    * @param  {String} key   The property name (key).
    * @param  {String} value The value to assign to the property.
-   */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
-
-  /**
-   * Determines whether or not this instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
    * @override
    */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
-   * Releases all resources used by the GpioBase object.
+   * Determines whether or not this instance has been disposed. Returns
+   * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  get isDisposed() {
+    return this._base.isDisposed;
+  }
+
+  /**
+   * In subclasses, performs application-defined tasks associated with freeing,
+   * releasing, or resetting resources.
+   * @override
+   */
+  dispose() {
+    if (this._base.isDisposed) {
       return;
     }
 
-    _emitter.removeAllListeners();
-    _emitter = undefined;
-    _base.dispose();
-  };
+    this._emitter.removeAllListeners();
+    this._emitter = undefined;
+    this._base.dispose();
+  }
 
   /**
    * Removes all event listeners.
    * @override
    */
-  this.removeAllListeners = function() {
-    if (!_base.isDisposed()) {
-      _emitter.removeAllListeners();
+  removeAllListeners() {
+    if (!this._base.isDisposed) {
+      this._emitter.removeAllListeners();
     }
-  };
+  }
 
   /**
    * Attaches a listener (callback) for the specified event name.
@@ -126,12 +148,12 @@ function DimmableLightBase() {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.on = function(evt, callback) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("DimmableLightBase");
+  on(evt, callback) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.on(evt, callback);
-  };
+    this._emitter.on(evt, callback);
+  }
 
   /**
    * Emits the specified event.
@@ -140,46 +162,49 @@ function DimmableLightBase() {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.emit = function(evt, args) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("DimmableLightBase");
+  emit(evt, args) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.emit(evt, args);
-  };
+    this._emitter.emit(evt, args);
+  }
 
   /**
-   * Gets a value indicating whether this light is on.
-   * @return {Boolean} true if the light is on; Otherwise, false.
+   * Gets a value indicating whether this light is on. Returns true if the light
+   * is on; Otherwise, false.
+   * @property {Boolean}
+   * @readonly
    * @override
    */
-  this.isOn = function() {
-    return (self.getLevel() > self.minLevel());
-  };
+  get isOn() {
+    return (this.level > this.minLevel);
+  }
 
   /**
    * Gets a value indicating whether this light is off.
-   * @return {Boolean} true if the light is off; Otherwise, false.
+   * @property {Boolean} isOff - true if the light is off; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isOff = function() {
-    return (self.getLevel() <= self.minLevel());
-  };
+  get isOff() {
+    return (this.level <= this.minLevel);
+  }
 
   /**
    * Switches the light on.
    * @override
    */
-  this.turnOn = function() {
-    self.setLevel(self.maxLevel());
-  };
+  turnOn() {
+    this.level = this.maxLevel;
+  }
 
   /**
    * Switches the light off.
    * @override
    */
-  this.turnOff = function() {
-    self.setLevel(self.minLevel());
-  };
+  turnOff() {
+    this.level = this.minLevel;
+  }
 
   /**
    * Fires the light state change event.
@@ -187,17 +212,15 @@ function DimmableLightBase() {
    * object.
    * @override
    */
-  this.onLightStateChange = function(lightChangeEvent) {
-    if (_base.isDisposed()) {
+  onLightStateChange(lightChangeEvent) {
+    if (this._base.isDisposed) {
       throw new ObjectDisposedException("DimmableLightBase");
     }
 
-    var e = _emitter;
-    var evt = lightChangeEvent;
-    process.nextTick(function() {
-      e.emit(Light.EVENT_STATE_CHANGED, evt);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(Light.EVENT_STATE_CHANGED, lightChangeEvent);
+    });
+  }
 
   /**
    * Raises the light level changed event.
@@ -205,17 +228,15 @@ function DimmableLightBase() {
    * object.
    * @override
    */
-  this.onLightLevelChanged = function(levelChangeEvent) {
-    if (_base.isDisposed()) {
+  onLightLevelChanged(levelChangeEvent) {
+    if (this._base.isDisposed) {
       throw new ObjectDisposedException("DimmableLightBase");
     }
 
-    var e = _emitter;
-    var evt = levelChangeEvent;
-    process.nextTick(function() {
-      e.emit(Light.EVENT_LEVEL_CHANGED, evt);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(Light.EVENT_LEVEL_CHANGED, levelChangeEvent);
+    });
+  }
 
   /**
    * Gets the current brightness level percentage.
@@ -223,16 +244,14 @@ function DimmableLightBase() {
    * @return {Number}       The brightness percentage level.
    * @override
    */
-  this.getLevelPercentage = function(level) {
-    level = level || self.getLevel();
-    var min = Math.min(self.minLevel(), self.maxLevel());
-    var max = Math.max(self.minLevel(), self.maxLevel());
-    var range = (max - min);
-    var percentage = ((level * 100) / range);
+  getLevelPercentage(level) {
+    level = level || this.level;
+    let min = Math.min(this.minLevel, this.maxLevel);
+    let max = Math.max(this.minLevel, this.maxLevel);
+    let range = (max - min);
+    let percentage = ((level * 100) / range);
     return percentage;
-  };
+  }
 }
 
-DimmableLightBase.prototype.constructor = DimmableLightBase;
-inherits(DimmableLightBase, DimmableLight);
 module.exports = DimmableLightBase;

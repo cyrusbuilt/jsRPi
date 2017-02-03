@@ -10,9 +10,8 @@ echo
 sudo npm cache clean
 sudo npm update -g
 
-# Install global pacakges first.
+# Install global packages first.
 sudo npm install grunt-cli -g
-sudo npm install webpack -g
 sudo npm install npm-check-updates -g
 
 # Install developer dependencies.
@@ -20,11 +19,15 @@ sudo npm install grunt --save-dev
 sudo npm install grunt-contrib-clean --save-dev
 sudo npm install grunt-contrib-jshint --save-dev
 sudo npm install grunt-jsdoc --save-dev
-sudo npm install grunt-jsdoc-ng --save-dev
+sudo npm install ink-docstrap --save-dev
 sudo npm install jshint --save-dev
 sudo npm install nodeunit --save-dev
+sudo npm install grunt-contrib-nodeunit --save-dev
+sudo npm install webpack --save-dev
+sudo npm install webpack-dev-server --save-dev
 sudo npm install grunt-webpack --save-dev
 sudo npm install node-loader --save-dev
+sudo npm install grunt-contrib-watch --save-dev
 
 # Install project dependencies.
 # NOTE: To install pi-spi (SPI library for Node.js and Raspberry Pi),
@@ -40,7 +43,7 @@ sudo npm install convert-string --save
 sudo npm config set python python2.7
 sudo npm install pi-spi --save
 
-# Make sure all dependenices are up to date.
+# Make sure all dependencies are up to date.
 # They should already be after the above install
 # statements, but this will also make sure package.json
 # is properly upgraded too.

@@ -24,12 +24,17 @@
 
 /**
  * @fileOverview jsRPi Raspberry Pi Framework for NodeJS.
+ * @namespace jsrpi
  * @module jsrpi
  */
 
 var JSRPI_FRAMEWORK_VER = '0.1.2';
 
 module.exports = {
+  /**
+   * Gets the framework version.
+   * @return {String} The framework version string.
+   */
   getFrameworkVersion: function() { return JSRPI_FRAMEWORK_VER; },
   ArgumentNullException: require('./lib/ArgumentNullException.js'),
   BCM2835PWMClockDivider: require('./lib/BCM2835PWMClockDivider.js'),

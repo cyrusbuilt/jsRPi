@@ -31,10 +31,10 @@
  * @requires PiFaceGpioDigital
  */
 
-var PinMode = require('./PinMode.js');
-var PinState = require('./PinState.js');
-var PinPullResistance = require('./PinPullResistance.js');
-var PiFaceGpioDigital = require('./PiFaceGpioDigital.js');
+const PinMode = require('./PinMode.js');
+const PinState = require('./PinState.js');
+const PinPullResistance = require('./PinPullResistance.js');
+const PiFaceGpioDigital = require('./PiFaceGpioDigital.js');
 
 /**
  * Factory method for creating a PiFace digital output pin.
@@ -44,12 +44,12 @@ var PiFaceGpioDigital = require('./PiFaceGpioDigital.js');
  * @return {PiFaceGpioDigital}      A PiFace digital output.
  * @throws {IOException}
  */
-var createOutputPin = function(pin, name) {
+const createOutputPin = function(pin, name) {
   name = name || pin.name;
-  var pfgd = new PiFaceGpioDigital(pin, PinState.Low, pin.value, PiFaceGpioDigital.SPI_SPEED);
+  let pfgd = new PiFaceGpioDigital(pin, PinState.Low, pin.value, PiFaceGpioDigital.SPI_SPEED);
   pfgd.pinName = name;
-  pfgd.setMode(PinMode.OUT);
-  pfgd.setPullResistance(PinPullResistance.OFF);
+  pfgd.mode = PinMode.OUT;
+  pfgd.pullResistance = PinPullResistance.OFF;
   return pfgd;
 };
 
@@ -62,12 +62,12 @@ var createOutputPin = function(pin, name) {
  * @return {PiFaceGpioDigital}      A PiFace digital output.
  * @throws {IOException}
  */
-var createInputPin = function(pin, name) {
+const createInputPin = function(pin, name) {
   name = name || pin.name;
-  var pfgd = new PiFaceGpioDigital(pin, PinState.Low, pin.value, PiFaceGpioDigital.SPI_SPEED);
+  let pfgd = new PiFaceGpioDigital(pin, PinState.Low, pin.value, PiFaceGpioDigital.SPI_SPEED);
   pfgd.pinName = name;
-  pfgd.setMode(PinMode.IN);
-  pfgd.setPullResistance(PinPullResistance.PULL_UP);
+  pfgd.mode = PinMode.IN;
+  pfgd.pullResistance = PinPullResistance.PULL_UP;
   return pfgd;
 };
 

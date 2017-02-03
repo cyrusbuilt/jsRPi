@@ -28,23 +28,28 @@
  * unmanaged resources.
  * @interface
  */
-function Disposable() {
-  this.name = "Disposable";
+class Disposable {
+  /**
+   * Initializes a new instance of the jsrpi.Disposable interface.
+   * @constructor
+   */
+  constructor() {
+  }
 
   /**
    * In subclasses, performs application-defined tasks associated with freeing,
    * releasing, or resetting resources.
    */
-  this.dispose = function() {};
+  dispose() {}
 
   /**
    * In subclasses, determines whether or not the current instance has been
    * disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
+   * @property {Boolean} isDisposed - Returns true if disposed; Otherwise,
+   * false.
+   * @readonly
    */
-  this.isDisposed = function() { return false; };
+  get isDisposed() { return false; }
 }
-
-Disposable.prototype.constructor = Disposable;
 
 module.exports = Disposable;

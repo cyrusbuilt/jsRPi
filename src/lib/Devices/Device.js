@@ -21,46 +21,53 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Disposable = require('../Disposable.js');
+const Disposable = require('../Disposable.js');
 
 /**
  * A hardware abstraction device interface.
  * @interface
  * @extends {Disposable}
  */
-function Device() {
-  Disposable.call(this);
+class Device extends Disposable {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.Device interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * Gets or sets the device name.
+   * @property {String} deviceName - The device name.
+   */
+  get deviceName() { return ""; }
+
+  set deviceName(name) {}
+
+  /**
+   * Gets or sets the object this device is tagged with.
+   * @property {Object} tag - The tag.
+   */
+  get tag() { return null; }
+
+  set tag(t) {}
+
+  /**
+   * In an implementing class, gets the custom property collection.
+   * @property {Array} propertyCollection - The property collection.
+   * @readonly
+   */
+  get propertyCollection() {}
+
+  /**
+   * In an implementing class, checks to see if the property collection contains
+   * the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   */
+  hasProperty(key) {}
 }
-
-Device.prototype.constructor = Device;
-inherits(Device, Disposable);
-
-/**
- * Device name property.
- * @property {String}
- */
-Device.prototype.deviceName = "";
-
-/**
- * Tag property.
- * @property {Object}
- */
-Device.prototype.tag = null;
-
-/**
- * In an implementing class, gets the property collection.
- * @return {Array} A custom property collection.
- */
-Device.prototype.getPropertyCollection = function() {};
-
-/**
- * In an implementing class, checks to see if the property collection contains
- * the specified key.
- * @param  {String} key The key name of the property to check for.
- * @return {Boolean}    true if the property collection contains the key;
- * Otherwise, false.
- */
-Device.prototype.hasProperty = function(key) {};
 
 module.exports = Device;

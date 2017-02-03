@@ -26,7 +26,7 @@
  * LCD text alignment.
  * @enum {Number}
  */
-var LcdTextAlignment = {
+const LcdTextAlignment = {
   /**
    * Align the text to the center of the current line.
    * @type {Number}

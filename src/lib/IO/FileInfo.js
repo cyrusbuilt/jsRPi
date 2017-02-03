@@ -21,47 +21,53 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var fs = require('fs');
-var path = require('path');
-var ArgumentNullException = require('../ArgumentNullException.js');
-var IOException = require('./IOException.js');
+const util = require('util');
+const fs = require('fs');
+const path = require('path');
+const ArgumentNullException = require('../ArgumentNullException.js');
+const IOException = require('./IOException.js');
 
 /**
  * @classdesc A file object. This represents a file specifically, and not a
  * directory or other container.
- * @param {String} filePath The fully qualified name of the new file, or the
- * relative file name.
- * @throws {ArgumentNullException} if filePath is null or undefined.
- * @constructor
  */
-function FileInfo(filePath) {
-  if (util.isNullOrUndefined(filePath)) {
-    throw new ArgumentNullException("'filePath' param cannot be null or undefined.");
+class FileInfo {
+  /**
+   * Initializes a new instance of the jsrpi.IO.FileInfo class with the
+   * fully-qualified or relative name of the file or directory.
+   * @param {String} filePath The fully qualified name of the new file, or the
+   * relative file name.
+   * @throws {ArgumentNullException} if filePath is null or undefined.
+   * @constructor
+   */
+  constructor(filePath) {
+    if (util.isNullOrUndefined(filePath)) {
+      throw new ArgumentNullException("'filePath' param cannot be null or undefined.");
+    }
+
+    this._name = path.basename(filePath);
+    this._originalPath = filePath;
+    this._fullPath = path.normalize(this._originalPath);
   }
 
-  var self = this;
-  var _name = path.basename(filePath);
-  var _originalPath = filePath;
-  var _fullPath = path.normalize(_originalPath);
 
   /**
    * Returns the path as a string.
    * @return {String} A string representing the path.
    * @override
    */
-  this.toString = function() {
-    return _originalPath;
-  };
+  toString() {
+    return this._originalPath;
+  }
 
   /**
    * Checks to see if this file exists.
    * @return {Boolean} true if exists; Otherwise, false.
    */
-  this.exists = function() {
-    var result = -1;
+  exists() {
+    let result = -1;
     try {
-      result = fs.openSync(_fullPath, 'r');
+      result = fs.openSync(this._fullPath, 'r');
     }
     catch (e) {
     }
@@ -71,76 +77,76 @@ function FileInfo(filePath) {
       return true;
     }
     return false;
-  };
+  }
 
   /**
    * Gets the directory name (path) the file is in.
    * @return {String} The directory component of the path.
    */
-  this.getDirectoryName = function() {
-    return path.dirname(_fullPath);
-  };
+  getDirectoryName() {
+    return path.dirname(this._fullPath);
+  }
 
   /**
    * Gets the file name.
    * @return {String} The file name component of the full file path.
    */
-  this.getFileName = function() {
-    return _name;
-  };
+  getFileName() {
+    return this._name;
+  }
 
   /**
    * Gets the file extension name.
    * @return {String} The file extension (ie. "txt" or "pdf").
    */
-  this.getFileExtension = function() {
-    return path.extname(_name).substring(1);
-  };
+  getFileExtension() {
+    return path.extname(this._name).substring(1);
+  }
 
   /**
    * Deletes this file.
    * @throws {IOException} if an error occurred while trying to delete the file
    * (such as if the file does not exist).
    */
-  this.delete = function() {
+  delete() {
     try {
-      fs.unlinkSync(_fullPath);
+      fs.unlinkSync(this._fullPath);
     }
     catch (e) {
       throw new IOException(e.message);
     }
-  };
+  }
 
   /**
    * Gets the file size in bytes.
    * @return {Number} The file size in bytes if it exists; Otherwise, zero. May
    * also return zero if this is a zero byte file.
    */
-  this.getLength = function() {
-    if (!self.exists()) {
+  getLength() {
+    if (!this.exists()) {
       return 0;
     }
-    var stats = fs.statSync(_fullPath);
+
+    let stats = fs.statSync(this._fullPath);
     return stats["size"];
-  };
+  }
 
   /**
    * Gets the file name, without the file extension.
    * @return {String} The file name without file extension.
    */
-  this.getFileNameWithoutExtension = function() {
-    var extLen = path.extname(_name).length;
-    return _name.substring(0, _name.length - extLen);
-  };
+  getFileNameWithoutExtension() {
+    let extLen = path.extname(this._name).length;
+    return this._name.substring(0, this._name.length - extLen);
+  }
 
   /**
    * Gets the full file name path (dir + name + extension).
    * @return {String} The full file path.
    */
-  this.getFullName = function() {
-    return _fullPath;
-  };
+  getFullName() {
+    return this._fullPath;
+  }
 }
 
-FileInfo.prototype.constructor = FileInfo;
 module.exports = FileInfo;

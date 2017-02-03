@@ -21,23 +21,25 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var PiFaceBase = require('./PiFaceBase.js');
+const PiFaceBase = require('./PiFaceBase.js');
 
 /**
  * @classdesc PiFace device abstraction.
- * @param {Number} spiSpeed     The clock speed to set the bus to. Can be powers
- * of 2 (500KHz minimum up to 32MHz maximum). If not specified, the default of
- * SPI_SPEED (1MHz) will be used.]
- * @throws {IOException} if unable to read or write to the SPI bus.
- * @constructor
  * @extends {PiFaceBase}
  */
-function PiFaceDevice(spiSpeed) {
-  PiFaceBase.call(this, spiSpeed);
+class PiFaceDevice extends PiFaceBase {
+    /**
+     * Initializes a new instance of the jsrpi.Devices.PiFace.PiFaceDevice class
+     * with the SPI bus speed.
+     * @param {Number} spiSpeed     The clock speed to set the bus to. Can be powers
+     * of 2 (500KHz minimum up to 32MHz maximum). If not specified, the default of
+     * SPI_SPEED (1MHz) will be used.]
+     * @throws {IOException} if unable to read or write to the SPI bus.
+     * @constructor
+     */
+    constructor(spiSpeed) {
+        super(spiSpeed);
+    }
 }
-
-PiFaceDevice.prototype.constructor = PiFaceDevice;
-inherits(PiFaceDevice, PiFaceBase);
 
 module.exports = PiFaceDevice;

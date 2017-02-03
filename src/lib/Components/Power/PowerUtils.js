@@ -30,7 +30,7 @@
  * @requires PowerState
  */
 
-var PowerState = require('./PowerState.js');
+const PowerState = require('./PowerState.js');
 
 /**
  * Gets the name of the specified power state.
@@ -38,12 +38,12 @@ var PowerState = require('./PowerState.js');
  * @return {String}       The name of the state or an empty string if invalid or
  * not provided.
  */
-var getPowerStateName = function(state) {
+const getPowerStateName = function(state) {
   if ((state == null) || (state === undefined)) {
     return "";
   }
 
-  var name = "";
+  let name = "";
   switch (state) {
     case PowerState.On:
       name = "On";

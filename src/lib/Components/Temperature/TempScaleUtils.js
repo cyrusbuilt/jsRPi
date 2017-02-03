@@ -28,15 +28,15 @@
  * @requires TemperatureScale
  */
 
-var TemperatureScale = require('./TemperatureScale.js');
+const TemperatureScale = require('./TemperatureScale.js');
 
 /**
  * Gets the name of the scale.
  * @param  {TemperatureScale} scale The scale to get the name of.
  * @return {String}        The name of the scale.
  */
-var getScaleName = function(scale) {
-  var name = "";
+const getScaleName = function(scale) {
+  let name = "";
   switch (scale) {
     case TemperatureScale.Celcius:
       name = "Celcius";
@@ -61,7 +61,7 @@ var getScaleName = function(scale) {
  * @param  {TemperatureScale} scale [description]
  * @return {String}       The scale to get the postfix for.
  */
-var getScalePostfix = function(scale) {
+const getScalePostfix = function(scale) {
   return getScaleName(scale).charAt(0);
 };
 

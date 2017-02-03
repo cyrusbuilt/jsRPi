@@ -26,7 +26,7 @@
  * Display entry modes
  * @enum {Number}
  */
-var DisplayEntryModes = {
+const DisplayEntryModes = {
   /**
    * Cursor entry right.
    * @type {Number}

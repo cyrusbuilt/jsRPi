@@ -22,77 +22,79 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Component = require('../Component.js');
-var RelayState = require('./RelayState.js');
-var PinState = require('../../IO/PinState.js');
+const Component = require('../Component.js');
+const RelayState = require('./RelayState.js');
+const PinState = require('../../IO/PinState.js');
 
-var STATE_CHANGE = "stateChanged";
-var PULSE_START = "pulseStarted";
-var PULSE_STOP = "pulseStopped";
+const STATE_CHANGE = "stateChanged";
+const PULSE_START = "pulseStarted";
+const PULSE_STOP = "pulseStopped";
 
 /**
  * A relay component abstraction interface.
  * @interface
  * @extends {Component}
  */
-function Relay() {
-  Component.call(this);
+class Relay extends Component {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Relays.Relay interface.
+   */
+  constructor() {
+    super();
+  }
 
   /**
    * In a derivative class, fires the relay state change event.
    * @param  {RelayStateChangeEvent} stateChangeEvent The state change event object.
    */
-  this.onRelayStateChanged = function(stateChangeEvent) {};
+  onRelayStateChanged(stateChangeEvent) {}
 
   /**
    * In a derivative class, fires the pulse start event.
    */
-  this.onPulseStart = function() {};
+  onPulseStart() {}
 
   /**
    * In a derivate class, fires the pulse stop event.
    */
-  this.onPulseStop = function() {};
+  onPulseStop() {}
 
   /**
-   * In a derivative class, gets the relay state.
-   * @return {RelayState} The state of the relay.
+   * In a derivative class, gets or sets the relay state.
+   * @property {RelayState} state - The state of the relay.
    */
-  this.getState = function() { return RelayState.Closed; };
+  get state() { return RelayState.Closed; }
 
-  /**
-   * In a derivative class, sets the state of the relay.
-   * @param  {RelayState} state the state to set.
-   */
-  this.setState = function(state) {};
+  set state(s) {}
 
   /**
    * In a derivative class, checks to see if the relay is in an open state.
-   * @return {Boolean} true if open; Otherwise, false.
+   * @property {Boolean} isOpen - true if open; Otherwise, false.
+   * @readonly
    */
-  this.isOpen = function() { return false; };
+  get isOpen() { return false; }
 
   /**
    * In a derivative class, checks to see if the relay is in a closed state.
-   * @return {Boolean} true if closed; Otherwise, false.
+   * @property {Boolean} isClosed - true if closed; Otherwise, false.
+   * @readonly
    */
-  this.isClosed = function() { return false; };
+  get isClosed() { return false; }
 
   /**
    * In a derivative class, opens (deactivates) the relay.
    */
-  this.open = function() {};
+  open() {}
 
   /**
    * In a derivative class, closes (activates) the relay.
    */
-  this.close = function() {};
+  close() {}
 
   /**
    * In a derivative class, toggles the relay (switch on, then off);
    */
-  this.toggle = function() {};
+  toggle() {}
 
   /**
    * In a derivative class, pulses the relay on for the specified number of
@@ -100,52 +102,49 @@ function Relay() {
    * @param  {Number} millis The number of milliseconds to wait before switching
    * back off. If not specified or invalid, then pulses for DEFAULT_PULSE_MILLISECONDS.
    */
-  this.pulse = function(millis) {};
+  pulse(millis) {}
+
+  /**
+   * The name of the state change event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_STATE_CHANGED() { return STATE_CHANGE; }
+
+  /**
+   * The name of the pulse start event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_PULSE_START() { return PULSE_START; }
+
+  /**
+   * The name of the pulse stop event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_PULSE_STOPPED() { return PULSE_STOP; }
+
+  /**
+   * The pin state when the relay is open.
+   * @type {PinState}
+   * @const
+   */
+  static get OPEN_STATE() { return PinState.Low; }
+
+  /**
+   * The pin state when the relay is closed.
+   * @type {PinState}
+   * @const
+   */
+  static get CLOSED_STATE() { return PinState.High; }
+
+  /**
+   * The default pulse time (500ms [.2s]).
+   * @type {Number}
+   * @const
+   */
+  static get DEFAULT_PULSE_MILLISECONDS() { return 200; }
 }
-
-Relay.prototype.constructor = Relay;
-inherits(Relay, Component);
-
-/**
- * The name of the state change event.
- * @type {String}
- * @const
- */
-Relay.EVENT_STATE_CHANGED = STATE_CHANGE;
-
-/**
- * The name of the pulse start event.
- * @type {String}
- * @const
- */
-Relay.EVENT_PULSE_START = PULSE_START;
-
-/**
- * The name of the pulse stop event.
- * @type {String}
- * @const
- */
-Relay.EVENT_PULSE_STOPPED = PULSE_STOP;
-
-/**
- * The pin state when the relay is open.
- * @type {PinState}
- * @const
- */
-Relay.OPEN_STATE = PinState.Low;
-
-/**
- * The pin state when the relay is closed.
- * @type {PinState}
- * @const
- */
-Relay.CLOSED_STATE = PinState.High;
-
-/**
- * The default pulse time (500ms [.2s]).
- * @type {Number}
- * @const
- */
-Relay.DEFAULT_PULSE_MILLISECONDS = 200;
 
 module.exports = Relay;

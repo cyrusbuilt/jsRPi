@@ -1,20 +1,23 @@
 'use strict';
 
-var NotImplementedException = require('../src/lib/NotImplementedException.js');
+const NotImplementedException = require('../src/lib/NotImplementedException.js');
 
-function Dummy() {
-  this.dummyMethod = function() {
-    throw new NotImplementedException("This method is not yet implemented");
-  };
+class Dummy {
+    constructor() {
+    }
+
+    dummyMethod() {
+        throw new NotImplementedException("This method is not yet implemented");
+    }
 }
 
 Dummy.prototype.constructor = Dummy;
 
 module.exports.notImplementedExceptionTests = {
   testThrow: function(assert) {
-    var result = false;
+    let result = false;
     try {
-      var d = new Dummy();
+      let d = new Dummy();
       d.dummyMethod();
     }
     catch (e) {

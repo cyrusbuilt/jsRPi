@@ -31,23 +31,23 @@
  * @requires child_process
  * @requires StringUtils
  */
-var util = require('util');
-var exec = require('child_process');
-var str = require('./StringUtils.js');
+const util = require('util');
+const exec = require('child_process');
+const str = require('./StringUtils.js');
 
 /**
  * Executes the specified command string.
  * @param  {String} command The command to execute.
  * @return {Array}         A string array containing each line of the output.
  */
-var executeCommand = function(command) {
+const executeCommand = function(command) {
   if ((util.isNullOrUndefined(command)) || (command.length === 0) ||
       (typeof command !== 'string')) {
       return [];
   }
 
-  var args = "";
-  var cmdLine = command.split(" ");
+  let args = "";
+  let cmdLine = command.split(" ");
   if (cmdLine.length > 1) {
     command = cmdLine[0];
     for (var i = 1; i <= (cmdLine.length - 1); i++) {
@@ -59,8 +59,8 @@ var executeCommand = function(command) {
     }
   }
 
-  var result = [];
-  var cmdSpawn = exec.spawnSync(command, args.split(" "));
+  let result = [];
+  let cmdSpawn = exec.spawnSync(command, args.split(" "));
   if (cmdSpawn.status === 0) {
     if (!util.isNullOrUndefined(cmdSpawn.stdout)) {
       if (typeof cmdSpawn.stdout === 'string') {

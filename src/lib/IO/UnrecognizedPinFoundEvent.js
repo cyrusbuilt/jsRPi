@@ -23,23 +23,28 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 /**
- * Unrecognized pin found event.
- * @param {String} eventMessage A message describing the event.
- * @constructor
+ * @classdesc Unrecognized pin found event.
  * @event
  */
-function UnrecognizedPinFoundEvent(eventMessage) {
-  var _message = eventMessage;
+class UnrecognizedPinFoundEvent {
+  /**
+   * Initializes a new instance of the jsrpi.IO.UnrecognizedPinFoundEvent class
+   * with a message describing the event.
+   * @param {String} eventMessage A message describing the event.
+   * @constructor
+   */
+  constructor(eventMessage) {
+    this._message = eventMessage;
+  }
 
   /**
    * Gets the message describing the event.
-   * @return {String} The event description.
+   * @property {String} eventMessage - The event message.
+   * @readonly
    */
-  this.getEventMessage = function() {
-    return _message;
-  };
+  get eventMessage() {
+    return this._message;
+  }
 }
-
-UnrecognizedPinFoundEvent.prototype.constructor = UnrecognizedPinFoundEvent;
 
 module.exports = UnrecognizedPinFoundEvent;

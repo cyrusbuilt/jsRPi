@@ -22,46 +22,64 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var ComponentBase = require('../ComponentBase.js');
-var Lcd = require('./Lcd.js');
-var StringUtils = require('../../StringUtils.js');
-var InvalidOperationException = require('../../InvalidOperationException.js');
-var LcdTextAlignment = require('./LcdTextAlignment.js');
-var sb = require('string-builder');
+const ComponentBase = require('../ComponentBase.js');
+const Lcd = require('./Lcd.js');
+const StringUtils = require('../../StringUtils.js');
+const InvalidOperationException = require('../../InvalidOperationException.js');
+const LcdTextAlignment = require('./LcdTextAlignment.js');
+const sb = require('string-builder');
 
 /**
 * Base class for LCD display abstractions.
-* @constructor
 * @implements {Lcd}
 * @extends {ComponentBase}
 */
-function LcdBase() {
-  Lcd.call(this);
+class LcdBase extends Lcd {
+  /**
+   * Initializes a new instance of the jsrpi.Components.LcdDisplay.LcdBase class.
+   * @constructor
+   */
+  constructor() {
+    super();
 
-  var self = this;
-  var _base = new ComponentBase();
+    this._base = new ComponentBase();
+  }
 
   /**
-  * Component name property.
-  * @property {String}
-  */
-  this.componentName = _base.componentName;
+   * Gets or sets the name of this component.
+   * @property {String} componentName - The name of the component.
+   * @override
+   */
+  get componentName() {
+    return this._base.componentName;
+  }
+
+  set componentName(name) {
+    this._base.componentName = name;
+  }
 
   /**
-  * Tag property.
-  * @property {Object}
-  */
-  this.tag = _base.tag;
+   * Gets or sets the object this component is tagged with.
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
 
   /**
-  * Gets the property collection.
-  * @return {Array} A custom property collection.
+  * Gets the cutsom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
   * @override
   */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
   * Checks to see if the property collection contains the specified key.
@@ -70,79 +88,52 @@ function LcdBase() {
   * Otherwise, false.
   * @override
   */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
   * Sets the value of the specified property. If the property does not already exist
   * in the property collection, it will be added.
   * @param  {String} key   The property name (key).
   * @param  {String} value The value to assign to the property.
+  * @override
   */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
   * Determines whether or not the current instance has been disposed.
-  * @return {Boolean} true if disposed; Otherwise, false.
+  * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
-
-  /**
-  * Gets the property collection.
-  * @return {Array} A custom property collection.
-  * @override
-  */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
-
-  /**
-  * Checks to see if the property collection contains the specified key.
-  * @param  {String} key The key name of the property to check for.
-  * @return {Boolean}    true if the property collection contains the key;
-  * Otherwise, false.
-  * @override
-  */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
-
-  /**
-  * Sets the value of the specified property. If the property does not already exist
-  * in the property collection, it will be added.
-  * @param  {String} key   The property name (key).
-  * @param  {String} value The value to assign to the property.
-  */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  get isDisposed() {
+    return this._base.isDisposed;
+  }
 
   /**
   * Returns the string representation of this object. In this case, it simply
   * returns the component name.
   * @return {String} The name of this component.
+  * @override
   */
-  this.toString = function() {
-    return _base.toString();
-  };
+  toString() {
+    return this._base.toString();
+  }
 
   /**
   * Releases all managed resources used by this instance.
   * @override
   */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  dispose() {
+    if (this._base.isDisposed) {
       return;
     }
 
-    _base.dispose();
-  };
+    this._base.dispose();
+  }
 
   /**
   * Validates the index of the specified row.
@@ -151,12 +142,12 @@ function LcdBase() {
   * display.
   * @protected
   */
-  this._validateRowIndex = function(row) {
+  _validateRowIndex(row) {
     row = row || 0;
-    if ((row >= self.getRowCount()) || (row < 0)) {
+    if ((row >= this.rowCount) || (row < 0)) {
       throw new InvalidOperationException("Invalid row index.");
     }
-  };
+  }
 
   /**
   * Validates the index of the column.
@@ -165,12 +156,12 @@ function LcdBase() {
   * display.
   * @protected
   */
-  this._validateColumnIndex = function(column) {
+  _validateColumnIndex(column) {
     column = column || 0;
-    if ((column >= self.getColumnCount()) || (column < 0)) {
+    if ((column >= this.columnCount) || (column < 0)) {
       throw new InvalidOperationException("Invalid column index.");
     }
-  };
+  }
 
   /**
   * Validates the specified coordinates.
@@ -180,10 +171,10 @@ function LcdBase() {
   * for the display.
   * @protected
   */
-  this._validateCoordinates = function(row, column) {
-    self._validateRowIndex(row);
-    self._validateColumnIndex(column);
-  };
+  _validateCoordinates(row, column) {
+    this._validateRowIndex(row);
+    this._validateColumnIndex(column);
+  }
 
   // TODO Implement setCursorPosition() in derived component.
   // setCursorPosition(row, column) {
@@ -199,18 +190,18 @@ function LcdBase() {
   * the screen (row 0, column 0).
   * @override
   */
-  this.sendCursorHome = function() {
-    self.setCursorPosition(0, 0);
-  };
+  sendCursorHome() {
+    this.setCursorPosition(0, 0);
+  }
 
   /**
   * Writes a single character to the display.
   * @param  {String} char A single character to write.
   * @override
   */
-  this.writeSingleChar = function(char) {
-    self.writeSingleByte(char.charCodeAt(0));
-  };
+  writeSingleChar(char) {
+    this.writeSingleByte(char.charCodeAt(0));
+  }
 
   /**
   * Write the specified byte to the display at the specified position.
@@ -221,11 +212,11 @@ function LcdBase() {
   * the display.
   * @override
   */
-  this.writeByte = function(row, column, data) {
-    self._validateCoordinates(row, column);
-    self.setCursorPosition(row, column);
-    self.writeSingleByte(data);
-  };
+  writeByte(row, column, data) {
+    this._validateCoordinates(row, column);
+    this.setCursorPosition(row, column);
+    this.writeSingleByte(data);
+  }
 
   /**
   * Writes the specified byte buffer to the display at the specified position.
@@ -236,13 +227,13 @@ function LcdBase() {
   * for the display.
   * @override
   */
-  this.writeBytes = function(row, column, dataBuffer) {
-    self._validateCoordinates(row, column);
-    self.setCursorPosition(row, column);
-    for (var i = 0; i < dataBuffer.length; i++) {
-      self.writeSingleByte(dataBuffer[i]);
+  writeBytes(row, column, dataBuffer) {
+    this._validateCoordinates(row, column);
+    this.setCursorPosition(row, column);
+    for (let i = 0; i < dataBuffer.length; i++) {
+      this.writeSingleByte(dataBuffer[i]);
     }
-  };
+  }
 
   /**
   * Wwrites a single character to the display at the specified position.
@@ -253,11 +244,11 @@ function LcdBase() {
   * the display.
   * @override
   */
-  this.writeChar = function(row, column, char) {
-    self._validateCoordinates(row, column);
-    self.setCursorPosition(row, column);
-    self.writeSingleChar(char);
-  };
+  writeChar(row, column, char) {
+    this._validateCoordinates(row, column);
+    this.setCursorPosition(row, column);
+    this.writeSingleChar(char);
+  }
 
   /**
   * Writes the specified character buffer to the display at the specified
@@ -270,13 +261,13 @@ function LcdBase() {
   * @override
   */
 
-  this.writeChars = function(row, column, charBuffer) {
-    self._validateCoordinates(row, column);
-    self.setCursorPosition(row, column);
-    for (var i = 0; i < charBuffer.length; i++) {
-      self.writeSingleChar(charBuffer[i]);
+  writeChars(row, column, charBuffer) {
+    this._validateCoordinates(row, column);
+    this.setCursorPosition(row, column);
+    for (let i = 0; i < charBuffer.length; i++) {
+      this.writeSingleChar(charBuffer[i]);
     }
-  };
+  }
 
   /**
   * In a derivative class, writes text to the display in the specified row.
@@ -287,12 +278,12 @@ function LcdBase() {
   * display.
   * @override
   */
-  this.writeString = function(row, str, alignment) {
+  writeString(row, str, alignment) {
     // Compute the column index.
-    var columnIndex = 0;
+    let columnIndex = 0;
     if ((alignment !== LcdTextAlignment.Left) &&
-    (str.length < self.getColumnCount())) {
-      var remaining = (self.getColumnCount() - str.length);
+    (str.length < this.columnCount)) {
+      let remaining = (this.columnCount - str.length);
       if (alignment === LcdTextAlignment.Right) {
         columnIndex = remaining;
       }
@@ -302,15 +293,15 @@ function LcdBase() {
     }
 
     // Validate and set cursor position.
-    self._validateCoordinates(row, columnIndex);
-    self.setCursorPosition(row, columnIndex);
+    this._validateCoordinates(row, columnIndex);
+    this.setCursorPosition(row, columnIndex);
 
     // Write out each character of the string.
     var chars = str.split("");
-    for (var i = 0; i < chars.length; i++) {
-      self.writeSingleChar(chars[i]);
+    for (let i = 0; i < chars.length; i++) {
+      this.writeSingleChar(chars[i]);
     }
-  };
+  }
 
   /**
   * Write the specified string to the display, aligned using the specified
@@ -322,10 +313,10 @@ function LcdBase() {
   * display.
   * @override
   */
-  this.writeLineAligned = function(row, str, alignment) {
-    self.writeString(row, str, alignment);
-    self.setCursorPosition(row + 1, 0);
-  };
+  writeLineAligned(row, str, alignment) {
+    this.writeString(row, str, alignment);
+    this.setCursorPosition(row + 1, 0);
+  }
 
   /**
   * Write the specified data to the display with the text aligned to the left,
@@ -336,9 +327,9 @@ function LcdBase() {
   * display.
   * @override
   */
-  this.writeLine = function(row, str) {
-    self.writeLineAligned(row, str, LcdTextAlignment.Left);
-  };
+  writeLine(row, str) {
+    this.writeLineAligned(row, str, LcdTextAlignment.Left);
+  }
 
   /**
   * Clear one or more characters starting at the specified row and column. Can
@@ -352,22 +343,20 @@ function LcdBase() {
   * specified, then assumes remainder of row.
   * @override
   */
-  this.clear = function(row, column, length) {
+  clear(row, column, length) {
     row = row || 0;
     column = column || 0;
-    length = length || self.getColumnCount();
+    length = length || this.columnCount;
 
     for (var i = row; i < length; i++) {
       sb.append(StringUtils.EMPTY);
     }
 
-    self._validateRowIndex(row);
-    for (var j = row; j < self.getRowCount(); j++) {
-      self.writeString(j, sb.toString(), LcdTextAlignment.Left);
+    this._validateRowIndex(row);
+    for (let j = row; j < this.rowCount; j++) {
+      this.writeString(j, sb.toString(), LcdTextAlignment.Left);
     }
-  };
+  }
 }
 
-LcdBase.prototype.constructor = Lcd;
-inherits(LcdBase, Lcd);
 module.exports = LcdBase;

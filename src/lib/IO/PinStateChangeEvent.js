@@ -25,43 +25,49 @@
 
 /**
  * Pin state change event.
- * @param {PinState} oldState   The previous pin state.
- * @param {PinState} newState   The new pin state.
- * @param {Number} pinAddress The pin address.
- * @constructor
  * @event
  */
-function PinStateChangeEvent(oldState, newState, pinAddress) {
-  var _oldState = oldState;
-  var _newState = newState;
-  var _pinAddress = pinAddress;
+class PinStateChangeEvent {
+  /**
+   * Initializes a new instance of the jsrpi.IO.PinStateChangeEvent class.
+   * @param {PinState} oldState   The previous pin state.
+   * @param {PinState} newState   The new pin state.
+   * @param {Number} pinAddress The pin address.
+   * @constructor
+   */
+  constructor(oldState, newState, pinAddress) {
+    this._oldState = oldState;
+    this._newState = newState;
+    this._pinAddress = pinAddress || 0;
+  }
+
 
   /**
    * Gets the previous state of the pin.
-   * @return {PinState} The previous pin state.
+   * @property {PinState} oldState - The previous pin state.
+   * @readonly
    */
-  this.getOldState = function() {
-    return _oldState;
-  };
+  get oldState() {
+    return this._oldState;
+  }
 
   /**
    * Gets the new (current) state of the pin.
-   * @return {PinState} The new pin state.
+   * @property {PinState} newState - The current (new) pin state.
+   * @readonly
    */
-  this.getNewState = function() {
-    return _newState;
-  };
+  get newState() {
+    return this._newState;
+  }
 
   /**
    * Gets the pin address.
-   * @return {Number} The pin address.
+   * @property {Number} pinAddress - The pin address (GPIO number).
+   * @readonly
    */
-  this.getPinAddress = function() {
-    _pinAddress = _pinAddress || 0;
-    return _pinAddress;
-  };
+  get pinAddress() {
+    return this._pinAddress;
+  }
 }
-
-PinStateChangeEvent.prototype.constructor = PinStateChangeEvent;
 
 module.exports = PinStateChangeEvent;

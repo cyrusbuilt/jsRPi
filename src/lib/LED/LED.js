@@ -26,6 +26,7 @@
  * LED controllers.
  *
  * @module LED
+ * @namespace jsrpi.LED
  */
 
 module.exports = {

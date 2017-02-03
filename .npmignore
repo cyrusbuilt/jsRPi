@@ -42,3 +42,6 @@ webpack.config.js
 
 # Grunt build script
 Gruntfile.js
+
+# Visual Studio Code settings
+.vscode/

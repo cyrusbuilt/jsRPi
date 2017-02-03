@@ -49,28 +49,28 @@
  * the pin parameter.
  * @enum {Number}
  */
-var GpioPins = {
+const GpioPins = {
   /**
    * No pin (null).
-   * @type {Number}
+   * @type {Object}
    */
   GPIO_NONE : { value: -1, name: "GPIO_NONE" },
 
   /**
    * GPIO 00 (pin P1 - 03).
-   * @type {Number}
+   * @type {Object}
    */
   GPIO00 : { value: 0, name: "GPIO00" },
 
   /**
    * GPIO 01 (pin P1-05).
-   * @type {Number}
+   * @type {Object}
    */
   GPIO01 : { value: 1, name: "GPIO01" },
 
   /**
-   *  GPIO 04 (pin P1-07).
-   * @type {Number}
+   * GPIO 04 (pin P1-07).
+   * @type {Object}
    */
   GPIO04 : { value: 4, name: "GPI04" },
 

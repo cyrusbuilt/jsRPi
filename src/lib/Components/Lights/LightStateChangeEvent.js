@@ -23,22 +23,28 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 /**
- * The event that gets raised when a light changes state.
- * @param {Boolean} isOn Set true if the light is on.
- * @constructor
+ * @classdesc The event that gets raised when a light changes state.
  * @event
  */
-function LightStateChangeEvent(isOn) {
-  var _isOn = isOn || false;
+class LightStateChangeEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Lights.LightStateChangeEvent
+   * class with the flag indicating whether or not the light is on.
+   * @param {Boolean} isOn Set true if the light is on.
+   * @constructor
+   */
+  constructor(isOn) {
+    this._isOn = isOn || false;
+  }
 
   /**
    * Gets a value indicating whether this light is on.
-   * @return {Boolean} true if the light is on; Otherwise, false.
+   * @property {Boolean} isOn - true if the light is on; Otherwise, false.
+   * @readonly
    */
-  this.isOn = function() {
-    return _isOn;
-  };
+  get isOn() {
+    return this._isOn;
+  }
 }
 
-LightStateChangeEvent.prototype.constructor = LightStateChangeEvent;
 module.exports = LightStateChangeEvent;

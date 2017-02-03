@@ -23,30 +23,50 @@
 
 /**
  * A 2-dimensional size structure.
- * @param {Number} width  The width of an object.
- * @param {Number} height The height of an object.
- * @constructor
  * @struct
  */
-function Size(width, height) {
+class Size {
   /**
-   * @property {Number} The object width.
+   * Initializes a new instance of the jsrpi.Size class.
+   * @param {Number} width  The width of an object.
+   * @param {Number} height The height of an object.
+   * @constructor
    */
-  this.width = width || 0;
+  constructor(width, height) {
+    this._width = width || 0;
+    this._height = height || 0;
+  }
 
   /**
-   * @property {Number} The object height.
+   * Gets or sets the object width.
+   * @property {Number} width - The object width.
    */
-  this.height = height || 0;
+  get width() {
+    return this._width;
+  }
+
+  set width(w) {
+    this._width = w;
+  }
+
+  /**
+   * Gets or sets the object height.
+   * @property {Number} height - The object height.
+   */
+  get height() {
+    return this._height;
+  }
+
+  set height(h) {
+    this._height = h;
+  }
+
+  /**
+  * An empty instance of Size.
+  * @type {Size}
+  * @const
+  */
+  static get EMPTY() { return new Size(0, 0); }
 }
-
-Size.prototype.constructor = Size;
-
-/**
- * An empty instance of Size.
- * @type {Size}
- * @const
- */
-Size.EMPTY = new Size(0, 0);
 
 module.exports = Size;

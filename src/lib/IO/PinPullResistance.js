@@ -25,7 +25,7 @@
  * Pin pull up/down resistance definition.
  * @enum {Object}
  */
-var PinPullResistance = {
+const PinPullResistance = {
   /**
    * Off. No resistance change.
    * @type {Object}

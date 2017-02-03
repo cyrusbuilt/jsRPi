@@ -25,32 +25,32 @@
 /**
  * Module dependencies.
  */
-var util = require('util');
-var IllegalArgumentException = require("./IllegalArgumentException.js");
-var ArgumentNullException = require("./ArgumentNullException.js");
-var StringBuilder = require("string-builder");
-var Assert = require('assert');
+const util = require('util');
+const IllegalArgumentException = require("./IllegalArgumentException.js");
+const ArgumentNullException = require("./ArgumentNullException.js");
+const StringBuilder = require("string-builder");
+const Assert = require('assert');
 
 /**
  * The number of address bits per word.
  * @const {Number}
  * @package
  */
-var ADDRESS_BITS_PER_WORD = 6;
+const ADDRESS_BITS_PER_WORD = 6;
 
 /**
  * The number of bits per word.
  * @const {Number}
  * @package
  */
-var BITS_PER_WORD = 1 << ADDRESS_BITS_PER_WORD;
+const BITS_PER_WORD = 1 << ADDRESS_BITS_PER_WORD;
 
 /**
  * Given the specified bit index, returns the word index containing it.
  * @param  {Number} bitIndex The bit index.
  * @return {Number}          The word index containing the specified bit index.
  */
-var wordIndex = function(bitIndex) {
+const wordIndex = function(bitIndex) {
   return (bitIndex >> ADDRESS_BITS_PER_WORD);
 };
 
@@ -63,7 +63,7 @@ var wordIndex = function(bitIndex) {
  * @throws {IllegalArgumentException} if either parameter is not a number.
  * @throws {RangeError} if either parameter is less than zero.
  */
-var checkRange = function(fromIndex, toIndex) {
+const checkRange = function(fromIndex, toIndex) {
   if (util.isNullOrUndefined(fromIndex)) {
     throw new ArgumentNullException("fromIndex cannot be null.");
   }
@@ -99,7 +99,7 @@ var checkRange = function(fromIndex, toIndex) {
  * @return {Number}   The number of trailing zeros.
  * @throws {IllegalArgumentException} if 'n' parameter is not a number.
  */
-var numberOfTrailingZeros = function(n) {
+const numberOfTrailingZeros = function(n) {
   if (util.isNullOrUndefined(n)) {
     return 0;
   }
@@ -108,9 +108,9 @@ var numberOfTrailingZeros = function(n) {
     throw new IllegalArgumentException("param 'n' must be a number.");
   }
 
-  var mask = 1;
-  var result = 64;
-  for (var i = 0; i < 64; i++, mask <<= 1) {
+  let mask = 1;
+  let result = 64;
+  for (let i = 0; i < 64; i++, mask <<= 1) {
     if ((n & mask) !== 0) {
       result = i;
       break;
@@ -125,7 +125,7 @@ var numberOfTrailingZeros = function(n) {
  * @param  {Array} words An array of bits to convert into a BitSet.
  * @return {BitSet}      A new BitSet containing the specified bits.
  */
-var fromWordArray = function(words) {
+const fromWordArray = function(words) {
   if (!util.isArray(words)) {
     return null;
   }
@@ -133,6 +133,7 @@ var fromWordArray = function(words) {
 };
 
 /**
+ * @classdesc
  * An implementation of a vector of bits that grows as needed. Each component of
  * the bit set has a Boolean value. The bits of a BitSet are indexed by
  * non-negative integers. Individual indexed bits can be examined, set, or
@@ -145,24 +146,49 @@ var fromWordArray = function(words) {
  * logical length of a BitSet and is defined independently of implementation.
  * Unless otherwise noted, passing a null parameter to any of the methods in a
  * BitSet will result in a ArgumentNullException.
- * @param {Number|Array} bits The initial size of the BitSet - or - an array
- * (words) to compose this instance from.
- * @throws {IllegalArgumentException} if 'bits' param is not a valid type (must
- * be a number or array of bits).
- * @throws {RangeError} if 'bits' is a number but is less than zero.
- * @constructor
  */
-function BitSet(bits) {
-  var BIT_INDEX_MASK = BITS_PER_WORD - 1;
-  var LONG_MASK = 0x3f;
+class BitSet {
+  /**
+   * Initializes a new instance of the jsrpi.BitSet class with an optional size
+   * or the internal array or an array of words to compose this BitSet from.
+   * @param {Number|Array} bits The initial size of the BitSet - or - an array
+   * (words) to compose this instance from.
+   * @throws {IllegalArgumentException} if 'bits' param is not a valid type (must
+   * be a number or array of bits).
+   * @throws {RangeError} if 'bits' is a number but is less than zero.
+   * @constructor
+   */
+  constructor(bits) {
+    this._bits = [];
+    this._wordsInUse = 0;
+    this._sizeIsSticky = false;
+    this.name = "BitSet";
+    this.BIT_INDEX_MASK = BITS_PER_WORD - 1;
+    this.LONG_MASK = 0x3f;
 
-  var that = this;
-  var _bits = [];
-  var _wordsInUse = 0;
-  var _sizeIsSticky = false;
-  var self = this;
+    // Main constructor logic.
+    if (util.isNullOrUndefined(bits)) {
+      this._bits = new Array(BITS_PER_WORD);
+    }
+    else {
+      if (typeof bits === 'number') {
+        if (bits < 0) {
+          throw new RangeError("'bits' param must not be negative.");
+        }
 
-  this.name = "BitSet";
+        this._bits = new Array(wordIndex(bits - 1) + 1);
+        this._sizeIsSticky = true;
+      }
+      else if (util.isArray(bits)) {
+        this._bits = bits;
+        this._wordsInUse = this._bits.length;
+        this._checkInvariants();
+      }
+      else {
+        throw new IllegalArgumentException("param 'bits' must be a number or an array of bits.");
+      }
+    }
+  }
 
   /**
    * Every public method must preserve invariants. This method checks to see if
@@ -170,71 +196,52 @@ function BitSet(bits) {
    * assertions fail.
    * @private
    */
-  var checkInvariants = function() {
-    Assert.ok((_wordsInUse === 0) || (_bits[_wordsInUse - 1] !== 0));
-    Assert.ok((_wordsInUse >= 0) && (_wordsInUse <= _bits.length));
-    Assert.ok((_wordsInUse === _bits.length) || (_bits[_wordsInUse] === 0));
-  };
-
-  // Main constructor logic.
-  if (util.isNullOrUndefined(bits)) {
-    _bits = new Array(BITS_PER_WORD);
-  }
-  else {
-    if (typeof bits === 'number') {
-      if (bits < 0) {
-        throw new RangeError("'bits' param must not be negative.");
-      }
-      _bits = new Array(wordIndex(bits - 1) + 1);
-      _sizeIsSticky = true;
-    }
-    else if (util.isArray(bits)) {
-      _bits = bits;
-      _wordsInUse = _bits.length;
-      checkInvariants();
-    }
-    else {
-      throw new IllegalArgumentException("param 'bits' must be a number or an array of bits.");
-    }
+  _checkInvariants() {
+    Assert.ok((this._wordsInUse === 0) || (this._bits[this._wordsInUse - 1] !== 0));
+    Assert.ok((this._wordsInUse >= 0) && (this._wordsInUse <= this._bits.length));
+    Assert.ok((this._wordsInUse === this._bits.length) || (this._bits[this._wordsInUse] === 0));
   }
 
   /**
    * Gets a value indicating whether is BitSet is empty.
-   * @return {Boolean} true if empty; Otherwise, false.
+   * @property {Boolean} isEmpty - true if empty; Otherwise, false.
+   * @readonly
    */
-  this.isEmpty = function() {
-    return (_wordsInUse === 0);
-  };
+  get isEmpty() {
+    return (this._wordsInUse === 0);
+  }
 
   /**
    * Gets the "logical size" of this bit set: the index of the highest set bit
    * in the BitSet plus one.
-   * @return {Number} The logical size of this BitSet or zero if this instance
-   * contains no bits.
+   * @property {Number} length - Returns the logical size of this BitSet or zero
+   * if this instance contains no bits.
+   * @readonly
    */
-  this.length = function() {
-    if (_wordsInUse === 0) {
+  get length() {
+    if (this._wordsInUse === 0) {
       return 0;
     }
 
-    if ((_bits === null) || (_bits.length === 0)) {
-      _wordsInUse = 0;
-      return _wordsInUse;
+    if ((this._bits === null) || (this._bits.length === 0)) {
+      this._wordsInUse = 0;
+      return this._wordsInUse;
     }
 
-    var positions = numberOfTrailingZeros(_bits[_wordsInUse - 1]);
-    return (BITS_PER_WORD * (_wordsInUse - 1) + (BITS_PER_WORD - positions));
-  };
+    let positions = numberOfTrailingZeros(this._bits[this._wordsInUse - 1]);
+    return (this.BITS_PER_WORD * (this._wordsInUse - 1) + (this.BITS_PER_WORD - positions));
+  }
 
   /**
    * Gets the number of bits of space actually in use by this BitSet to
-   * represent bit values. The maximum element in the set is the size minus the
-   * first element.
-   * @return {Number} The number of bits currently in this BitSet.
+   * represent bit values.
+   * @property {Number} size - Returns The maximum element in the set is the
+   * size minus the first element.
+   * @readonly
    */
-  this.size = function() {
-    return (_bits.length * BITS_PER_WORD);
-  };
+  get size() {
+    return (this._bits.length * this.BITS_PER_WORD);
+  }
 
   /**
    * Sets the internal word count field to the logical size in words of the
@@ -242,30 +249,31 @@ function BitSet(bits) {
    * use is less than or equal to the current value of the words in use field!!!
    * @private
    */
-  var recalcualteWordsInUse = function() {
-    var i = 0;
-    for (i = _wordsInUse - 1; i >= 0; i--) {
-      if (_bits[i] !== 0) {
+  _recalcualteWordsInUse() {
+    let i = 0;
+    for (i = this._wordsInUse - 1; i >= 0; i--) {
+      if (this._bits[i] !== 0) {
         break;
       }
     }
-    _wordsInUse = i + 1;
-  };
+
+    this._wordsInUse = i + 1;
+  }
 
   /**
    * Ensures that this BitSet can hold enough words.
    * @param  {Number} lastElt The minimum acceptable number of words.
    * @private
    */
-  var ensureCapacity = function(lastElt) {
-    var nd = [];
-    if (lastElt >= _bits.length) {
+  _ensureCapacity(lastElt) {
+    let nd = [];
+    if (lastElt >= this._bits.length) {
       nd = new Array(lastElt + 1);
-      nd = (_bits || []).concat();
-      _bits = nd;
-      _sizeIsSticky = false;
+      nd = (this._bits || []).concat();
+      this._bits = nd;
+      this._sizeIsSticky = false;
     }
-  };
+  }
 
   /**
    * Ensures that the BitSet can accomodate a given word index, temporarily
@@ -274,13 +282,13 @@ function BitSet(bits) {
    * @param  {Number} wordIndex The index to be accomodated.
    * @private
    */
-  var expandTo = function(wordIndex) {
-    var required = (wordIndex + 1);
-    if (_wordsInUse < required) {
-      ensureCapacity(required);
-      _wordsInUse = required;
+  _expandTo(wordIndex) {
+    let required = (wordIndex + 1);
+    if (this._wordsInUse < required) {
+      this._ensureCapacity(required);
+      this._wordsInUse = required;
     }
-  };
+  }
 
   /**
    * Attempts to reduce internal storage used for the bits in this BitSet.
@@ -288,40 +296,41 @@ function BitSet(bits) {
    * by a subsequent call to the size() property.
    * @private
    */
-  var trimToSize = function() {
-    if (_wordsInUse !== _bits.length) {
-      var copy = (_bits || []).concat().slice(0, _wordsInUse);
-      _bits = copy;
-      checkInvariants();
+  _trimToSize() {
+    if (this._wordsInUse !== this._bits.length) {
+      let copy = (this._bits || []).concat().slice(0, this._wordsInUse);
+      this._bits = copy;
+      this._checkInvariants();
     }
-  };
+  }
 
   /**
    * Gets the number of words in use.
    * @return {Number} The number of words in use.
    */
-  this.getWordsInUse = function() {
-    return _wordsInUse;
-  };
+  getWordsInUse() {
+    return this._wordsInUse;
+  }
 
   /**
    * Gets the internal bit array.
    * @return {Array} The internal bit array.
    */
-  this.getBits = function() {
-    return _bits;
-  };
+  getBits() {
+    return this._bits;
+  }
 
   /**
    * Returns the number of bits set to true in this BitSet.
-   * @return {Number} The number of bits set.
+   * @property {Number} cardinality - The number of bits set true.
+   * @readonly
    */
-  this.cardinality = function() {
-    var card = 0;
-    var a = 0;
-    var b = 0;
-    for (var i = _bits.length - 1; i >= 0; i--) {
-      a = _bits[i];
+  get cardinality() {
+    let card = 0;
+    let a = 0;
+    let b = 0;
+    for (let i = this._bits.length - 1; i >= 0; i--) {
+      a = this._bits[i];
       // Take care of common cases.
       if (a === 0) {
         continue;
@@ -341,7 +350,7 @@ function BitSet(bits) {
       card += ((b >> 16) & 0x0000ffff) + (b & 0x0000ffff);
     }
     return card;
-  };
+  }
 
   /**
    * Performs a logical AND of this target BitSet with the argument BitSet. This
@@ -352,7 +361,7 @@ function BitSet(bits) {
    * @throws {ArgumentNullException} if bs is null.
    * @throws {IllegalArgumentException} if bs is not a BitSet.
    */
-  this.and = function(bs) {
+  and(bs) {
     if (util.isNullOrUndefined(bs)) {
       throw new ArgumentNullException("param 'bs' cannot be null");
     }
@@ -361,21 +370,21 @@ function BitSet(bits) {
       return;
     }
 
-    if (!(bs instanceof 'BitSet')) {
+    if (!(bs instanceof BitSet)) {
       throw new IllegalArgumentException("param 'bs' must be a BitSet.");
     }
 
-    while (_wordsInUse > bs.getWordsInUse()) {
-      _bits[--_wordsInUse] = 0;
+    while (this._wordsInUse > bs.getWordsInUse()) {
+      this._bits[--this._wordsInUse] = 0;
     }
 
-    for (var i = 0; i < _wordsInUse; i++) {
-      _bits[i] &= bs.getBits()[i];
+    for (let i = 0; i < this._wordsInUse; i++) {
+      this._bits[i] &= bs.getBits()[i];
     }
 
-    recalcualteWordsInUse();
-    checkInvariants();
-  };
+    this._recalcualteWordsInUse();
+    this._checkInvariants();
+  }
 
   /**
    * Clears all of the bits in this BitSet whose corresponding bit is set in the
@@ -384,23 +393,23 @@ function BitSet(bits) {
    * @throws {ArgumentNullException} if bs is null.
    * @throws {IllegalArgumentException} if bs is not a BitSet.
    */
-  this.andNot = function(bs) {
+  andNot(bs) {
     if (util.isNullOrUndefined(bs)) {
       throw new ArgumentNullException("param 'bs' cannot be null");
     }
 
-    if (!(bs instanceof 'BitSet')) {
+    if (!(bs instanceof BitSet)) {
       throw new IllegalArgumentException("param 'bs' must be a BitSet.");
     }
 
-    var i = Math.min(_bits.length, bs.getBits().length);
+    let i = Math.min(this._bits.length, bs.getBits().length);
     while (--i >= 0) {
-      _bits[i] &= ~bs.getBits()[i];
+      this._bits[i] &= ~bs.getBits()[i];
     }
 
-    recalcualteWordsInUse();
-    checkInvariants();
-  };
+    this._recalcualteWordsInUse();
+    this._checkInvariants();
+  }
 
   /**
    * Performs a logical OR of this BitSet with the specified BitSet. This BitSet
@@ -411,7 +420,7 @@ function BitSet(bits) {
    * @throws {ArgumentNullException} if bs is null.
    * @throws {IllegalArgumentException} if bs is not a BitSet.
    */
-  this.or = function(bs) {
+  or(bs) {
     if (util.isNullOrUndefined(bs)) {
       throw new ArgumentNullException("param 'bs' cannot be null");
     }
@@ -420,26 +429,26 @@ function BitSet(bits) {
       return;
     }
 
-    if (!(bs instanceof 'BitSet')) {
+    if (!(bs instanceof BitSet)) {
       throw new IllegalArgumentException("param 'bs' must be a BitSet.");
     }
 
-    var wordsInCommon = Math.min(_wordsInUse, bs.getWordsInUse());
-    if (_wordsInUse < bs.getWordsInUse()) {
-      ensureCapacity(bs.getWordsInUse());
-      _wordsInUse = bs.getWordsInUse();
+    let wordsInCommon = Math.min(this._wordsInUse, bs.getWordsInUse());
+    if (this._wordsInUse < bs.getWordsInUse()) {
+      this._ensureCapacity(bs.getWordsInUse());
+      this._wordsInUse = bs.getWordsInUse();
     }
 
-    for (var i = 0; i < wordsInCommon; i++) {
-      _bits[i] |= bs.getBits()[i];
+    for (let i = 0; i < wordsInCommon; i++) {
+      this._bits[i] |= bs.getBits()[i];
     }
 
     if (wordsInCommon < bs.getWordsInUse()) {
-      _bits = (_bits || []).concat().slice(0, _wordsInUse - wordsInCommon);
+      this._bits = (this._bits || []).concat().slice(0, this._wordsInUse - wordsInCommon);
     }
 
-    checkInvariants();
-  };
+    this._checkInvariants();
+  }
 
   /**
    * Performs a logical XOR of this BitSet with the specified BitSet. This
@@ -453,35 +462,35 @@ function BitSet(bits) {
    * @throws {ArgumentNullException} if bs is null.
    * @throws {IllegalArgumentException} if bs is not a BitSet.
    */
-  this.xOr = function(bs) {
+  xOr(bs) {
     if (util.isNullOrUndefined(bs)) {
       throw new ArgumentNullException("param 'bs' cannot be null");
     }
 
-    if (!(bs instanceof 'BitSet')) {
+    if (!(bs instanceof BitSet)) {
       throw new IllegalArgumentException("param 'bs' must be a BitSet.");
     }
 
     // Calculate how many words which have in common with the other bit set.
-    var wordsInCommon = Math.min(_wordsInUse, bs.getWordsInUse());
-    if (_wordsInUse < bs.getWordsInUse()) {
-      ensureCapacity(bs.getWordsInUse());
-      _wordsInUse = bs.getWordsInUse();
+    let wordsInCommon = Math.min(this._wordsInUse, bs.getWordsInUse());
+    if (this._wordsInUse < bs.getWordsInUse()) {
+      this._ensureCapacity(bs.getWordsInUse());
+      this._wordsInUse = bs.getWordsInUse();
     }
 
     // Perform logical XOR on words in common.
-    for (var i = 0; i < wordsInCommon; i++) {
-      _bits[i] ^= bs.getBits()[i];
+    for (let i = 0; i < wordsInCommon; i++) {
+      this._bits[i] ^= bs.getBits()[i];
     }
 
     // Copy any remaining words.
     if (wordsInCommon < bs.getWordsInUse()) {
-      _bits = (_bits || []).concat().slice(0, bs.getWordsInUse() - wordsInCommon);
+      this._bits = (this._bits || []).concat().slice(0, bs.getWordsInUse() - wordsInCommon);
     }
 
-    recalcualteWordsInUse();
-    checkInvariants();
-  };
+    this._recalcualteWordsInUse();
+    this._checkInvariants();
+  }
 
   /**
    * Sets the bit at the specified position (index) to false, or clears the
@@ -490,28 +499,28 @@ function BitSet(bits) {
    * than one, clears the entire BitSet.
    * @throws {RangeError} if pos is greater than the last index.
    */
-  this.clear = function(pos) {
+  clear(pos) {
     if ((util.isNullOrUndefined(pos)) || (pos < 1)) {
-      for (var i = 0; i < _bits.length; i++) {
-        _bits[i] = 0;
+      for (var i = 0; i < this._bits.length; i++) {
+        this._bits[i] = 0;
       }
-      _wordsInUse = 0;
+      this._wordsInUse = 0;
     }
     else {
-      if (pos > _bits.length - 1) {
+      if (pos > this._bits.length - 1) {
         throw new RangeError("param 'pos' cannot be greater than the last index.");
       }
 
-      var offset  = wordIndex(pos);
-      if (offset >= _wordsInUse) {
+      let offset = wordIndex(pos);
+      if (offset >= this._wordsInUse) {
         return;
       }
 
-      _bits[offset] &= ~(1 << pos);
-      recalcualteWordsInUse();
-      checkInvariants();
+      this._bits[offset] &= ~(1 << pos);
+      this._recalcualteWordsInUse();
+      this._checkInvariants();
     }
-  };
+  }
 
   /**
    * Sets the bits from the specified 'from' index (inclusive) to the specified
@@ -526,72 +535,72 @@ function BitSet(bits) {
    * @throws {IllegalArgumentException} if either parameter is not a number.
    * @throws {RangeError} if either parameter is less than zero.
    */
-  this.clearFromTo = function(fromIndex, toIndex) {
+  clearFromTo(fromIndex, toIndex) {
     checkRange(fromIndex, toIndex);
     if (fromIndex === toIndex) {
       return;
     }
 
-    var startWordIndex = wordIndex(fromIndex);
-    if (startWordIndex >= _wordsInUse) {
+    let startWordIndex = wordIndex(fromIndex);
+    if (startWordIndex >= this._wordsInUse) {
       return;
     }
 
-    var endWordIndex = wordIndex(toIndex - 1);
-    if (endWordIndex >= _wordsInUse) {
-      toIndex = self.length();
-      endWordIndex = _wordsInUse - 1;
+    let endWordIndex = wordIndex(toIndex - 1);
+    if (endWordIndex >= this._wordsInUse) {
+      toIndex = this.length;
+      endWordIndex = this._wordsInUse - 1;
     }
 
-    var firstWordMask = LONG_MASK << fromIndex;
-    var lastWordMask = LONG_MASK >> -toIndex;
+    let firstWordMask = this.LONG_MASK << fromIndex;
+    let lastWordMask = this.LONG_MASK >> -toIndex;
     if (startWordIndex === endWordIndex) {
       // Case 1: Single word.
-      _bits[startWordIndex] &= ~(firstWordMask & lastWordMask);
+      this._bits[startWordIndex] &= ~(firstWordMask & lastWordMask);
     }
     else {
       // Case 2: Multiple words.
       // Handle first word.
-      _bits[startWordIndex] &= ~firstWordMask;
+      this._bits[startWordIndex] &= ~firstWordMask;
 
       // Handle intermediate words, if any.
-      for (var i = startWordIndex + 1; i < endWordIndex; i++) {
-        _bits[i] = 0;
+      for (let i = startWordIndex + 1; i < endWordIndex; i++) {
+        this._bits[i] = 0;
       }
 
       // Handle last word.
-      _bits[endWordIndex] &= ~lastWordMask;
+      this._bits[endWordIndex] &= ~lastWordMask;
     }
 
-    recalcualteWordsInUse();
-    checkInvariants();
-  };
+    this._recalcualteWordsInUse();
+    this._checkInvariants();
+  }
 
   /**
    * Public method for performing invariant checks. Every public method must
    * preserve the invariants. This method checks to see if this is true using
    * assertions. Assertion errors are thrown if any of the assertions fail.
    */
-  this.doCheckInvariants = function() {
-    checkInvariants();
-  };
+  doCheckInvariants() {
+    this._checkInvariants();
+  }
 
   /**
    * Creates a new object that is a copy of the current instance.
    * @return {BitSet} A new BitSet that is a copy of this instance.
    */
-  this.clone = function() {
-    if (_sizeIsSticky) {
-      trimToSize();
+  clone() {
+    if (this._sizeIsSticky) {
+      this._trimToSize();
     }
 
     try {
-      return fromWordArray(_bits);
+      return fromWordArray(this._bits);
     }
     catch(e) {
       return null;
     }
-  };
+  }
 
   /**
    * Determines whether the specified object is equal to the current BitSet.
@@ -600,32 +609,32 @@ function BitSet(bits) {
    * instances.
    * @return {Boolean}     true if equal; Otherwise, false.
    */
-  this.equals = function(obj) {
+  equals(obj) {
     if (util.isNullOrUndefined(obj)) {
       return false;
     }
 
-    if (!(obj instanceof 'BitSet')) {
+    if (!(obj instanceof BitSet)) {
       return false;
     }
 
-    checkInvariants();
+    this._checkInvariants();
     obj.doCheckInvariants();
 
-    if (_wordsInUse !== obj.getWordsInUse()) {
+    if (this._wordsInUse !== obj.getWordsInUse()) {
       return false;
     }
 
-    var result = true;
-    for (var i = 0; i < _wordsInUse; i++) {
-      if (_bits[i] !== obj.getBits()[i]) {
+    let result = true;
+    for (let i = 0; i < this._wordsInUse; i++) {
+      if (this._bits[i] !== obj.getBits()[i]) {
         result = false;
         break;
       }
     }
 
     return result;
-  };
+  }
 
   /**
    * Sets the bit at the specified index to the compliment of its current value.
@@ -633,7 +642,7 @@ function BitSet(bits) {
    * @throws {IllegalArgumentException} if index is not a number.
    * @throws {RangeError} if index is less than zero.
    */
-  this.flip = function(index) {
+  flip(index) {
     if (typeof index !== 'number') {
       throw new IllegalArgumentException("index must be a valid number.");
     }
@@ -642,12 +651,12 @@ function BitSet(bits) {
       throw new RangeError("index cannot be less than zero.");
     }
 
-    var offset = wordIndex(index);
-    expandTo(offset);
-    _bits[offset] ^= 1 << index;
-    recalcualteWordsInUse();
-    checkInvariants();
-  };
+    let offset = wordIndex(index);
+    this._expandTo(offset);
+    this._bits[offset] ^= 1 << index;
+    this._recalcualteWordsInUse();
+    this._checkInvariants();
+  }
 
   /**
    * Sets each bit from the specified "from" (inclusive) index to the specified
@@ -660,39 +669,39 @@ function BitSet(bits) {
    * @throws {IllegalArgumentException} if either parameter is not a number.
    * @throws {RangeError} if either parameter is less than zero.
    */
-  this.flipFromTo = function(fromIndex, toIndex) {
+  flipFromTo(fromIndex, toIndex) {
     checkRange(fromIndex, toIndex);
     if (fromIndex === toIndex) {
       return;
     }
 
-    var startWordIndex = wordIndex(fromIndex);
-    var lastWordIndex = wordIndex(toIndex - 1);
-    expandTo(lastWordIndex);
+    let startWordIndex = wordIndex(fromIndex);
+    let lastWordIndex = wordIndex(toIndex - 1);
+    this._expandTo(lastWordIndex);
 
-    var firstWordMask = LONG_MASK << fromIndex;
-    var lastWordMask = LONG_MASK >> -toIndex;
+    let firstWordMask = this.LONG_MASK << fromIndex;
+    let lastWordMask = this.LONG_MASK >> -toIndex;
     if (startWordIndex === lastWordIndex) {
       // Case 1: single word.
-      _bits[startWordIndex] ^= (firstWordMask & lastWordMask);
+      this._bits[startWordIndex] ^= (firstWordMask & lastWordMask);
     }
     else {
       // Case 2: multiple words.
       // Handle first word.
-      _bits[startWordIndex] ^= firstWordMask;
+      this._bits[startWordIndex] ^= firstWordMask;
 
       // Handle intermediate words, if any.
-      for (var i = startWordIndex + 1; i < lastWordIndex; i++) {
-        _bits[i] ^= LONG_MASK;
+      for (let i = startWordIndex + 1; i < lastWordIndex; i++) {
+        this._bits[i] ^= this.LONG_MASK;
       }
 
       // Handle last word.
-      _bits[lastWordIndex] ^= lastWordMask;
+      this._bits[lastWordIndex] ^= lastWordMask;
     }
 
-    recalcualteWordsInUse();
-    checkInvariants();
-  };
+    this._recalcualteWordsInUse();
+    this._checkInvariants();
+  }
 
   /**
    * Sets the raw bit value at the specified index. Avoid using this method
@@ -706,12 +715,12 @@ function BitSet(bits) {
    * @throws {RangeError} if index is less than zero or greater than the last
    * index.
    */
-  this.setBitValueRaw = function(index, bit) {
+  setBitValueRaw(index, bit) {
     if (typeof index !== 'number') {
       throw new IllegalArgumentException("index must be a valid number.");
     }
 
-    if ((index < 0) || (index > _bits.length - 1)) {
+    if ((index < 0) || (index > this._bits.length - 1)) {
       throw new RangeError("index must be greater than zero and less than or " +
                             "equal to the last index in the bit set.");
     }
@@ -736,8 +745,8 @@ function BitSet(bits) {
     else {
       throw new IllegalArgumentException("bit must be a number (0 or 1) or boolean.");
     }
-    _bits[index] = bit;
-  };
+    this._bits[index] = bit;
+  }
 
   /**
    * Gets the value of the bit at the specified index.
@@ -746,7 +755,7 @@ function BitSet(bits) {
    * @throws {IllegalArgumentException} if index is not a number.
    * @throws {RangeError} if index is less than zero.
    */
-  this.get = function(index) {
+  get(index) {
     if (typeof index !== 'number') {
       throw new IllegalArgumentException("index must be a valid number.");
     }
@@ -755,11 +764,11 @@ function BitSet(bits) {
       throw new RangeError("index cannot be less than zero.");
     }
 
-    checkInvariants();
-    var offset = wordIndex(index);
-    return ((offset < _wordsInUse) &&
-            ((_bits[index] & (1 << index)) !== 0));
-  };
+    this._checkInvariants();
+    let offset = wordIndex(index);
+    return ((offset < this._wordsInUse) &&
+            ((this._bits[index] & (1 << index)) !== 0));
+  }
 
   /**
    * Public method for recalculating the words in use. Sets the internal word
@@ -767,9 +776,9 @@ function BitSet(bits) {
    * method assumes that the number of words actually in use is less than or
    * equal to the current value of the words in use field!!!
    */
-  this.doRecalculateWordsInUse = function() {
-    recalcualteWordsInUse();
-  };
+  doRecalculateWordsInUse() {
+    this._recalcualteWordsInUse();
+  }
 
   /**
    * Returns a new BitSet composed of bits from this BitSet from the specified
@@ -785,12 +794,12 @@ function BitSet(bits) {
    * @throws {IllegalArgumentException} if either parameter is not a number.
    * @throws {RangeError} if either parameter is less than zero.
    */
-  this.getFromTo = function(fromIndex, toIndex) {
+  getFromTo(fromIndex, toIndex) {
     checkRange(fromIndex, toIndex);
-    checkInvariants();
+    this._checkInvariants();
 
     // If no set bits in range, then return the empty BitSet.
-    var len = self.length();
+    let len = this.length;
     if ((len <= fromIndex) || (fromIndex === toIndex)) {
       return fromWordArray(new Array(0));
     }
@@ -800,32 +809,32 @@ function BitSet(bits) {
       toIndex = len;
     }
 
-    var bs = new BitSet(toIndex - fromIndex);
-    var targetWords = wordIndex(toIndex - fromIndex - 1) + 1;
-    var sourceIndex = wordIndex(fromIndex);
-    var aligned = ((fromIndex & BIT_INDEX_MASK) === 0);
+    let bs = new BitSet(toIndex - fromIndex);
+    let targetWords = wordIndex(toIndex - fromIndex - 1) + 1;
+    let sourceIndex = wordIndex(fromIndex);
+    let aligned = ((fromIndex & this.BIT_INDEX_MASK) === 0);
 
     // Process all words but the last one.
-    var setBit = 0;
-    for (var i = 0; i < targetWords - 1; i++, sourceIndex++) {
-      setBit = aligned ? _bits[sourceIndex] :
-          (_bits[sourceIndex] >> fromIndex) |
-          (_bits[sourceIndex + 1] << -fromIndex);
+    let setBit = 0;
+    for (let i = 0; i < targetWords - 1; i++, sourceIndex++) {
+      setBit = aligned ? this._bits[sourceIndex] :
+          (this._bits[sourceIndex] >> fromIndex) |
+          (this._bits[sourceIndex + 1] << -fromIndex);
       bs.setBitValueRaw(i, setBit);
     }
 
     // Process last word.
-    var lastWordMask = LONG_MASK >> -toIndex;
-    setBit = ((toIndex - 1) & BIT_INDEX_MASK) < (fromIndex & BIT_INDEX_MASK) ?
-              ((_bits[sourceIndex] >> fromIndex) |
-                (_bits[sourceIndex + 1] & lastWordMask) << -fromIndex) :
-                ((_bits[sourceIndex] & lastWordMask) >> fromIndex);
+    let lastWordMask = this.LONG_MASK >> -toIndex;
+    setBit = ((toIndex - 1) & this.BIT_INDEX_MASK) < (fromIndex & this.BIT_INDEX_MASK) ?
+              ((this._bits[sourceIndex] >> fromIndex) |
+                (this._bits[sourceIndex + 1] & lastWordMask) << -fromIndex) :
+                ((this._bits[sourceIndex] & lastWordMask) >> fromIndex);
 
     bs.setBitValueRaw(targetWords - 1, setBit);
     bs.doCheckInvariants();
     bs.doRecalculateWordsInUse();
     return bs;
-  };
+  }
 
   /**
    * Sets the bit at the specified index to true.
@@ -833,7 +842,7 @@ function BitSet(bits) {
    * @throws {IllegalArgumentException} if index is not a number.
    * @throws {RangeError} if index is less than zero.
    */
-  this.set = function(index) {
+  set(index) {
     if (typeof index !== 'number') {
       throw new IllegalArgumentException("index must be a valid number.");
     }
@@ -842,11 +851,11 @@ function BitSet(bits) {
       throw new RangeError("index cannot be less than zero.");
     }
 
-    var offset = wordIndex(index);
-    expandTo(offset);
-    _bits[offset] |= (1 << index);  // Restores invariants;
-    checkInvariants();
-  };
+    let offset = wordIndex(index);
+    this._expandTo(offset);
+    this._bits[offset] |= (1 << index);  // Restores invariants;
+    this._checkInvariants();
+  }
 
   /**
    * Sets the bit at the specified index to the specified value.
@@ -855,14 +864,14 @@ function BitSet(bits) {
    * @throws {IllegalArgumentException} if index is not a number.
    * @throws {RangeError} if index is less than zero.
    */
-  this.setValue = function(index, value) {
+  setValue(index, value) {
     if (value) {
-      self.set(index);
+      this.set(index);
     }
     else {
-      self.clear(index);
+      this.clear(index);
     }
-  };
+  }
 
   /**
    * Sets the bits from the specified "from" index (inclusive) to the specified
@@ -875,38 +884,38 @@ function BitSet(bits) {
    * @throws {IllegalArgumentException} if either parameter is not a number.
    * @throws {RangeError} if either parameter is less than zero.
    */
-  this.setFromTo = function(fromIndex, toIndex) {
+  setFromTo(fromIndex, toIndex) {
     checkRange(fromIndex, toIndex);
     if (fromIndex === toIndex) {
       return;
     }
 
-    var startWordIndex = wordIndex(fromIndex);
-    var endWordIndex = wordIndex(toIndex - 1);
-    expandTo(endWordIndex);
+    let startWordIndex = wordIndex(fromIndex);
+    let endWordIndex = wordIndex(toIndex - 1);
+    this._expandTo(endWordIndex);
 
-    var firstWordMask = LONG_MASK << fromIndex;
-    var lastWordMask = LONG_MASK >> -toIndex;
+    let firstWordMask = this.LONG_MASK << fromIndex;
+    let lastWordMask = this.LONG_MASK >> -toIndex;
     if (startWordIndex === endWordIndex) {
       // Case 1: single word.
-      _bits[startWordIndex] |= (firstWordMask & lastWordMask);
+      this._bits[startWordIndex] |= (firstWordMask & lastWordMask);
     }
     else {
       // Case 2: multiple words.
       // Handle first word.
-      _bits[startWordIndex] |= firstWordMask;
+      this._bits[startWordIndex] |= firstWordMask;
 
       // Handle intermediate words, if any.
-      for (var i = startWordIndex + 1; i < endWordIndex; i++) {
-        _bits[i] = LONG_MASK;
+      for (let i = startWordIndex + 1; i < endWordIndex; i++) {
+        this._bits[i] = this.LONG_MASK;
       }
 
       // Handle last word (restores invariants).
-      _bits[endWordIndex] |= lastWordMask;
+      this._bits[endWordIndex] |= lastWordMask;
     }
 
-    checkInvariants();
-  };
+    this._checkInvariants();
+  }
 
   /**
    * Sets the bits from the specified "from" index (inclusive) to the specified
@@ -920,28 +929,28 @@ function BitSet(bits) {
    * @throws {IllegalArgumentException} if either parameter is not a number.
    * @throws {RangeError} if either parameter is less than zero.
    */
-  this.setValueFromTo = function(fromIndex, toIndex, value) {
+  setValueFromTo(fromIndex, toIndex, value) {
     if (value) {
-      self.setFromTo(fromIndex, toIndex);
+      this.setFromTo(fromIndex, toIndex);
     }
     else {
-      self.clearFromTo(fromIndex, toIndex);
+      this.clearFromTo(fromIndex, toIndex);
     }
-  };
+  }
 
   /**
    * Gets a hash code value for this BitSet. The hash code depends only on which
    * bits are set within this instance.
    * @return {Number} The hash code value for this BitSet.
    */
-  this.getHashCode = function() {
-    var h = 1234;
-    for (var i = _bits.length; --i >= 0;) {
-      h ^= _bits[i] * (i + 1);
+  getHashCode() {
+    let h = 1234;
+    for (let i = this._bits.length; --i >= 0;) {
+      h ^= this._bits[i] * (i + 1);
     }
 
     return ((h >> 32) ^ h);
-  };
+  }
 
   /**
    * Determines whether or not the specified BitSet has any bits set to true
@@ -950,25 +959,25 @@ function BitSet(bits) {
    * @return {Boolean}   true if this instance intersects with the specified
    * BitSet.
    */
-  this.intersects = function(bs) {
+  intersects(bs) {
     if (util.isNullOrUndefined(bs)) {
       return false;
     }
 
-    if (!(bs instanceof 'BitSet')) {
+    if (!(bs instanceof BitSet)) {
       return false;
     }
 
-    var goodBits = false;
-    var i = Math.min(_bits.length, bs.getBits().length);
+    let goodBits = false;
+    let i = Math.min(this._bits.length, bs.getBits().length);
     while (--i >= 0) {
-      if ((_bits[i] & bs.getBits()[i]) !== 0) {
+      if ((this._bits[i] & bs.getBits()[i]) !== 0) {
         goodBits = true;
         break;
       }
     }
     return goodBits;
-  };
+  }
 
   /**
    * Returns the index of the first bit that is set to false that occurs on or
@@ -978,33 +987,34 @@ function BitSet(bits) {
    * if no such bit is found.
    * @throws {RangeError} if fromIndex is less than zero.
    */
-  this.nextClearBit = function(fromIndex) {
+  nextClearBit(fromIndex) {
     if (fromIndex < 0) {
       throw new RangeError("'from' index cannot be less than zero.");
     }
 
-    checkInvariants();
-    var offset = wordIndex(fromIndex);
-    if (offset >= _wordsInUse) {
+    this._checkInvariants();
+    let offset = wordIndex(fromIndex);
+    if (offset >= this._wordsInUse) {
       return fromIndex;
     }
 
-    var result = -1;
-    var w = ~_bits[offset] & (LONG_MASK << fromIndex);
+    let result = -1;
+    let w = ~this._bits[offset] & (this.LONG_MASK << fromIndex);
     while (true) {
       if (w !== 0) {
         result = (offset * BITS_PER_WORD) + numberOfTrailingZeros(w);
         break;
       }
 
-      if (++offset === _wordsInUse) {
-        result = _wordsInUse * BITS_PER_WORD;
+      if (++offset === this._wordsInUse) {
+        result = this._wordsInUse * BITS_PER_WORD;
         break;
       }
-      w = ~_bits[offset];
+
+      w = ~this._bits[offset];
     }
     return result;
-  };
+  }
 
   /**
    * Returns the index of the first bit that is set to true that occurs on or
@@ -1015,33 +1025,33 @@ function BitSet(bits) {
    * specified index. If no such bit exists, then returns -1.
    * @throws {RangeError} if fromIndex is less than zero.
    */
-  this.nextSetBit = function(fromIndex) {
+  nextSetBit(fromIndex) {
     if (fromIndex < 0) {
       throw new RangeError("'from' index cannot be less than zero.");
     }
 
-    checkInvariants();
-    var offset = wordIndex(fromIndex);
-    if (offset >= _wordsInUse) {
+    this._checkInvariants();
+    let offset = wordIndex(fromIndex);
+    if (offset >= this._wordsInUse) {
       return -1;
     }
 
-    var result = -1;
-    var w = _bits[offset] & (LONG_MASK << fromIndex);
+    let result = -1;
+    let w = this._bits[offset] & (this.LONG_MASK << fromIndex);
     while (true) {
       if (w !== 0) {
         result = (offset * BITS_PER_WORD) + numberOfTrailingZeros(w);
         break;
       }
 
-      if (++offset === _wordsInUse) {
+      if (++offset === this._wordsInUse) {
         break;
       }
 
-      w = _bits[offset];
+      w = this._bits[offset];
     }
     return result;
-  };
+  }
 
   /**
    * Returns the index of the nearest bit that is set to true that occurs on or
@@ -1052,7 +1062,7 @@ function BitSet(bits) {
    * there is no such bit or if fromIndex is set to -1.
    * @throws {RangeError} if fromIndex is less than zero.
    */
-  this.previousSetBit = function(fromIndex) {
+  previousSetBit(fromIndex) {
     if (fromIndex < 0) {
       if (fromIndex === -1) {
         return -1;
@@ -1060,14 +1070,14 @@ function BitSet(bits) {
       throw new RangeError("'from' index cannot be less than zero.");
     }
 
-    checkInvariants();
-    var offset = wordIndex(fromIndex);
-    if (offset >= _wordsInUse) {
-      return (self.length() - 1);
+    this._checkInvariants();
+    let offset = wordIndex(fromIndex);
+    if (offset >= this._wordsInUse) {
+      return (this.length - 1);
     }
 
-    var result = -1;
-    var w = _bits[offset] & (LONG_MASK >> -(fromIndex + 1));
+    let result = -1;
+    let w = this._bits[offset] & (this.LONG_MASK >> -(fromIndex + 1));
     while (true) {
       if (w !== 0) {
         result = (offset + 1) * BITS_PER_WORD - 1 - numberOfTrailingZeros(w);
@@ -1078,10 +1088,10 @@ function BitSet(bits) {
         break;
       }
 
-      w = _bits[offset];
+      w = this._bits[offset];
     }
     return result;
-  };
+  }
 
   /**
    * Returns the index of the nearest bit that is set to false that occurs on or
@@ -1092,7 +1102,7 @@ function BitSet(bits) {
    * there is no such bit or fromIndex is -1.
    * @throws {RangeError} if fromIndex is less than zero.
    */
-  this.previousClearBit = function(fromIndex) {
+  previousClearBit(fromIndex) {
     if (fromIndex < 0) {
       if (fromIndex === -1) {
         return -1;
@@ -1100,14 +1110,14 @@ function BitSet(bits) {
       throw new RangeError("'from' index cannot be less than zero.");
     }
 
-    checkInvariants();
-    var offset = wordIndex(fromIndex);
-    if (offset >= _wordsInUse) {
+    this._checkInvariants();
+    let offset = wordIndex(fromIndex);
+    if (offset >= this._wordsInUse) {
       return fromIndex;
     }
 
-    var result = -1;
-    var w = ~_bits[offset] & (LONG_MASK >> -(fromIndex + 1));
+    let result = -1;
+    let w = ~this._bits[offset] & (this.LONG_MASK >> -(fromIndex + 1));
     while (true) {
       if (w !== 0) {
         result = (offset + 1) * BITS_PER_WORD - 1 - numberOfTrailingZeros(w);
@@ -1118,10 +1128,10 @@ function BitSet(bits) {
         break;
       }
 
-      w = ~_bits[offset];
+      w = ~this._bits[offset];
     }
     return result;
-  };
+  }
 
   /**
    * This method is used for efficiency. It checks to see if this instance
@@ -1130,20 +1140,20 @@ function BitSet(bits) {
    * @return {Boolean}         true if the specified BitSet contains all the same
    * bits; Otherwise, false.
    */
-  this.containsAll = function(otherBS) {
+  containsAll(otherBS) {
     if (util.isNullOrUndefined(otherBS)) {
       return false;
     }
 
-    var result = true;
-    for (var i = 0; i < otherBS.getBits().length; i++) {
-      if ((_bits[i] & otherBS.getBits()[i]) !== otherBS.getBits()[i]) {
+    let result = true;
+    for (let i = 0; i < otherBS.getBits().length; i++) {
+      if ((this._bits[i] & otherBS.getBits()[i]) !== otherBS.getBits()[i]) {
         result = false;
         break;
       }
     }
     return result;
-  };
+  }
 
   /**
    * Returns a String that represents the current BitSet. For every index for
@@ -1154,16 +1164,16 @@ function BitSet(bits) {
    * notation for a set of integers.
    * @return {String} A String that represents the current BitSet.
    */
-  this.toString = function() {
-    var sb = new StringBuilder();
+  toString() {
+    let sb = new StringBuilder();
     sb.append("{");
 
-    var first = true;
-    var bit = 0;
-    var word = 0;
-    for (var i = 0; i < _bits.length; ++i) {
+    let first = true;
+    let bit = 0;
+    let word = 0;
+    for (let i = 0; i < this._bits.length; ++i) {
       bit = 1;
-      word = _bits[i];
+      word = this._bits[i];
       if (word === 0) {
         continue;
       }
@@ -1182,21 +1192,17 @@ function BitSet(bits) {
 
     sb.append("}");
     return sb.toString();
-  };
+  }
 
   /**
    * Returns a new array of bits containing all the bits in this BitSet.
    * @return {Array} An array of bits containing little-endian representation of
    * all the bits in this BitSet.
    */
-  this.toBitArray = function() {
-    return (_bits || []).concat();
-  };
+  toBitArray() {
+    return (this._bits || []).concat();
+  }
 }
-
-
-BitSet.prototype.constructor = BitSet;
-
 
 /**
  * Returns a new BitSet containing all the bits in the specified array of
@@ -1206,7 +1212,7 @@ BitSet.prototype.constructor = BitSet;
  * @return {BitSet}      A new BitSet containing the specified array of bits.
  * @throws {IllegalArgumentException} if not an array.
  */
-var valueOf = function(words) {
+const valueOf = function(words) {
   if (util.isNullOrUndefined(words)) {
     return null;
   }
@@ -1215,11 +1221,11 @@ var valueOf = function(words) {
     throw new IllegalArgumentException("param 'words' must be an array of bits.");
   }
 
-  var n = 0;
+  let n = 0;
   for (n = words.length; n > 0 && words[n - 1] === 0; n--) {
   }
 
-  var wordsCopy = (words || []).concat();
+  let wordsCopy = (words || []).concat();
   return new BitSet(wordsCopy);
 };
 /* jshint latedef: true */

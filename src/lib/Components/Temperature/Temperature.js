@@ -26,6 +26,7 @@
  * abstraction components.
  *
  * @module Temperature
+ * @namespace jsrpi.Components.Temperature
  */
 
 module.exports = {

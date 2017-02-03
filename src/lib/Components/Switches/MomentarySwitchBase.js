@@ -22,126 +22,162 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var SwitchBase = require('./SwitchBase.js');
+const MomentarySwitch = require('./MomentarySwitch.js');
+const SwitchBase = require('./SwitchBase.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
 * @classdesc Base class for momentary switch component abstractions.
-* @constructor
 * @extends {SwitchBase}
 */
-function MomentarySwitchBase() {
-  SwitchBase.call(this);
-  var _base = new SwitchBase();
-  var self = this;
+class MomentarySwitchBase extends MomentarySwitch {
+  /**
+   * Initializes a new instance jsrpi.Components.Switches.MomentarySwitchBase
+   * class.
+   * @constructor
+   */
+  constructor() {
+    super();
+
+    this._base = new SwitchBase();
+  }
 
   /**
-  * Component name property.
-  * @property {String}
-  */
-  this.componentName = _base.componentName;
+   * Gets or sets the name of this component.
+   * @property {String} componentName - The name of the component.
+   * @override
+   */
+  get componentName() {
+    return this._base.componentName;
+  }
+
+  set componentName(name) {
+    this._base.componentName = name;
+  }
 
   /**
-  * Tag property.
-  * @property {Object}
-  */
-  this.tag = _base.tag;
+   * Gets or sets the object this component is tagged with (if set).
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
 
   /**
-  * Gets the property collection.
-  * @return {Array} A custom property collection.
-  *                  @override
-  */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
-
-  /**
-  * Checks to see if the property collection contains the specified key.
-  * @param  {String}  key The key name of the property to check for.
-  * @return {Boolean} true if the property collection contains the key;
-  * Otherwise, false.
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
   * @override
   */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
-  * Sets the value of the specified property. If the property does not already exist
-  * in the property collection, it will be added.
-  * @param  {String} key   The property name (key).
-  * @param  {String} value The value to assign to the property.
-  */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+   * Checks to see if the property collection contains the specified key.
+   * @param  {String} key The key name of the property to check for.
+   * @return {Boolean}    true if the property collection contains the key;
+   * Otherwise, false.
+   * @override
+   */
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
-  * Determines whether or not this instance has been disposed.
-  * @return {Boolean} true if disposed; Otherwise, false.
-  * @override
-  */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+   * Sets the value of the specified property. If the property does not already exist
+	 * in the property collection, it will be added.
+   * @param  {String} key   The property name (key).
+   * @param  {String} value The value to assign to the property.
+   * @override
+   */
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
-  * Releases all resources used by the SensorBase object.
-  * @override
-  */
-  this.dispose = function() {
-    _base.dispose();
-  };
+   * Determines whether or not this instance has been disposed.
+   * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+   * @readonly
+   * @override
+   */
+  get isDisposed() {
+    return this._base.isDisposed;
+  }
 
   /**
-  * Removes all event listeners.
-  * @override
-  */
-  this.removeAllListeners = function() {
-    _base.removeAllListeners();
-  };
+   * In subclasses, performs application-defined tasks associated with freeing,
+   * releasing, or resetting resources.
+   * @override
+   */
+  dispose() {
+    if (this._base.isDisposed) {
+      return;
+    }
+
+    this._base.dispose();
+  }
 
   /**
-  * Attaches a listener (callback) for the specified event name.
-  * @param  {String}   evt      The name of the event.
-  * @param  {Function} callback The callback function to execute when the
-  * event is raised.
-  * @throws {ObjectDisposedException} if this instance has been disposed.
-  * @override
-  */
-  this.on = function(evt, callback) {
-    _base.on(evt, callback);
-  };
+   * Removes all event listeners.
+   * @override
+   */
+  removeAllListeners() {
+    if (!this._base.isDisposed) {
+      this._base.removeAllListeners();
+    }
+  }
 
   /**
-  * Emits the specified event.
-  * @param  {String} evt  The name of the event to emit.
-  * @param  {Object} args The object that provides arguments to the event.
-  * @throws {ObjectDisposedException} if this instance has been disposed.
-  * @override
-  */
-  this.emit = function(evt, args) {
-    _base.emit(evt, args);
-  };
+   * Attaches a listener (callback) for the specified event name.
+   * @param  {String}   evt      The name of the event.
+   * @param  {Function} callback The callback function to execute when the
+   * event is raised.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  on(evt, callback) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
+    }
+    this._base.on(evt, callback);
+  }
 
+  /**
+   * Emits the specified event.
+   * @param  {String} evt  The name of the event to emit.
+   * @param  {Object} args The object that provides arguments to the event.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   * @override
+   */
+  emit(evt, args) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
+    }
+    this._base.emit(evt, args);
+  }
   /**
   * Fires the switch state change event.
   * @param  {SwitchStateChangeEvent} switchStateEvent The event info object.
   * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.onSwitchStateChanged = function(switchStateEvent) {
-    _base.onSwitchStateChanged(switchStateEvent);
-  };
+  onSwitchStateChanged(switchStateEvent) {
+    this._base.onSwitchStateChanged(switchStateEvent);
+  }
 
   /**
   * In a derived class, gets the state of the switch.
-  * @return {SwitchState} The state of the switch.
+  * @property {SwitchState} state - The switch state.
   */
-  this.getState = function() {
-    return _base.getState();
-  };
+  get state() {
+    return this._base.state;
+  }
 
   /**
   * Gets whether or not this switch is in the specified state.
@@ -150,27 +186,29 @@ function MomentarySwitchBase() {
   * Otherwise, false.
   * @override
   */
-  this.isState = function(state) {
-    return _base.isState(state);
-  };
+  isState(state) {
+    return this._base.isState(state);
+  }
 
   /**
   * Gets whether or not this switch is in the on position.
-  * @return {Boolean} true if on; Otherwise, false.
+  * @property {Boolean} isOn - true if on; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isOn = function() {
-    return _base.isOn();
-  };
+  get isOn() {
+    return this._base.isOn;
+  }
 
   /**
   * Gets whether or not this switch is in the off position.
-  * @return {Boolean} true if off; Otherwise, false.
+  * @property {Boolean} isOff - true if off; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isOff = function() {
-    return _base.isOff();
-  };
+  get isOff() {
+    return this._base.isOff;
+  }
 
   /**
   * Converts the current instance to it's string representation. This method
@@ -178,12 +216,9 @@ function MomentarySwitchBase() {
   * @return {String} The component name.
   * @override
   */
-  this.toString = function() {
-    return self.componentName;
-  };
+  toString() {
+    return this._base.componentName;
+  }
 }
-
-MomentarySwitchBase.prototype.constructor = MomentarySwitchBase;
-inherits(MomentarySwitchBase, SwitchBase);
 
 module.exports = MomentarySwitchBase;

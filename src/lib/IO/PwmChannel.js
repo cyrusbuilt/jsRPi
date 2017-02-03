@@ -26,7 +26,7 @@
  * The PWM channel to use.
  * @enum {Number}
  */
-var PwmChannel = {
+const PwmChannel = {
   /**
    * Channel zero.
    * @type {Number}

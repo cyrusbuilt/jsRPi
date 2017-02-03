@@ -25,6 +25,7 @@
  * @fileOverview Provides device abastraction objects for LCD displays.
  *
  * @module LcdDisplay
+ * @namespace jsrpi.Components.LcdDisplay
  */
 
 module.exports = {

@@ -27,6 +27,7 @@
  * @fileOverview Provides classes, interfaces, etc for manipulating lighting devices.
  *
  * @module Lights
+ * @namespace jsrpi.Components.Lights
  */
 
 module.exports = {

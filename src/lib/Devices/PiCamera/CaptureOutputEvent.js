@@ -24,21 +24,27 @@
 /**
  * @classdesc The event that gets raised when output is received from the image
  * capture process (stdout stream).
- * @param {String} output The process output.
- * @constructor
  * @event
  */
-function CaptureOutputEvent(output) {
-  var _output = output || "";
+class CaptureOutputEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.PiCamera.CaptureOutputEvent
+   * class with the output from the capture process.
+   * @param {String} output The process output.
+   * @constructor
+   */
+  constructor(output) {
+    this._output = output || "";
+  }
 
   /**
    * Gets the process outuput.
-   * @return {String} The process output.
+   * @property {String} output - The output from the image catpure process.
+   * @readonly
    */
-  this.getOutput = function() {
-    return _output;
-  };
+  get output() {
+    return this._output;
+  }
 }
 
-CaptureOutputEvent.prototype.constructor = CaptureOutputEvent;
 module.exports = CaptureOutputEvent;

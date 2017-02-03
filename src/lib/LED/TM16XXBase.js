@@ -22,14 +22,13 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var inherits = require('util').inherits;
-var RaspiGpio = require('../IO/RaspiGpio.js');
-var Disposable = require('../Disposable.js');
-var TM1638LedColor = require('./TM1638LedColor.js');
-var PinState = require('../IO/PinState.js');
-var StringUtils = require('../StringUtils.js');
-var ArgumentNullException = require('../ArgumentNullException.js');
+const util = require('util');
+const RaspiGpio = require('../IO/RaspiGpio.js');
+const Disposable = require('../Disposable.js');
+const TM1638LedColor = require('./TM1638LedColor.js');
+const PinState = require('../IO/PinState.js');
+const StringUtils = require('../StringUtils.js');
+const ArgumentNullException = require('../ArgumentNullException.js');
 
 /**
  * The character map for the seven segment displays.
@@ -44,7 +43,7 @@ var ArgumentNullException = require('../ArgumentNullException.js');
  * @type {Array}
  * @const
  */
-var C_MAP = [
+const C_MAP = [
   [' ', StringUtils.convertStringToByte("00000000")],
   ['!', StringUtils.convertStringToByte("10000110")],
   ['"', StringUtils.convertStringToByte("00100010")],
@@ -146,158 +145,166 @@ var C_MAP = [
  * @classdesc This class is the base class for the TM1638/TM1640 board.
  * It is a port of the TM1638 library by Ricardo Batista
  * URL: http://code.google.com/p/tm1638-library/
- * @param {RaspiGpio} data      The data pin.
- * @param {RaspiGpio} clock     The clock pin.
- * @param {RaspiGpio} strobe    The strobe pin.
- * @param {Number} displays     The number of characters to display.
- * @param {Boolean} activate    Set true to activate the display.
- * @param {Number} intensity    The display intensity (brightness) level.
- * @throws {ArgumentNullException} if data, clock, or strobe pins are null or
- * undefined.
- * @constructor
  * @implements {Disposable}
  */
-function TM16XXBase(data, clock, strobe, displays, activate, intensity) {
-  Disposable.call(this);
-  var self = this;
-  var _isDisposed = false;
-  var _isActive = false;
-  var _data = data || null;
-  if (util.isNullOrUndefined(_data)) {
-    throw new ArgumentNullException("'data' param cannot be null.");
+class TM16XXBase extends Disposable {
+  /**
+   * Initializes a new instance of the jsrpi.LED.TM16XXBase class with the data,
+   * clock and strobe pins, the number of characters to display, whether or not
+   * the display should be activated on init, and the brightness level.
+   * @param {RaspiGpio} data      The data pin.
+   * @param {RaspiGpio} clock     The clock pin.
+   * @param {RaspiGpio} strobe    The strobe pin.
+   * @param {Number} displays     The number of characters to display.
+   * @param {Boolean} activate    Set true to activate the display.
+   * @param {Number} intensity    The display intensity (brightness) level.
+   * @throws {ArgumentNullException} if data, clock, or strobe pins are null or
+   * undefined.
+   * @constructor
+   */
+  constructor(data, clock, strobe, displays, activate, intensity) {
+    this._isDisposed = false;
+    this._isActive = false;
+    this._data = data || null;
+    if (util.isNullOrUndefined(this._data)) {
+      throw new ArgumentNullException("'data' param cannot be null.");
+    }
+
+    this._clock = clock || null;
+    if (util.isNullOrUndefined(this._clock)) {
+      throw new ArgumentNullException("'clock' param cannot be null.");
+    }
+
+    this._strobe = strobe || null;
+    if (util.isNullOrUndefined(this._strobe)) {
+      throw new ArgumentNullException("'strobe' param cannot be null.");
+    }
+
+    // TODO what is the acceptable range?
+    this._displays = displays || 0;
+
+    this._data.provision();
+    this._clock.provision();
+    this._strobe.provision();
+    this._strobe.write(PinState.High);
+    this._clock.write(PinState.High);
+
+    // TODO What is the acceptable range of "intensity"?
+    this.sendCommand(0x40);
+    this.sendCommand((0x80 | (activate ? 0x08 : 0x00) | (Math.min(7, intensity))));
+
+    this._strobe.write(PinState.Low);
+    this.send(0xC0);
+    for (let i = 0; i < 16; i++) {
+      this.send(0x00);
+    }
+
+    this._strobe.write(PinState.High);
   }
-
-  var _clock = clock || null;
-  if (util.isNullOrUndefined(_clock)) {
-    throw new ArgumentNullException("'clock' param cannot be null.");
-  }
-
-  var _strobe = strobe || null;
-  if (util.isNullOrUndefined(_strobe)) {
-    throw new ArgumentNullException("'strobe' param cannot be null.");
-  }
-
-  // TODO what is the acceptable range?
-  var _displays = displays || 0;
-
-  _data.provision();
-  _clock.provision();
-  _strobe.provision();
-  _strobe.write(PinState.High);
-  _clock.write(PinState.High);
 
   /**
    * Send the specified data to the display.
    * @param  {Byte|Number} data The byte of data to send.
    */
-  this.send = function(data) {
-    for (var i = 0; i < 8; i++) {
-      _clock.write(PinState.Low);
-      _data.write((data & 1) > 0 ? PinState.High : PinState.Low);
+  send(data) {
+    for (let i = 0; i < 8; i++) {
+      this._clock.write(PinState.Low);
+      this._data.write((data & 1) > 0 ? PinState.High : PinState.Low);
       data >>= 1;
-      _clock.write(PinState.High);
+      this._clock.write(PinState.High);
     }
-  };
+  }
 
   /**
    * Sends the command.
    * @param  {Byte|Number} cmd A byte representing the command.
    */
-  this.sendCommand = function(cmd) {
-    _strobe.write(PinState.Low);
-    self.send(cmd);
-    _strobe.write(PinState.High);
-  };
-
-  // TODO What is the acceptable range of "intensity"?
-  this.sendCommand(0x40);
-  this.sendCommand((0x80 | (activate ? 0x08 : 0x00) | (Math.min(7, intensity))));
-
-  _strobe.write(PinState.Low);
-  this.send(0xC0);
-  for (var i = 0; i < 16; i++) {
-    this.send(0x00);
+  sendCommand(cmd) {
+    this._strobe.write(PinState.Low);
+    this.send(cmd);
+    this._strobe.write(PinState.High);
   }
-
-  _strobe.write(PinState.High);
 
   /**
    * Determines whether or not the current instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
+   * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isDisposed = function() {
-    return _isDisposed;
-  };
+  get isDisposed() {
+    return this._isDisposed;
+  }
 
   /**
-   *  Gets a value indicating whether or not the display is active.
-   * @return {Boolean} true if the display is active; Otherwise, false.
+   * Gets a value indicating whether or not the display is active.
+   * @property {Boolean} isActive - true if the display is active; Otherwise,
+   * false.
+   * @readonly
    */
-  this.isActive = function() {
-    return _isActive;
-  };
+  get isActive() {
+    return this._isActive;
+  }
 
   /**
    * Gets the number of displays.
    * @return {Number} The number of displays.
    * @protected
    */
-  this._getDisplays = function() {
-    return _displays;
-  };
+  _getDisplays() {
+    return this._displays;
+  }
 
   /**
    * Gets the strobe pin.
    * @return {RaspiGpio} The strobe pin.
    * @protected
    */
-  this._getStrobe = function() {
-    return _strobe;
-  };
+  _getStrobe() {
+    return this._strobe;
+  }
 
   /**
    * Receives data from the display driver.
    * @return {Byte|Number} The byte received.
    */
-  this.receive = function() {
+  receive() {
     // Pull up on.
-    var temp = 0;
-    _data.write(PinState.High);
-    for (var i = 0; i < 8; i++) {
+    let temp = 0;
+    this._data.write(PinState.High);
+    for (let i = 0; i < 8; i++) {
       temp >>= 1;
-      _clock.write(PinState.Low);
-      if (_data.read() === PinState.High) {
+      this._clock.write(PinState.Low);
+      if (this._data.read() === PinState.High) {
         temp |= 0x80;
       }
-      _clock.write(PinState.High);
+      this._clock.write(PinState.High);
     }
 
-    _data.write(PinState.Low);
+    this._data.write(PinState.Low);
     return temp;
-  };
+  }
 
   /**
    * Sends the specified data to the device.
    * @param  {Byte|Number} address The address to write the data at.
    * @param  {Byte|Number} data    The data to send.
    */
-  this.sendData = function(address, data) {
-    self.sendCommand(0x44);
-    _strobe.write(PinState.Low);
-    self.send(0xC0 | address);
-    self.send(data);
-    _strobe.write(PinState.High);
-  };
+  sendData(address, data) {
+    this.sendCommand(0x44);
+    this._strobe.write(PinState.Low);
+    this.send(0xC0 | address);
+    this.send(data);
+    this._strobe.write(PinState.High);
+  }
 
   /**
    * Clears the display.
    */
-  this.clearDisplay = function() {
-    for (var i = 0; i < _displays; i++) {
-      self.sendData((i << 1), 0);
+  clearDisplay() {
+    for (let i = 0; i < this._displays; i++) {
+      this.sendData((i << 1), 0);
     }
-  };
+  }
 
   /**
    * In a derived class, sends the specified character to the display.
@@ -305,7 +312,7 @@ function TM16XXBase(data, clock, strobe, displays, activate, intensity) {
    * @param  {Byte|Number} data The character data to send.
    * @param  {Boolean} dot  Set true to enable the dot.
    */
-  this.sendChar = function(pos, data, dot) {};
+  sendChar(pos, data, dot) {}
 
   /**
    * Sets the display to the specified string.
@@ -313,31 +320,31 @@ function TM16XXBase(data, clock, strobe, displays, activate, intensity) {
    * @param  {Boolean} dots     Set true to turn on dots.
    * @param  {Byte|Number} pos  The character position to start the string at.
    */
-  this.setDisplayToString = function(str, dots, pos) {
+  setDisplayToString(str, dots, pos) {
     if (StringUtils.isNullOrEmpty(str)) {
-      self.clearDisplay();
+      this.clearDisplay();
       return;
     }
 
     dots = dots || 0;
     pos = pos || 0;
 
-    var lpos = 0;
-    var ldata = 0;
-    var ldot = false;
-    var len = str.length;
-    for (var i = 0; i < _displays; i++) {
+    let lpos = 0;
+    let ldata = 0;
+    let ldot = false;
+    let len = str.length;
+    for (let i = 0; i < this._displays; i++) {
       if (i < len) {
         lpos = (i + pos);
         ldata = C_MAP[str[i]];
-        ldot = ((dots & (1 << (_displays - i - 1))) !== 0);
-        self.sendChar(lpos, ldata, ldot);
+        ldot = ((dots & (1 << (this._displays - i - 1))) !== 0);
+        this.sendChar(lpos, ldata, ldot);
       }
       else {
         break;
       }
     }
-  };
+  }
 
   /**
    * Sets the display to the specified values.
@@ -346,26 +353,26 @@ function TM16XXBase(data, clock, strobe, displays, activate, intensity) {
    * (starting at 0) to use. Just specify <values array>.length to use the
    * whole buffer.
    */
-  this.setDisplay = function(values, size) {
-    for (var i = 0; i < size; i++) {
-      self.sendChar(i, values[i], false);
+  setDisplay(values, size) {
+    for (let i = 0; i < size; i++) {
+      this.sendChar(i, values[i], false);
     }
-  };
+  }
 
   /**
    * Clears the display digit.
    * @param  {Byte|Number} pos The position to start clearing the display at.
    * @param  {Boolean} dot     Set true to clear dots.
    */
-  this.clearDisplayDigit = function(pos, dot) {
-    self.sendChar(pos, 0, dot);
-  };
+  clearDisplayDigit(pos, dot) {
+    this.sendChar(pos, 0, dot);
+  }
 
   /**
    * Sets the display to error.
    */
-  this.setDisplayToError = function() {
-    var err = [
+  setDisplayToError() {
+    let err = [
       C_MAP['E'],
       C_MAP['r'],
       C_MAP['r'],
@@ -373,12 +380,12 @@ function TM16XXBase(data, clock, strobe, displays, activate, intensity) {
       C_MAP['r']
     ];
 
-    self.setDisplay(err, 5);
-    for (var i = 8; i < _displays; i++) {
-      self.clearDisplayDigit(i, false);
+    this.setDisplay(err, 5);
+    for (let i = 8; i < this._displays; i++) {
+      this.clearDisplayDigit(i, false);
     }
     err = undefined;
-  };
+  }
 
   /**
    * Sets the specified digit in the display.
@@ -386,79 +393,81 @@ function TM16XXBase(data, clock, strobe, displays, activate, intensity) {
    * @param  {Byte|Number} pos   The position to set the digit at.
    * @param  {Boolean} dot       Set true to turn on the dot.
    */
-  this.setDisplayDigit = function(digit, pos, dot) {
-    var chr = digit.toString().split('')[0];
+  setDisplayDigit(digit, pos, dot) {
+    let chr = digit.toString().split('')[0];
     if (C_MAP[chr]) {
-      self.sendChar(pos, C_MAP[chr], dot);
+      this.sendChar(pos, C_MAP[chr], dot);
     }
-  };
+  }
 
   /**
    * Sets up the display.
    * @param  {Boolean} active    Set true to activate.
    * @param  {Number} intensity  The display intensity level (brightness).
    */
-  this.setupDisplay = function(active, intensity) {
-    self.sendCommand((0x80 | (active ? 8 : 0) | Math.min(7, intensity)));
+  setupDisplay(active, intensity) {
+    this.sendCommand((0x80 | (active ? 8 : 0) | Math.min(7, intensity)));
 
     // Necessary for the TM1640.
-    _strobe.write(PinState.Low);
-    _clock.write(PinState.Low);
-    _clock.write(PinState.High);
-    _strobe.write(PinState.High);
-  };
+    this._strobe.write(PinState.Low);
+    this._clock.write(PinState.Low);
+    this._clock.write(PinState.High);
+    this._strobe.write(PinState.High);
+  }
 
   /**
    * Activates or deactivates the display.
-   * @param  {Boolean} active Set true to activate; false to deactivate.
+   * @param {Boolean} active Set true to activate; false to deactivate.
    */
-  this.activateDisplay = function(active) {
+  activateDisplay(active) {
     active = active || false;
     if (active) {
-      if (!_isActive) {
-        self.sendCommand(0x80);
-        _isActive = true;
+      if (!this._isActive) {
+        this.sendCommand(0x80);
+        this._isActive = true;
       }
     }
     else {
-      if (_isActive) {
-        self.sendCommand(0x80);
-        _isActive = false;
+      if (this._isActive) {
+        this.sendCommand(0x80);
+        this._isActive = false;
       }
     }
-  };
+  }
 
   /**
    * Releases all managed resources used by this instance.
    * @override
    */
-  this.dispose = function() {
-    if (_isDisposed) {
+  dispose() {
+    if (this._isDisposed) {
       return;
     }
 
-    self.activateDisplay(false);
-    if (_clock != null) {
-      _clock.dispose();
-      _clock = undefined;
+    this.activateDisplay(false);
+    if (this._clock != null) {
+      this._clock.dispose();
+      this._clock = undefined;
     }
 
-    if (_data != null) {
-      _data.dispose();
-      _data = undefined;
+    if (this._data != null) {
+      this._data.dispose();
+      this._data = undefined;
     }
 
-    if (_strobe != null) {
-      _strobe.dispose();
-      _strobe = undefined;
+    if (this._strobe != null) {
+      this._strobe.dispose();
+      this._strobe = undefined;
     }
-    _isDisposed = true;
-  };
+    this._isDisposed = true;
+  }
+
+  /**
+   * The character map.
+   * @type {Array}
+   * @const
+   */
+  static get CHAR_MAP() { return C_MAP; }
 }
-
-TM16XXBase.CHAR_MAP = C_MAP;
-
-TM16XXBase.prototype.constructor = TM16XXBase;
-inherits(TM16XXBase, Disposable);
 
 module.exports = TM16XXBase;

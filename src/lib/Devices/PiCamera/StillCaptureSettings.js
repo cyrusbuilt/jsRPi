@@ -21,194 +21,265 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var path = require('path');
-var Size = require('../../Size.js');
-var ImageEncoding = require('./ImageEncoding.js');
-var FileInfo = require('../../IO/FileInfo.js');
-var CaptureUtils = require('./CaptureUtils.js');
+const util = require('util');
+const path = require('path');
+const Size = require('../../Size.js');
+const ImageEncoding = require('./ImageEncoding.js');
+const FileInfo = require('../../IO/FileInfo.js');
+const CaptureUtils = require('./CaptureUtils.js');
+const IllegalArgumentException = require('../../IllegalArgumentException.js');
 
-var DEF_IMG_SZ_W = 640;
-var DEF_IMG_SZ_H = 480;
-var QUAL_MIN = 0;
-var QUAL_MAX = 100;
-var QUAL_DEF = 75;
-var DEF_TIMEOUT = 5000;
+const DEF_IMG_SZ_W = 640;
+const DEF_IMG_SZ_H = 480;
+const QUAL_MIN = 0;
+const QUAL_MAX = 100;
+const QUAL_DEF = 75;
+const DEF_TIMEOUT = 5000;
 
 /**
  * @classdesc Still capture camera settings.
- * @constructor
  */
-function StillCaptureSettings() {
-  var self = this;
-  var _quality = QUAL_DEF;
+class StillCaptureSettings {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.PiCamera.StillCaptureSettings
+   * class.
+   * @constructor
+   */
+  constructor() {
+    this._quality = QUAL_DEF;
+    this._size = new Size(DEF_IMG_SZ_W, DEF_IMG_SZ_H);
+    this._timeout = DEF_TIMEOUT;
+    this._timeLapseInterval = 0;
+    this._verbose = false;
+    this._raw = false;
+    this._fullPreview = false;
+    this._encoding = ImageEncoding.JPEG;
+    this._outputFile = null;
+  }
 
   /**
    * Gets or sets the size of the image. Default of 640 x 480.
-   * @property {Size}
+   * @property {Size} imageSize - The image size.
+   * @throws {IllegalArgumentException} if the value set is not of type
+   * jsrpi.Size.
    */
-  this.imageSize = new Size(DEF_IMG_SZ_W, DEF_IMG_SZ_H);
+  get imageSize() {
+    return this._size;
+  }
+
+  set imageSize(sz) {
+    if (!(sz instanceof Size)) {
+      throw new IllegalArgumentException("imageSize property must be of type: jsrpi.Size.");
+    }
+
+    this._size = sz;
+  }
 
   /**
-   * Gets or sets the timeout in milliseconds. This is the time
-	 * to elapse before capture and shutdown. Default is TIMEOUT_DEFAULT.
-   * @property {Number}
+   * Gets or sets the timeout in milliseconds. This is the time to elapse before capture
+   * and shutdown. Default is TIMEOUT_DEFAULT.
+   * @property {Number} timeout - The capture timeout.
    */
-  this.timeout = DEF_TIMEOUT;
+  get timeout() {
+    return this._timeout;
+  }
+
+  set timeout(tm_out) {
+    this._timeout = tm_out;
+  }
 
   /**
-   * Gets or sets the time lapse interval in milliseconds. Set to zero to
-   * disable time-lapse capture.
-   * @property {Number}
+   * Gets or sets the time lapse interval in milliseconds. Default is zero (disabled).
+   * @property {Number} timeLapseInterval - The time lapse interval.
    */
-  this.timeLapseInterval = 0;
+  get timeLapseInterval() {
+    return this._timeLapseInterval;
+  }
+
+  set timeLapseInterval(interval) {
+    this._timeLapseInterval = interval;
+  }
 
   /**
-   * Gets or sets a value indicating whether or not the still capture will
-	 * produce verbose output.
-   * @property {Boolean}
+   * Gets a value indicating whether or not the still capture will
+   * produce verbose output. Default is false.
+   * @property {Boolean} verbose - true: verbose enabled, false: verbose
+   * disabled.
    */
-  this.verbose = false;
+  get verbose() {
+    return this._verbose;
+  }
+
+  set verbose(v) {
+    this._verbose = v;
+  }
 
   /**
-   * Gets or sets a value indicating whether or not to add raw Bayer data
-	 * to JPEG metadata. This option inserts the raw Bayer data into the
-	 * JPEG metadata if encoding property is set to ImageEncoding.JPEG.
-   * @property {Boolean}
+   * Gets a value indicating whether or not to add raw Bayer data
+   * to JPEG metadata. This option inserts the raw Bayer data into the
+   * JPEG metadata if encoding property is set to ImageEncoding.JPEG. Default is
+   * false.
+   * @property {Boolean} raw - When true, will add raw bayer data.
    */
-  this.raw = false;
+  get raw() {
+    return this._raw;
+  }
+
+  set raw(flag) {
+    this._raw = flag;
+  }
 
   /**
    * Gets or sets a value indicating whether or not to run in full preview mode.
-	 * This runs the preview windows using the full resolution capture mode.
-	 * Maximum frames-per-second in this mode is 15fps and the preview will have
-	 * the same field of view as the capture. Captures should happen more quickly
-	 * as no mode change should be required.
-   * @property {Boolean}
+   * This runs the preview windows using the full resolution capture mode.
+   * Maximum frames-per-second in this mode is 15fps and the preview will have
+   * the same field of view as the capture. Captures should happen more quickly
+   * as no mode change should be required.
+   * @property {Boolean} fullPreview - true to run in full preview mode;
+   * Otherwise, false.
    */
-  this.fullPreview = false;
+  get fullPreview() {
+    return this._fullPreview;
+  }
+
+  set fullPreview(flag) {
+    this._fullPreview = flag;
+  }
 
   /**
    * Gets or sets the still image capture encoding.
-   * @property {ImageEncoding}
+   * @property {ImageEncoding} encoding - The image encoding.
    */
-  this.encoding = ImageEncoding.JPEG;
+  get encoding() {
+    return this._encoding;
+  }
+
+  set encoding(e) {
+    this._encoding = e;
+  }
 
   /**
    * Gets or sets the output file the image will be captured to.
-   * @property {FileInfo}
+   * @property {FileInfo} outputFile - The output file that the image will be
+   * stored in.
+   * @throws {IllegalArgumentException} if the specified value is not of type
+   * jsrpi.IO.FileInfo.
    */
-  this.outputFile = null;
+  get outputFile() {
+    return this._outputFile;
+  }
+
+  set outputFile(file) {
+    if (!(file instanceof FileInfo)) {
+      throw new IllegalArgumentException("Specified value must be of type jsrpi.IO.FileInfo.");
+    }
+
+    this._outputFile = file;
+  }
 
   /**
-   * Gets the image quality.
-   * @return {Number} The image quality value.
-   */
-  this.getImageQuality = function() {
-    return _quality;
-  };
-
-  /**
-   * Sets the image quality.
-   * @param  {Number} qualityLevel The image quality level.
+   * Gets or sets the image quality.
+   * @property {Number} imageQuality - The image quality level.
    * @throws {RangeError} if the quality value is less than QUALITY_MIN or
    * greater than QUALITY_MAX.
    */
-  this.setImageQuality = function(qualityLevel) {
+  get imageQuality() {
+    return this._quality;
+  }
+
+  set imageQuality(qualityLevel) {
     if ((qualityLevel < QUAL_MIN) || (qualityLevel > QUAL_MAX)) {
       throw new RangeError("Quality value out of range.");
     }
-    _quality = qualityLevel;
-  };
+    this._quality = qualityLevel;
+  }
 
   /**
    * Converts this instance to a string of arguments that can be passed to
    * raspistill.
    * @return {String} A string of arguments for the raspistill utility.
    */
-  this.toArgumentString = function() {
-    var fname = "";
-    if (!util.isNullOrUndefined(self.outputFile)) {
-      fname = self.outputFile.getFileNameWithoutExtension();
+  toArgumentString() {
+    let fname = "";
+    if (!util.isNullOrUndefined(this.outputFile)) {
+      fname = this.outputFile.getFileNameWithoutExtension();
     }
 
-    var args = "";
-    if (self.imageSize !== Size.EMPTY) {
-      args += " --width " + self.imageSize.width.toString();
-      args += " --height " + self.imageSize.height.toString();
+    let args = "";
+    if (this.imageSize !== Size.EMPTY) {
+      args += " --width " + this.imageSize.width.toString();
+      args += " --height " + this.imageSize.height.toString();
     }
 
-    args += " --quality " + self.getImageQuality().toString();
-    if (self.timeout > 0) {
-      args += " --timeout " + self.timeout.toString();
+    args += " --quality " + this.imageQuality.toString();
+    if (this.timeout > 0) {
+      args += " --timeout " + this.timeout.toString();
     }
 
-    if (self.timeLapseInterval > 0) {
-      args += " --timelapse " + self.timeLapseInterval.toString();
+    if (this.timeLapseInterval > 0) {
+      args += " --timelapse " + this.timeLapseInterval.toString();
       fname += "_%04d";
     }
 
-    fname += "." + CaptureUtils.getEncodingFileExtension(self.encoding);
-    fname = path.join(self.outputFile.getDirectoryName(), fname);
-    self.outputFile = new FileInfo(fname);
-    args += ' --output "' + self.outputFile.getFullName() + '"';
+    fname += "." + CaptureUtils.getEncodingFileExtension(this.encoding);
+    fname = path.join(this.outputFile.getDirectoryName(), fname);
+    this.outputFile = new FileInfo(fname);
+    args += ' --output "' + this.outputFile.getFullName() + '"';
 
-    if (self.verbose) {
+    if (this.verbose) {
       args += " --verbose";
     }
 
-    args += " --encoding " + self.outputFile.getFileExtension();
-    if (self.fullPreview) {
+    args += " --encoding " + this.outputFile.getFileExtension();
+    if (this.fullPreview) {
       args += " --fullpreview";
     }
 
     return args;
-  };
+  }
+
+  /**
+   * The default image size width (640).
+   * @type {Number}
+   * @const
+   */
+  static get DEFAULT_IMAGE_SIZE_W() { return DEF_IMG_SZ_W; }
+
+  /**
+   * The default image size height (480).
+   * @type {Number}
+   * @const
+   */
+  static get DEFAULT_IMAGE_SIZE_H() { return DEF_IMG_SZ_H; }
+
+  /**
+   * The minimum quality value (0).
+   * @type {Number}
+   * @const
+   */
+  static get QUALITY_MIN() { return QUAL_MIN; }
+
+  /**
+   * The maximum quality value (100). This value is almost completely uncompressed.
+   * @type {Number}
+   * @const
+   */
+  static get QUALITY_MAX() { return QUAL_MAX; }
+
+  /**
+   * The default quality value (75). This provides the best all-around quality vs.
+   * performance value.
+   * @type {Number}
+   * @const
+   */
+  static get QUALITY_DEFAULT() { return QUAL_DEF; }
+
+  /**
+   * The default timeout value (5 seconds).
+   * @type {Number}
+   * @const
+   */
+  static get TIMEOUT_DEFAULT() { return DEF_TIMEOUT; }
 }
-
-StillCaptureSettings.prototype.constructor = StillCaptureSettings;
-
-/**
- * The default image size width (640).
- * @type {Number}
- * @const
- */
-StillCaptureSettings.DEFAULT_IMAGE_SIZE_W = DEF_IMG_SZ_W;
-
-/**
- * The default image size height (480).
- * @type {Number}
- * @const
- */
-StillCaptureSettings.DEFAULT_IMAGE_SIZE_H = DEF_IMG_SZ_H;
-
-/**
- * The minimum quality value (0).
- * @type {Number}
- * @const
- */
-StillCaptureSettings.QUALITY_MIN = QUAL_MIN;
-
-/**
- * The maximum quality value (100). This value is almost completely uncompressed.
- * @type {Number}
- * @const
- */
-StillCaptureSettings.QUALITY_MAX = QUAL_MAX;
-
-/**
- * The default quality value (75). This provides the best all-around quality vs.
- * performance value.
- * @type {Number}
- * @const
- */
-StillCaptureSettings.QUALITY_DEFAULT = QUAL_DEF;
-
-/**
- * The default timeout value (5 seconds).
- * @type {Number}
- * @const
- */
-StillCaptureSettings.TIMEOUT_DEFAULT = DEF_TIMEOUT;
 
 module.exports = StillCaptureSettings;

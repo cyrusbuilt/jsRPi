@@ -25,17 +25,25 @@
 /**
  * @classdesc The exception that is thrown when an object is referenced that has
  * been disposed.
- * @param {String} object The name of the object that has been disposed.
- * @constructor
  * @extends {Error}
  */
-function ObjectDisposedException(object) {
-  this.name = "ObjectDisposedException";
-  this.message = object + " has been disposed and can no longer be referenced.";
-  this.stack = (new Error()).stack;
-}
-
-ObjectDisposedException.prototype = Object.create(Error.prototype);
-ObjectDisposedException.prototype.constructor = ObjectDisposedException;
+ class ObjectDisposedException extends Error {
+     /**
+     * Initializes a new instance of jsrpi.ObjectDisposedException with the object
+     * that has been disposed.
+     * @param {String} object The name of the object that has been disposed.
+     * @constructor
+     */
+     constructor(object) {
+         let sMessage = object + " has been disposed and can no longer be referenced.";
+         super(sMessage);
+         this.name = this.constructor.name;
+         if (typeof Error.captureStackTrace === 'function') {
+             Error.captureStackTrace(this, this.constructor);
+         } else {
+             this.stack = (new Error(sMessage)).stack;
+         }
+     }
+ }
 
 module.exports = ObjectDisposedException;

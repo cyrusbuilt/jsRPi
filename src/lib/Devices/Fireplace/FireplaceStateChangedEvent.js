@@ -21,43 +21,50 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var FireplaceState = require('./FireplaceState.js');
+const util = require('util');
+const FireplaceState = require('./FireplaceState.js');
 
 /**
 * @classdesc The event that gets raised when the fireplace changes state.
-* @param {FireplaceState} oldState The previous state.
-* @param {FireplaceState} newState The current state.
-* @constructor
 * @event
 */
-function FireplaceStateChangedEvent(oldState, newState) {
-  var _oldState = oldState;
-  if (util.isNullOrUndefined(_oldState)) {
-    _oldState = FireplaceState.Off;
-  }
+class FireplaceStateChangedEvent {
+  /**
+   * Initializes a new instace of the jsrpi.Devices.Fireplace.FireplaceStateChangedEvent
+   * class with the new and old states.
+   * @param {FireplaceState} oldState The previous state.
+   * @param {FireplaceState} newState The current state.
+   * @constructor
+   */
+  constructor(oldState, newState) {
+    this._oldState = oldState;
+    if (util.isNullOrUndefined(this._oldState)) {
+      this._oldState = FireplaceState.Off;
+    }
 
-  var _newState = newState;
-  if (util.isNullOrUndefined(_newState)) {
-    _newState = FireplaceState.Off;
+    this._newState = newState;
+    if (util.isNullOrUndefined(this._newState)) {
+      this._newState = FireplaceState.Off;
+    }
   }
 
   /**
   * Gets the previous state.
-  * @return {FireplaceState} The previous state.
+  * @property {FireplaceState} oldState - The previous fireplace state.
+  * @readonly
   */
-  this.getOldState = function() {
-    return _oldState;
-  };
+  get oldState() {
+    return this._oldState;
+  }
 
   /**
   * Gets the current state.
-  * @return {FireplaceState} The current state.
+  * @property {FireplaceState} newState - The new (current) fireplace state.
+  * @readonly
   */
-  this.getNewState = function() {
-    return _newState;
-  };
+  get newState() {
+    return this._newState;
+  }
 }
 
-FireplaceStateChangedEvent.prototype.constructor = FireplaceStateChangedEvent;
 module.exports = FireplaceStateChangedEvent;

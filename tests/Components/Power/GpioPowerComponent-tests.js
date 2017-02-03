@@ -1,96 +1,94 @@
 'use strict';
 
-var util = require('util');
-var inherits = require('util').inherits;
-var GpioBase = require('../../../src/lib/IO/GpioBase.js');
-var GpioPins = require('../../../src/lib/IO/GpioPins.js');
-var PinMode = require('../../../src/lib/IO/PinMode.js');
-var PinState = require('../../../src/lib/IO/PinState.js');
-var PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
-var GpioPowerComponent = require('../../../src/lib/Components/Power/GpioPowerComponent.js');
-var PowerState = require('../../../src/lib/Components/Power/PowerState.js');
-var PowerInterface = require('../../../src/lib/Components/Power/PowerInterface.js');
+const util = require('util');
+const GpioBase = require('../../../src/lib/IO/GpioBase.js');
+const GpioPins = require('../../../src/lib/IO/GpioPins.js');
+const PinMode = require('../../../src/lib/IO/PinMode.js');
+const PinState = require('../../../src/lib/IO/PinState.js');
+const PinStateChangeEvent = require('../../../src/lib/IO/PinStateChangeEvent.js');
+const GpioPowerComponent = require('../../../src/lib/Components/Power/GpioPowerComponent.js');
+const PowerState = require('../../../src/lib/Components/Power/PowerState.js');
+const PowerInterface = require('../../../src/lib/Components/Power/PowerInterface.js');
 
-function FakeGpio(pin, mode, value) {
-  GpioBase.call(this, pin, mode, value);
 
-  var self = this;
-  var _overriddenState = value;
-  if (util.isNullOrUndefined(_overriddenState)) {
-    _overriddenState = PinState.Low;
-  }
+class FakeGpio extends GpioBase {
+    constructor(pin, mode, value) {
+        super(pin, mode, value);
 
-  this.read = function() {
-    return _overriddenState;
-  };
-
-  this.write = function(ps) {
-    if (_overriddenState !== ps) {
-      var addr = pin.value;
-      var evt = new PinStateChangeEvent(_overriddenState, ps, addr);
-      _overriddenState = ps;
-      self.onPinStateChange(evt);
+        this._overriddenState = value;
+        if (util.isNullOrUndefined(this._overriddenState)) {
+            this._overriddenState = PinState.Low;
+        }
     }
-  };
-}
 
-FakeGpio.prototype.constructor = FakeGpio;
-inherits(FakeGpio, GpioBase);
+    read() {
+        return this._overriddenState;
+    }
+
+    write(ps) {
+        if (this._overriddenState !== ps) {
+            let addr = this.innerPin.value;
+            let evt = new PinStateChangeEvent(this._overriddenState, ps, addr);
+            this._overriddenState = ps;
+            this.onPinStateChange(evt);
+        }
+    }
+}
 
 
 module.exports.GpioPowerComponentTests = {
   disposeAndIsDisposedTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
-    var p = new GpioPowerComponent(fakePin, PinState.High, PinState.Low);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
+    let p = new GpioPowerComponent(fakePin, PinState.High, PinState.Low);
 
     assert.expect(2);
-    assert.ok(!p.isDisposed(), "Power component already disposed");
+    assert.ok(!p.isDisposed, "Power component already disposed");
 
     p.dispose();
-    assert.ok(p.isDisposed(), "Power component did not dispose");
+    assert.ok(p.isDisposed, "Power component did not dispose");
     assert.done();
   },
   getStateStateTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
-    var p = new GpioPowerComponent(fakePin, PinState.High, PinState.Low);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
+    let p = new GpioPowerComponent(fakePin, PinState.High, PinState.Low);
 
     assert.expect(2);
-    assert.equals(p.getState(), PowerState.Off, "Power state is not off");
+    assert.equals(p.state, PowerState.Off, "Power state is not off");
 
-    p.setState(PowerState.On);
-    assert.equals(p.getState(), PowerState.On, "Power state is not on");
+    p.state = PowerState.On;
+    assert.equals(p.state, PowerState.On, "Power state is not on");
     assert.done();
   },
   turnOnTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
-    var p = new GpioPowerComponent(fakePin, PinState.High, PinState.Low);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
+    let p = new GpioPowerComponent(fakePin, PinState.High, PinState.Low);
 
     assert.expect(2);
-    assert.ok(!p.isOn(), "Power component is already on");
+    assert.ok(!p.isOn, "Power component is already on");
 
     p.turnOn();
-    assert.ok(p.isOn(), "Power component did not turn on");
+    assert.ok(p.isOn, "Power component did not turn on");
     assert.done();
   },
   turnOffTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
-    var p = new GpioPowerComponent(fakePin, PinState.High, PinState.Low);
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
+    let p = new GpioPowerComponent(fakePin, PinState.High, PinState.Low);
     p.turnOn();  // Default state on init is PowerState.Off
 
     assert.expect(2);
-    assert.ok(!p.isOff(), "Power component is not on");
+    assert.ok(!p.isOff, "Power component is not on");
 
     p.turnOff();
-    assert.ok(p.isOff(), "Power component did not turn off");
+    assert.ok(p.isOff, "Power component did not turn off");
     assert.done();
   },
   stateChangeTest: function(assert) {
-    var fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
-    var p = new GpioPowerComponent(fakePin, PinState.High, PinState.Low);
-    p.on(PowerInterface.EVENT_STATE_CHANGED, function(stateChanged) {
+    let fakePin = new FakeGpio(GpioPins.GPIO01, PinMode.OUT, PinState.Low);
+    let p = new GpioPowerComponent(fakePin, PinState.High, PinState.Low);
+    p.on(PowerInterface.EVENT_STATE_CHANGED, (stateChanged) => {
       assert.expect(2);
-      assert.equals(stateChanged.getOldState(), PowerState.Off, "Old state is not off");
-      assert.equals(stateChanged.getNewState(), PowerState.On, "New state is not on");
+      assert.equals(stateChanged.oldState, PowerState.Off, "Old state is not off");
+      assert.equals(stateChanged.newState, PowerState.On, "New state is not on");
       assert.done();
     });
 

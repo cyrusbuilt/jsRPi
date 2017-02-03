@@ -26,7 +26,7 @@
  * Possible power states.
  * @enum {Number}
  */
-var PowerState = {
+const PowerState = {
   /**
    * Power is on.
    * @type {Number}

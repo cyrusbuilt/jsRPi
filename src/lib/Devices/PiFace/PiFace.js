@@ -26,6 +26,7 @@
  * expansion module.
  *
  * @module PiFace
+ * @namespace jsrpi.Devices.PiFace
  */
 
 module.exports = {

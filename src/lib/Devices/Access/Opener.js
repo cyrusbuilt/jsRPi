@@ -21,97 +21,107 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Device = require('../Device.js');
-var OpenerState = require('./OpenerState.js');
+const Device = require('../Device.js');
+const OpenerState = require('./OpenerState.js');
+
+const STATE_CHANGED = "openerStateChangedEvent";
+const LOCK_STATE_CHANGED = "lockStateChangedEvent";
 
 /**
  * Opener device abstraction interface.
  * @interface
  * @extends {Device}
  */
-function Opener() {
-  Device.call(this);
+class Opener extends Device {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.Access.Opener interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derived class, raises the opener state change event.
+   * @param  {OpenerStateChangeEvent} stateChangeEvent The event object.
+   */
+  onOpenerStateChange(stateChangeEvent) {}
+
+  /**
+   * In a derived class, raises the lock state change event.
+   * @param  {OpenerLockChangeEvent} lockStateChangeEvent The event object.
+   */
+  onLockStateChange(lockStateChangeEvent) {}
+
+  /**
+   * In a derived class, gets a value indicating whether this opener is open.
+   * @property {Boolean} isOpen - true if open; Otherwise, false.
+   * @readonly
+   */
+  get isOpen() { return false; }
+
+  /**
+   * In a derived class, gets a value indicating whether this opner is in the the
+   * process of opening.
+   * @property {Boolean} isOpening - true if opening; Otherwise, false.
+   * @readonly
+   */
+  get isOpening() { return false; }
+
+  /**
+   * In a derived class, gets a value indicating whether this opener is closed.
+   * @property {Boolean} isClosed - true if closed; Otherwise, false.
+   * @readonly
+   */
+  get isClosed() { return false; }
+
+  /**
+   * In a derived class, gets a value indicating whether this opener is in the
+   * process of closing.
+   * @property {Boolean} isClosing - true if closing; Otherwise, false.
+   * @readonly
+   */
+  get isClosing() { return false; }
+
+  /**
+   * In a derived class, Gets the state of this opener.
+   * @property {OpenerState} state - The opener state.
+   */
+  get state() { return OpenerState.Closed; }
+
+  /**
+   * In a derived class, gets a value indicating whether this opener is locked and
+   * thus, cannot be opened.
+   * @property {Boolean} isLocked - true if locked; Otherwise, false.
+   * @readonly
+   */
+  get isLocked() { return false; }
+
+  /**
+   * In a derived class, instructs the device to open.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  open() {}
+
+  /**
+   * In a derived class, instructs the device to close.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  close() {}
+
+  /**
+   * The name of the opener state change event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_STATE_CHANGED() { return STATE_CHANGED; }
+
+  /**
+   * The name of the opener lock state change event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_LOCK_STATE_CHANGED() { return LOCK_STATE_CHANGED; }
 }
-
-Opener.prototype.constructor = Opener;
-inherits(Opener, Device);
-
-/**
- * In a derived class, raises the opener state change event.
- * @param  {OpenerStateChangeEvent} stateChangeEvent The event object.
- */
-Opener.prototype.onOpenerStateChange = function(stateChangeEvent) {};
-
-/**
- * In a derived class, raises the lock state change event.
- * @param  {OpenerLockChangeEvent} lockStateChangeEvent The event object.
- */
-Opener.prototype.onLockStateChange = function(lockStateChangeEvent) {};
-
-/**
- * In a derived class, gets a value indicating whether this opener is open.
- * @return {Boolean} true if open; Otherwise, false.
- */
-Opener.prototype.isOpen = function() { return false; };
-
-/**
- * In a derived class, gets a value indicating whether this opner is in the the
- * process of opening.
- * @return {Boolean} true if opening; Otherwise, false.
- */
-Opener.prototype.isOpening = function() { return false; };
-
-/**
- * In a derived class, gets a value indicating whether this opener is closed.
- * @return {Boolean} true if closed; Otherwise, false.
- */
-Opener.prototype.isClosed = function() { return false; };
-
-/**
- * In a derived class, gets a value indicating whether this opener is in the
- * process of closing.
- * @return {Boolean} true if closing; Otherwise, false.
- */
-Opener.prototype.isClosing = function() { return false; };
-
-/**
- * In a derived class, Gets the state of this opener.
- * @return {OpenerState} The state of the opener.
- */
-Opener.prototype.getState = function() { return OpenerState.Closed; };
-
-/**
- * In a derived class, gets a value indicating whether this opener is locked and
- * thus, cannot be opened.
- * @return {Boolean} true if locked; Otherwise, false.
- */
-Opener.prototype.isLocked = function() { return false; };
-
-/**
- * In a derived class, instructs the device to open.
- * @throws {ObjectDisposedException} if this instance has been disposed.
- */
-Opener.prototype.open = function() {};
-
-/**
- * In a derived class, instructs the device to close.
- * @throws {ObjectDisposedException} if this instance has been disposed.
- */
-Opener.prototype.close = function() {};
-
-/**
- * The name of the opener state change event.
- * @type {String}
- * @const
- */
-Opener.EVENT_STATE_CHANGED = "openerStateChangedEvent";
-
-/**
- * The name of the opener lock state change event.
- * @type {String}
- * @const
- */
-Opener.EVENT_LOCK_STATE_CHANGED = "lockStateChangedEvent";
 
 module.exports = Opener;

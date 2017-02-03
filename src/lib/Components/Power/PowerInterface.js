@@ -22,71 +22,74 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Component = require('../Component.js');
-var PowerState = require('./PowerState.js');
+const Component = require('../Component.js');
+const PowerState = require('./PowerState.js');
+
+const STATE_CHANGED = "powerStateChanged";
 
 /**
  * An interface for power control device abstraction interfaces.
  * @interface
  * @extends {Component}
  */
-function PowerInterface() {
-  Component.call(this);
+class PowerInterface extends Component {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Power.PowerInterface
+   * interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derivative class, fires the power state changed event.
+   * @param  {PowerStateChangeEvent} stateChangeEvent The event info object.
+   */
+  onPowerStateChanged(stateChangeEvent) {}
+
+  /**
+   * In a derivative class, checks to see if the component is on.
+   * @property {Boolean} isOn - true if on; Otherwise, false.
+   * @readonly
+   */
+  get isOn() { return false; }
+
+  /**
+   * In a derivative class, checks to see if the component is off.
+   * @property {Boolean} isOff - true if off; Otherwise, false.
+   * @readonly
+   */
+  get isOff() { return false; }
+
+  /**
+   * In a derivative class, gets or sets the state of the power component.
+   * @property {PowerState} state - The state of the power component.
+   * @throws {ObjectDisposedException} if this component instance has been disposed.
+   * @throws {InvalidPinModeException} if the pin being used to control this
+   * component is not configured as an output.
+   * @throws {InvalidOperationException} if an invalid state is specified.
+   */
+  get state() { return PowerState.Unknown; }
+
+  set state(s) {}
+
+  /**
+   * In a derivative class, turns the component on.
+   */
+  turnOn() {}
+
+  /**
+   * In a derivative class, turns the component off.
+   */
+  turnOff() {}
+
+  /**
+   * The name of the state change event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_STATE_CHANGED() { return STATE_CHANGED; }
 }
-
-PowerInterface.prototype.constructor = PowerInterface;
-inherits(PowerInterface, Component);
-
-/**
- * In a derivative class, fires the power state changed event.
- * @param  {PowerStateChangeEvent} stateChangeEvent The event info object.
- */
-PowerInterface.prototype.onPowerStateChanged = function(stateChangeEvent) {};
-
-/**
- * In a derivative class, checks to see if the component is on.
- * @return {Boolean} true if on; Otherwise, false.
- */
-PowerInterface.prototype.isOn = function() { return false; };
-
-/**
- * In a derivative class, checks to see if the component is off.
- * @return {Boolean} true if off; Otherwise, false.
- */
-PowerInterface.prototype.isOff = function() { return false; };
-
-/**
- * In a derivative class, gets the state of the component.
- * @return {PowerState} The component state.
- */
-PowerInterface.prototype.getState = function() { return PowerState.Unknown; };
-
-/**
- * In a derivative class, sets the state of the component.
- * @param  {PowerState} state The power state to set.
- * @throws {ObjectDisposedException} if this component instance has been disposed.
- * @throws {InvalidPinModeException} if the pin being used to control this
- * component is not configured as an output.
- * @throws {InvalidOperationException} if an invalid state is specified.
- */
-PowerInterface.prototype.setState = function(state) {};
-
-/**
- * In a derivative class, turns the component on.
- */
-PowerInterface.prototype.turnOn = function() {};
-
-/**
- * In a derivative class, turns the component off.
- */
-PowerInterface.prototype.turnOff = function() {};
-
-/**
- * The name of the state change event.
- * @type {String}
- * @const
- */
-PowerInterface.EVENT_STATE_CHANGED = "powerStateChanged";
 
 module.exports = PowerInterface;

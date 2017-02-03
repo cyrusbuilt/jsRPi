@@ -23,21 +23,27 @@
 
 /**
  * @classdesc The event that gets raised when a fireplace timeout occurs.
- * @param {Boolean} handled Set true if handled.
- * @constructor
  * @event
  */
-function FireplaceTimeoutEvent(handled) {
-  var _isHandled = handled || false;
+class FireplaceTimeoutEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.Fireplace.FireplaceTimeoutEvent
+   * class with a flag to indicate whether or not a timeout occurred.
+   * @param {Boolean} handled Set true if handled.
+   * @constructor
+   */
+  constructor(handled) {
+    this._isHandled = handled || false;
+  }
 
   /**
    * Gets a value indicating whether this event was handled.
-   * @return {Boolean} true if handled; Otherwise, false.
+   * @property {Boolean} isHandled - true if handled; Otherwise, false.
+   * @readonly
    */
-  this.isHandled = function() {
-    return _isHandled;
-  };
+  get isHandled() {
+    return this._isHandled;
+  }
 }
 
-FireplaceTimeoutEvent.prototype.constructor = FireplaceTimeoutEvent;
 module.exports = FireplaceTimeoutEvent;

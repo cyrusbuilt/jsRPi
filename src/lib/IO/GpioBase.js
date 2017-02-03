@@ -22,61 +22,65 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var inherits = require('util').inherits;
-var EventEmitter = require('events').EventEmitter;
-var GpioPins = require('./GpioPins.js');
-var PinMode = require('./PinMode.js');
-var PinState = require('./PinState.js');
-var BoardRevision = require('../BoardRevision.js');
-var RaspiGpio = require('./RaspiGpio.js');
-var Gpio = require('./Gpio.js');
-var ObjectDisposedException = require('../ObjectDisposedException.js');
+const util = require('util');
+const EventEmitter = require('events').EventEmitter;
+const GpioPins = require('./GpioPins.js');
+const PinMode = require('./PinMode.js');
+const PinState = require('./PinState.js');
+const BoardRevision = require('../BoardRevision.js');
+const RaspiGpio = require('./RaspiGpio.js');
+const Gpio = require('./Gpio.js');
+const ObjectDisposedException = require('../ObjectDisposedException.js');
 
 
 /**
 * @classdesc Base class for the GPIO connector on the Pi (P1) (as found
 * next to the yellow RCA video socket on the Rpi circuit board).
-* @param {GpioPins} pin   The GPIO pin.
-* @param {PinMode} mode  The I/O pin mode.
-* @param {PinState} value The initial pin value.
-* @constructor
 * @implements {RaspiGpio}
 */
-function GpioBase(pin, mode, value) {
-  RaspiGpio.call(this);
+class GpioBase extends RaspiGpio {
+  /**
+   * Initalizes a new instance of the jsrpi.IO.GpioBase class with the pin the
+   * GPIO is assigned to, the pin mode, and initial value.
+   * @param {GpioPins} pin  The GPIO pin.
+   * @param {PinMode} mode  The I/O pin mode.
+   * @param {PinState} value The initial pin value.
+   * @constructor
+   */
+  constructor(pin, mode, value) {
+    super();
 
-  // Instance variables.
-  var _pin = pin;
-  if (util.isNullOrUndefined(_pin)) {
-    _pin = GpioPins.GPIO_NONE;
+    // Instance variables.
+    this._pin = pin;
+    if (util.isNullOrUndefined(this._pin)) {
+      this._pin = GpioPins.GPIO_NONE;
+    }
+
+    this._mode = mode;
+    if (util.isNullOrUndefined(this._mode)) {
+      this._mode = PinMode.OUT;
+    }
+
+    this._initValue = value;
+    if (util.isNullOrUndefined(this._initValue)) {
+      this._initValue = PinState.Low;
+    }
+
+    this._emitter = new EventEmitter();
+    this._revision = BoardRevision.Rev2;
+    this._isDisposed = false;
+    this._state = PinState.Low;
   }
-
-  var _mode = mode;
-  if (util.isNullOrUndefined(_mode)) {
-    _mode = PinMode.OUT;
-  }
-
-  var _initValue = value;
-  if (util.isNullOrUndefined(_initValue)) {
-    _initValue = PinState.Low;
-  }
-
-  var self = this;
-  var _emitter = new EventEmitter();
-  var _revision = BoardRevision.Rev2;
-  var _isDisposed = false;
-  var _state = PinState.Low;
-  var _exportedPins = [];
 
   /**
   * Determines whether or not this instance has been disposed.
-  * @return {Boolean} true if disposed; Otherwise, false.
+  * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isDisposed = function() {
-    return _isDisposed;
-  };
+  get isDisposed() {
+    return this._isDisposed;
+  }
 
   /**
   * Attaches a listener (callback) for the specified event name.
@@ -85,12 +89,12 @@ function GpioBase(pin, mode, value) {
   * event is raised.
   * @throws {ObjectDisposedException} if this instance has been disposed.
   */
-  this.on = function(evt, callback) {
-    if (_isDisposed) {
+  on(evt, callback) {
+    if (this._isDisposed) {
       throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.on(evt, callback);
-  };
+    this._emitter.on(evt, callback);
+  }
 
   /**
   * Emits the specified event.
@@ -98,172 +102,126 @@ function GpioBase(pin, mode, value) {
   * @param  {Object} args The object that provides arguments to the event.
   * @throws {ObjectDisposedException} if this instance has been disposed.
   */
-  this.emit = function(evt, args) {
-    if (_isDisposed) {
+  emit(evt, args) {
+    if (this._isDisposed) {
       throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.emit(evt, args);
-  };
+    this._emitter.emit(evt, args);
+  }
 
   /**
   * Fires the pin state change event.
   * @param  {PinStateChangeEvent} psce The event object.
   * @throws {ObjectDisposedException} if this instance has been disposed.
-  * @protected
   */
-  this.onPinStateChange = function(psce) {
-    if (_isDisposed) {
+  onPinStateChange(psce) {
+    if (this._isDisposed) {
       throw new ObjectDisposedException("GpioBase");
     }
 
-    var e = self._emitter;
-    var l_psce = psce;
-    process.nextTick(function() {
-      self.emit(Gpio.EVENT_STATE_CHANGED, l_psce);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(Gpio.EVENT_STATE_CHANGED, psce);
+    });
+  }
 
   /**
   * Gets the board revision.
-  * @return {BoardRevision} The board revision.
+  * @property {BoardRevision} revision - The board revision.
+  * @readonly
   * @override
   */
-  this.getRevision = function() {
-    return _revision;
-  };
+  get revision() {
+    return this._revision;
+  }
 
   /**
   * Gets the state of the pin.
-  * @return {PinState} The state of the pin.
+  * @property {PinState} state - The pin state.
   * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @readonly
   * @override
   */
-  this.state = function() {
-    _state = self.read();
-    return _state;
-  };
+  get state() {
+    this._state = this.read();
+    return this._state;
+  }
 
   /**
   * Gets the physical pin being represented by this instance.
-  * @return {GpioPins} The physical pin.
+  * @property {GpioPins} innerPin - The underlying physical pin.
+  * @readonly
   * @override
   */
-  this.getInnerPin = function() {
-    return _pin;
-  };
+  get innerPin() {
+    return this._pin;
+  }
 
   /**
-  * Gets the pin mode.
-  * @return {PinMode} The pin mode.
+  * Gets or sets the pin mode.
+  * @property {PinMode} mode - The pin mode.
+  * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.mode = function() {
-    return _mode;
-  };
+  get mode() {
+    return this._mode;
+  }
 
-  /**
-  * Exports the pin.
-  * @param  {PinMode} mode The mode to set.
-  * @private
-  */
-  var exportPin = function(mode) {
-    var idx = _exportedPins.indexOf(self);
-    if (idx !== -1) {
-      if (_exportedPins[idx].mode() === mode) {
-        return;
-      }
-      else {
-        _mode = mode;
-        _exportedPins[idx].setMode(mode);
-        return;
-      }
+  set mode(m) {
+    if (this._isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
 
-    _mode = mode;
-    _exportedPins.push(self);
-  };
+    if (util.isNullOrUndefined(m)) {
+      m = PinMode.TRI;
+    }
+
+    if (this._mode !== m) {
+      this._mode = m;
+    }
+  }
 
   /**
   * Write a value to the pin.
   * @param  {PinState} ps The pin state value to write to the pin.
   * @throws {ObjectDisposedException} if this instance has been disposed.
   */
-  this.write = function(ps) {
-    if (_isDisposed) {
+  write(ps) {
+    if (this._isDisposed) {
       throw new ObjectDisposedException("GpioBase");
     }
-    _state = ps;
-  };
+    this._state = ps;
+  }
 
   /**
   * Provisions this pin.
   * @throws {ObjectDisposedException} if this instance has been disposed.
+  * @override
   */
-  this.provision = function() {
-    if (_isDisposed) {
+  provision() {
+    if (this._isDisposed) {
       throw new ObjectDisposedException("GpioBase");
     }
-    exportPin(_mode);
-    self.write(_initValue);
-  };
-
-  /**
-  * Sets the mode for the pin.
-  * @param  {PinMode} mode The mode to set the pin to.
-  * @throws {ObjectDisposedException} if this instance has been disposed.
-  * @protected
-  */
-  this.setMode = function(mode) {
-    if (_isDisposed) {
-      throw new ObjectDisposedException("GpioBase");
-    }
-
-    if (util.isNullOrUndefined(mode)) {
-      mode = PinMode.TRI;
-    }
-
-    if (_mode !== mode) {
-      _mode = mode;
-      // If we're changing modes, we'll need to reprovision the pin.
-      self.provision();
-    }
-  };
-
-  /**
-  * Gets the exported pins.
-  * @return {Array} A dictionary of exported pins. Will be undefined this
-  * instance has been disposed.
-  */
-  this.getExportedPins = function() {
-    return _exportedPins;
-  };
-
-  /**
-  * Sets the exported pin cache.
-  * @param {Array} The array of exported pins.
-  * @protected
-  */
-  this._setExportedPins = function(pins) {
-    _exportedPins = pins;
-  };
+    this.write(this._initValue);
+  }
 
   /**
   * Gets the pin address.
-  * @return {Number} The address.
+  * @property {Number} address - The pin address (GPIO number).
+  * @readonly
   * @override
   */
-  this.address = function() {
-    return _pin.value;
-  };
+  get address() {
+    return this._pin.value;
+  }
 
   /**
   * Changes the board revision.
   * @param  {BoardRevision} revision The board revision.
   */
-  this.changeBoardRevision = function(revision) {
+  changeBoardRevision(revision) {
     revision = revision || BoardRevision.Rev2;
-    _revision = revision;
-  };
+    this._revision = revision;
+  }
 
   /**
   * Pulse the pin output for the specified number of milliseconds.
@@ -271,46 +229,42 @@ function GpioBase(pin, mode, value) {
   * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.pulse = function(millis) {
-    if (_isDisposed) {
+  pulse(millis) {
+    if (this._isDisposed) {
       throw new ObjectDisposedException("GpioBase");
     }
 
-    self.write(PinState.High);
-    setTimeout(function() {
-      self.write(PinState.Low);
+    this.write(PinState.High);
+    setTimeout(() => {
+      this.write(PinState.Low);
     }, millis);
-  };
+  }
 
   /**
   * Gets the initial pin value.
   * @return {PinState} The initial value.
   * @protected
   */
-  this._getInitialPinValue = function() {
-    return _initValue;
-  };
+  _getInitialPinValue() {
+    return this._initValue;
+  }
 
   /**
   * Releases all resources used by the GpioBase object.
   * @override
   */
-  this.dispose = function() {
-    if (_isDisposed) {
+  dispose() {
+    if (this._isDisposed) {
       return;
     }
 
-    _emitter.removeAllListeners();
-    _emitter = undefined;
-    _exportedPins = undefined;
-    _state = undefined;
-    _mode = undefined;
-    _pin = undefined;
-    _isDisposed = true;
-  };
+    this._emitter.removeAllListeners();
+    this._emitter = undefined;
+    this._state = undefined;
+    this._mode = undefined;
+    this._pin = undefined;
+    this._isDisposed = true;
+  }
 }
-
-GpioBase.prototype.constructor = GpioBase;
-inherits(GpioBase, RaspiGpio);
 
 module.exports = GpioBase;

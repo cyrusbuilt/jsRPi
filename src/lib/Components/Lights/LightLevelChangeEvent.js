@@ -23,22 +23,28 @@
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
 /**
- * The event that gets raised when a light level (brightness) change occurs.
- * @param {Number} level The brightness level.
- * @constructor
+ * @classdesc The event that gets raised when a light level (brightness) change occurs.
  * @event
  */
-function LightLevelChangeEvent(level) {
-  var _level = level || 0;
+class LightLevelChangeEvent {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Lights.LightLevelChangeEvent
+   * class with the new (current) light level.
+   * @param {Number} level The brightness level.
+   * @constructor
+   */
+  constructor(level) {
+    this._level = level || 0;
+  }
 
   /**
    * Gets the brightness level.
-   * @return {Number} The brightness level.
+   * @property {Number} level - The brightness level.
+   * @readonly
    */
-  this.getLevel = function() {
-    return _level;
-  };
+  get level() {
+    return this._level;
+  }
 }
 
-LightLevelChangeEvent.prototype.constructor = LightLevelChangeEvent;
 module.exports = LightLevelChangeEvent;

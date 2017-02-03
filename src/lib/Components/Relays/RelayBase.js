@@ -22,59 +22,78 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var inherits = require('util').inherits;
-var ComponentBase = require('../ComponentBase.js');
-var Relay = require('./Relay.js');
-var RelayState = require('./RelayState.js');
-var ArgumentNullException = require('../../ArgumentNullException.js');
-var RelayStateChangeEvent = require('./RelayStateChangeEvent.js');
-var EventEmitter = require('events').EventEmitter;
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
+const util = require('util');
+const ComponentBase = require('../ComponentBase.js');
+const Relay = require('./Relay.js');
+const RelayState = require('./RelayState.js');
+const ArgumentNullException = require('../../ArgumentNullException.js');
+const RelayStateChangeEvent = require('./RelayStateChangeEvent.js');
+const EventEmitter = require('events').EventEmitter;
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
  * @classdesc Base class for relay abstraction components.
- * @param {Gpio} pin The output pin being used to control the relay.
- * @throws {ArgumentNullException} if pin is null or undefined.
- * @constructor
  * @implements {Relay}
  * @extends {ComponentBase}
  * @extends {EventEmitter}
  */
-function RelayBase(pin) {
-  Relay.call(this);
+class RelayBase extends Relay {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Relays.RelayBase class
+   * with the pin the relay is attached to.
+   * @param {Gpio} pin The output pin being used to control the relay.
+   * @throws {ArgumentNullException} if pin is null or undefined.
+   * @constructor
+   */
+  constructor(pin) {
+    super();
 
-  if (util.isNullOrUndefined(pin)) {
-    throw new ArgumentNullException("'pin' cannot be null or undefined.");
+    if (util.isNullOrUndefined(pin)) {
+      throw new ArgumentNullException("'pin' cannot be null or undefined.");
+    }
+
+    this._base = new ComponentBase();
+    this._emitter = new EventEmitter();
+    this._state = RelayState.Open;
+    this._pin = pin;
+    this._pin.provision();
   }
 
-  var self = this;
-  var _base = new ComponentBase();
-  var _emitter = new EventEmitter();
-  var _state = RelayState.Open;
-  var _pin = pin;
-  _pin.provision();
-
   /**
-   * Component name property.
-   * @property {String}
-   */
-  this.componentName = _base.componentName;
-
-  /**
-   * Tag property.
-   * @property {Object}
-   */
-  this.tag = _base.tag;
-
-  /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
+   * Gets or sets the name of this component.
+   * @property {String} componentName - The component name.
    * @override
    */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
+  get componentName() {
+    return this._base.componentName;
+  }
+
+  set componentName(name) {
+    this._base.componentName = name;
+  }
+
+  /**
+   * Gets or sets the object this component is tagged with.
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
+
+  /**
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
+  * @override
+  */
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
    * Checks to see if the property collection contains the specified key.
@@ -83,57 +102,61 @@ function RelayBase(pin) {
    * Otherwise, false.
    * @override
    */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
    * Sets the value of the specified property. If the property does not already exist
 	 * in the property collection, it will be added.
    * @param  {String} key   The property name (key).
    * @param  {String} value The value to assign to the property.
+   * @override
    */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
    * Determines whether or not this instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
+   * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+  get isDisposed() {
+    return this._base.isDisposed;
+  }
 
   /**
-   * Releases all resources used by the GpioBase object.
+   * In subclasses, performs application-defined tasks associated with freeing,
+   * releasing, or resetting resources.
    * @override
    */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  dispose() {
+    if (this._base.isDisposed) {
       return;
     }
 
-    if (!util.isNullOrUndefined(_pin)) {
-      _pin.dispose();
-      _pin = undefined;
+    if (!util.isNullOrUndefined(this._pin)) {
+      this._pin.dispose();
+      this._pin = undefined;
     }
 
-    _emitter.removeAllListeners();
-    _emitter = undefined;
-    _base.dispose();
-  };
+    this._state = RelayState.Open;
+    this._emitter.removeAllListeners();
+    this._emitter = undefined;
+    this._base.dispose();
+  }
 
   /**
    * Removes all event listeners.
    * @override
    */
-  this.removeAllListeners = function() {
-    if (!_base.isDisposed()) {
-      _emitter.removeAllListeners();
+  removeAllListeners() {
+    if (!this._base.isDisposed) {
+      this._emitter.removeAllListeners();
     }
-  };
+  }
 
   /**
    * Attaches a listener (callback) for the specified event name.
@@ -143,12 +166,12 @@ function RelayBase(pin) {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.on = function(evt, callback) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("RelayBase");
+  on(evt, callback) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.on(evt, callback);
-  };
+    this._emitter.on(evt, callback);
+  }
 
   /**
    * Emits the specified event.
@@ -157,119 +180,116 @@ function RelayBase(pin) {
    * @throws {ObjectDisposedException} if this instance has been disposed.
    * @override
    */
-  this.emit = function(evt, args) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("RelayBase");
+  emit(evt, args) {
+    if (this._base.isDisposed) {
+      throw new ObjectDisposedException("GpioBase");
     }
-    _emitter.emit(evt, args);
-  };
+    this._emitter.emit(evt, args);
+  }
 
   /**
-   * Gets the relay state.
-   * @return {RelayState} The state of the relay.
+   * Gets or sets the relay state.
+   * @property {RelayState} state - The relay state.
+   * @override
    */
-  this.getState = function() {
-    return _state;
-  };
+  get state() {
+    return this._state;
+  }
 
-  /**
-   * Sets the state of the relay.
-   * @param  {RelayState} state the state to set.
-   */
-  this.setState = function(state) {
-    if (_base.isDisposed()) {
+  set state(s) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("RelayBase");
     }
-    _state = state;
-  };
+    this._state = s;
+  }
 
   /**
    * Checks to see if the relay is in an open state.
-   * @return {Boolean} true if open; Otherwise, false.
+   * @property {Boolean} isOpen - true if open; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isOpen = function() {
-    return (self.getState() === RelayState.Open);
-  };
+  get isOpen() {
+    return (this.state === RelayState.Open);
+  }
 
   /**
    * Checks to see if the relay is in a closed state.
-   * @return {Boolean} true if closed; Otherwise, false.
+   * @property {Boolean} isClosed - true if closed; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isClosed = function() {
-    return (self.getState() === RelayState.Closed);
-  };
+  get isClosed() {
+    return (this.state === RelayState.Closed);
+  }
 
   /**
    * Gets the pin being used to drive the relay.
+   * @property {Gpio} pin - The underlying physical pin.
+   * @readonly
    */
-  this.getPin = function() {
-    return _pin;
-  };
+  get pin() {
+    return this._pin;
+  }
 
   /**
    * Fires the relay state change event.
    * @param  {RelayStateChangeEvent} stateChangeEvent The state change event object.
    * @override
    */
-  this.onRelayStateChanged = function(relayStateChangeEvent) {
-    if (_base.isDisposed()) {
+  onRelayStateChanged(relayStateChangeEvent) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("RelayBase");
     }
 
-    var e = _emitter;
-    var evt = relayStateChangeEvent;
-    process.nextTick(function() {
-      e.emit(Relay.EVENT_STATE_CHANGED, evt);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(Relay.EVENT_STATE_CHANGED, relayStateChangeEvent);
+    });
+  }
 
   /**
    * Fires the pulse start event.
    * @override
    */
-  this.onPulseStart = function() {
-    if (_base.isDisposed()) {
+  onPulseStart() {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("RelayBase");
     }
 
-    var e = _emitter;
-    process.nextTick(function() {
-      e.emit(Relay.EVENT_PULSE_START);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(Relay.EVENT_PULSE_START);
+    });
+  }
 
   /**
    * Fires the pulse stop event.
    * @override
    */
-  this.onPulseStop = function() {
-    if (_base.isDisposed()) {
+  onPulseStop() {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("RelayBase");
     }
 
-    var e = _emitter;
-    process.nextTick(function() {
-      e.emit(Relay.EVENT_PULSE_STOPPED);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(Relay.EVENT_PULSE_STOPPED);
+    });
+  }
 
   /**
    * Checks to see if the relay is in an open state.
    * @override
    */
-  this.open = function() {
-    self.setState(RelayState.Open);
-  };
+  open() {
+    this.state = RelayState.Open;
+  }
 
   /**
    * Closes (activates) the relay.
    * @override
    */
-  this.close = function() {
-    self.setState(RelayState.Closed);
-  };
+  close() {
+    this.state = RelayState.Closed;
+  }
 
   /**
    * Pulses the relay on for the specified number of
@@ -278,35 +298,35 @@ function RelayBase(pin) {
    * back off. If not specified or invalid, then pulses for DEFAULT_PULSE_MILLISECONDS.
    * @override
    */
-  this.pulse = function(millis) {
-    self.onPulseStart();
-    self.close();
-    _pin.pulse(millis);
-    self.open();
-    self.onPulseStop();
-  };
+  pulse(millis) {
+    this.onPulseStart();
+    this.close();
+    this._pin.pulse(millis);
+    this.open();
+    this.onPulseStop();
+  }
 
   /**
    * Toggles the relay (switch on, then off);
    * @override
    */
-  this.toggle = function() {
-    if (self.isOpen()) {
-      self.close();
+  toggle() {
+    if (this.isOpen) {
+      this.close();
     }
     else {
-      self.open();
+      this.open();
     }
-  };
+  }
 
   /**
    * Checks to see if the relay is in the specified state.
    * @param  {RelayState} state The state to check.
    * @return {Boolean}       true if in the specified state; Otherwise, false.
    */
-  this.isState = function(state) {
-    return (self.getState() === state);
-  };
+  isState(state) {
+    return (this.state === state);
+  }
 
   /**
    * Gets the string representation of this relay component instance. This is
@@ -314,12 +334,9 @@ function RelayBase(pin) {
    * @return {String} The name of this relay component.
    * @override
    */
-  this.toString = function() {
-    return self.componentName;
-  };
+  toString() {
+    return this.componentName;
+  }
 }
-
-RelayBase.prototype.constructor = RelayBase;
-inherits(RelayBase, Relay);
 
 module.exports = RelayBase;

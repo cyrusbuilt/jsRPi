@@ -22,88 +22,87 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Motor = require('./Motor.js');
+const Motor = require('./Motor.js');
+
+const ROTATION_STARTED = "stepperMotorRotationStarted";
+const ROTATION_STOPPED = "stepperMotorRotationStopped";
 
 /**
  * A stepper motor abstraction interface.
  * @interface
  * @extends {Motor}
  */
-function StepperMotor() {
-  Motor.call(this);
+class StepperMotor extends Motor {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Motors.StepperMotor
+   * interface.
+   * @constructor
+   */
+  constructor() {
+    super();
+  }
+
+  /**
+   * In a derived class, fires the rotation start event.
+   * @param  {MotorRotateEvent} rotateEvent The event object.
+   */
+  onRotationStarted(rotateEvent) {}
+
+  /**
+   * In a derived class, fires the rotation stopped event.
+   */
+  onRotationStopped() {}
+
+  /**
+   * In a derived class, gets or sets the number of steps per revolution.
+   * @property {Number} stepsPerRevolution - The steps per revolution.
+   */
+  get stepsPerRevolution() { return 0; }
+
+  set stepsPerRevolution(steps) {}
+
+  /**
+   * In a derived class, gets or sets an array of bytes representing the step
+   * sequence.
+   * @property {Array} stepSequence - The step sequence.
+   */
+  get stepSequence() { return []; }
+
+  set stepSequence(seq) {}
+
+  /**
+   * In a derived class, sets the step interval.
+   * @param  {Number} millis      The milliseconds between steps.
+   * @param  {Number} nanoseconds The nanoseconds between steps.
+   */
+  setStepInterval(millis, nanoseconds) {}
+
+  /**
+   * In a derived class, rotate the specified revolutions.
+   * @param  {Number} revolutions The number of revolutions to rotate.
+   */
+  rotate(revolutions) {}
+
+  /**
+   * In a derived class, step the motor the specified steps.
+   * @param  {Number} steps The number of steps to rotate.
+   * @throws {ObjectDisposedException} if this instance has been disposed.
+   */
+  step(steps) {}
+
+  /**
+   * The name of the motor rotation start event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_ROTATION_STARTED() { return ROTATION_STARTED; }
+
+  /**
+   * The name of the motor rotation stop event.
+   * @type {String}
+   * @const
+   */
+  static get EVENT_ROTATION_STOPPED() { return ROTATION_STOPPED; }
 }
-
-StepperMotor.prototype.constructor = StepperMotor;
-inherits(StepperMotor, Motor);
-
-/**
- * In a derived class, fires the rotation start event.
- * @param  {MotorRotateEvent} rotateEvent The event object.
- */
-StepperMotor.prototype.onRotationStarted = function(rotateEvent) {};
-
-/**
- * In a derived class, fires the rotation stopped event.
- */
-StepperMotor.prototype.onRotationStopped = function() {};
-
-/**
- * In a derived class, gets the number of steps per revolution.
- * @return {Number} The steps per revolution.
- */
-StepperMotor.prototype.getStepsPerRevolution = function() { return 0; };
-
-/**
- * In a derived class, sets the number of steps per revolution.
- * @param  {Number} steps The steps per revolution.
- */
-StepperMotor.prototype.setStepsPerRevolution = function(steps) {};
-
-/**
- * In a derived class, gets the step sequence.
- * @return {Array} An array of bytes representing the step sequence.
- */
-StepperMotor.prototype.getStepSequence = function() { return []; };
-
-/**
- * In a derived class, sets the step sequence.
- * @param  {Array} seq An array of bytes representing the step sequence.
- */
-StepperMotor.prototype.setStepSequence = function(seq) {};
-
-/**
- * In a derived class, sets the step interval.
- * @param  {Number} millis      The milliseconds between steps.
- * @param  {Number} nanoseconds The nanoseconds between steps.
- */
-StepperMotor.prototype.setStepInterval = function(millis, nanoseconds) {};
-
-/**
- * In a derived class, rotate the specified revolutions.
- * @param  {Number} revolutions The number of revolutions to rotate.
- */
-StepperMotor.prototype.rotate = function(revolutions) {};
-
-/**
- * In a derived class, step the motor the specified steps.
- * @param  {Number} steps The number of steps to rotate.
- * @throws {ObjectDisposedException} if this instance has been disposed.
- */
-StepperMotor.prototype.step = function(steps) {};
-
-/**
- * The name of the motor rotation start event.
- * @type {String}
- * @const
- */
-StepperMotor.EVENT_ROTATION_STARTED = "stepperMotorRotationStarted";
-
-/**
- * The name of the motor rotation stop event.
- * @type {String}
- * @const
- */
-StepperMotor.EVENT_ROTATION_STOPPED = "stepperMotorRotationStopped";
 
 module.exports = StepperMotor;

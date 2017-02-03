@@ -21,59 +21,78 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var inherits = require('util').inherits;
-var Opener = require('./Opener.js');
-var DeviceBase = require('../DeviceBase.js');
-var EventEmitter = require('events').EventEmitter;
-var OpenerStateChangeEvent = require('./OpenerStateChangeEvent.js');
-var OpenerLockChangeEvent = require('./OpenerLockChangeEvent.js');
-var OpenerState = require('./OpenerState.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
+const Opener = require('./Opener.js');
+const DeviceBase = require('../DeviceBase.js');
+const EventEmitter = require('events').EventEmitter;
+const OpenerStateChangeEvent = require('./OpenerStateChangeEvent.js');
+const OpenerLockChangeEvent = require('./OpenerLockChangeEvent.js');
+const OpenerState = require('./OpenerState.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
 /**
 * @classdesc Base class for opener device abstractions.
-* @constructor
 * @implements {Opener}
 * @extends {DeviceBase}
 * @extends {EventEmitter}
 */
-function OpenerBase() {
-  Opener.call(this);
+class OpenerBase extends Opener {
+  /**
+   * Initializes a new instance of the jsrpi.Devices.Access.OpenerBase class.
+   * @constructor
+   */
+  constructor() {
+    super();
 
-  var self = this;
-  var _base = new DeviceBase();
-  var _emitter = new EventEmitter();
-  var _state = OpenerState.Closed;
+    this._base = new DeviceBase();
+    this._emitter = new EventEmitter();
+    this._state = OpenerState.Closed;
+  }
 
   /**
-  * Device name property.
-  * @property {String}
-  */
-  this.deviceName = _base.deviceName;
+   * Gets or sets the device name.
+   * @property {String} deviceName - The device name.
+   * @override
+   */
+  get deviceName() {
+    return this._base.deviceName;
+  }
+
+  set deviceName(name) {
+    this._base.deviceName = name;
+  }
 
   /**
-  * Tag property.
-  * @property {Object}
-  */
-  this.tag = _base.tag;
+   * Gets or sets the object this device is tagged with.
+   * @property {Object} tag - The tag.
+   * @override
+   */
+  get tag() {
+    return this._base.tag;
+  }
+
+  set tag(t) {
+    this._base.tag = t;
+  }
 
   /**
   * Determines whether or not the current instance has been disposed.
-  * @return {Boolean} true if disposed; Otherwise, false.
+  * @property {Boolean} isDisposed - true if disposed; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
+  get isDisposed () {
+    return this._base.isDisposed;
+  }
 
   /**
-  * Gets the property collection.
-  * @return {Array} A custom property collection.
+  * Gets the custom property collection.
+  * @property {Array} propertyCollection - The property collection.
+  * @readonly
   * @override
   */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
+  get propertyCollection() {
+    return this._base.propertyCollection;
+  }
 
   /**
   * Checks to see if the property collection contains the specified key.
@@ -82,9 +101,9 @@ function OpenerBase() {
   * Otherwise, false.
   * @override
   */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
+  hasProperty(key) {
+    return this._base.hasProperty(key);
+  }
 
   /**
   * Sets the value of the specified property. If the property does not already exist
@@ -92,17 +111,17 @@ function OpenerBase() {
   * @param  {String} key   The property name (key).
   * @param  {String} value The value to assign to the property.
   */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
+  setProperty(key, value) {
+    this._base.setProperty(key, value);
+  }
 
   /**
   * Removes all event listeners.
   * @override
   */
-  this.removeAllListeners = function() {
-    _emitter.removeAllListeners();
-  };
+  removeAllListeners() {
+    this._emitter.removeAllListeners();
+  }
 
   /**
   * Attaches a listener (callback) for the specified event name.
@@ -112,12 +131,12 @@ function OpenerBase() {
   * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.on = function(evt, callback) {
-    if (_base.isDisposed()) {
+  on(evt, callback) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("OpenerBase");
     }
-    _emitter.on(evt, callback);
-  };
+    this._emitter.on(evt, callback);
+  }
 
   /**
   * Emits the specified event.
@@ -126,118 +145,116 @@ function OpenerBase() {
   * @throws {ObjectDisposedException} if this instance has been disposed.
   * @override
   */
-  this.emit = function(evt, args) {
-    if (_base.isDisposed()) {
+  emit(evt, args) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("OpenerBase");
     }
-    _emitter.emit(evt, args);
-  };
+    this._emitter.emit(evt, args);
+  }
 
   /**
   * Raises the opener state change event.
   * @param  {OpenerStateChangeEvent} stateChangeEvent The event object.
   * @override
   */
-  this.onOpenerStateChange = function(stateChangeEvent) {
-    if (_base.isDisposed()) {
+  onOpenerStateChange(stateChangeEvent) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("OpenerBase");
     }
 
-    var e = _emitter;
-    var evt = stateChangeEvent;
-    process.nextTick(function() {
-      e.emit(Opener.EVENT_STATE_CHANGED, evt);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(Opener.EVENT_STATE_CHANGED, stateChangeEvent);
+    });
+  }
 
   /**
   * Gets the state of this opener.
-  * @return {OpenerState} The state of the opener.
+  * @property {OpenerState} state - The opener state.
   * @override
   */
-  this.getState = function() {
-    return _state;
-  };
+  get state() {
+    return this._state;
+  }
 
   /**
   * Raises the lock state change event.
   * @param  {OpenerLockChangeEvent} lockStateChangeEvent The event object.
   * @override
   */
-  this.onLockStateChange = function(lockStateChangeEvent) {
-    if (_base.isDisposed()) {
+  onLockStateChange(lockStateChangeEvent) {
+    if (this.isDisposed) {
       throw new ObjectDisposedException("OpenerBase");
     }
 
-    var e = _emitter;
-    var evt = lockStateChangeEvent;
-    process.nextTick(function() {
-      e.emit(Opener.EVENT_LOCK_STATE_CHANGED, evt);
-    }.bind(this));
-  };
+    setImmediate(() => {
+      this.emit(Opener.EVENT_LOCK_STATE_CHANGED, lockStateChangeEvent);
+    });
+  }
 
   /**
   * Gets a value indicating whether this opener is open.
-  * @return {Boolean} true if open; Otherwise, false.
-  *                    @override
+  * @property {Boolean} isOpen - true if open; Otherwise, false.
+  * @readonly
+  * @override
   */
-  this.isOpen = function() {
-    return (self.getState() === OpenerState.Open);
-  };
+  get isOpen() {
+    return (this.state === OpenerState.Open);
+  }
 
   /**
   * Fets a value indicating whether this opner is in the the process of opening.
-  * @return {Boolean} true if opening; Otherwise, false.
+  * @property {Boolean} isOpening - true if opening; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isOpening = function() {
-    return (self.getState() === OpenerState.Opening);
-  };
+  get isOpening() {
+    return (this.state === OpenerState.Opening);
+  }
 
   /**
   * Fets a value indicating whether this opener is closed.
-  * @return {Boolean} true if closed; Otherwise, false.
+  * @property {Boolean} isClosed - true if closed; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isClosed = function() {
-    return (self.getState() === OpenerState.Closed);
-  };
+  get isClosed() {
+    return (this.state === OpenerState.Closed);
+  }
 
   /**
   * Fets a value indicating whether this opener is in the process of closing.
-  * @return {Boolean} true if closing; Otherwise, false.
+  * @property {Boolean} isClosing - true if closing; Otherwise, false.
+  * @readonly
   * @override
   */
-  this.isClosing = function() {
-    return (self.getState() === OpenerState.Closing);
-  };
+  get isClosing() {
+    return (this.state === OpenerState.Closing);
+  }
 
   /**
   * Returns the string representation of this object. In this case, it simply
   * returns the component name.
   * @return {String} The name of this component.
+  * @override
   */
-  this.toString = function() {
-    return self.deviceName;
-  };
+  toString() {
+    return this.deviceName;
+  }
 
   /**
   * Releases all resources used by the GpioBase object.
   * @override
   */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  dispose() {
+    if (this.isDisposed) {
       return;
     }
 
-    _emitter.removeAllListeners();
-    _emitter = undefined;
-    _state = OpenerState.Closed;
-    _base.dispose();
-  };
+    this._emitter.removeAllListeners();
+    this._emitter = undefined;
+    this._state = OpenerState.Closed;
+    this._base.dispose();
+  }
 }
-
-OpenerBase.prototype.constructor = OpenerBase;
-inherits(OpenerBase, Opener);
 
 module.exports = OpenerBase;

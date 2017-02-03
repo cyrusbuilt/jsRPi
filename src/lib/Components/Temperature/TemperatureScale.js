@@ -25,7 +25,7 @@
  * The scale to measure to temperature in.
  * @enum {Number}
  */
-var TemperatureScale = {
+const TemperatureScale = {
   /**
    * The temperature in degrees Celcius.
    * @type {Number}

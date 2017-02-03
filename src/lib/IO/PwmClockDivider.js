@@ -28,7 +28,7 @@
  * PWM clock divider values.
  * @enum {Number}
  */
-var PwmClockDivider = {
+const PwmClockDivider = {
   /**
    * Divide clock by a factor of 1.
    * @type {Number}

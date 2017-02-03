@@ -27,7 +27,7 @@
  * The mode of the GPIO pin.
  * @enum {Number}
  */
-var PinMode = {
+const PinMode = {
   /**
    * Pin is an input.
    * @type {Number}

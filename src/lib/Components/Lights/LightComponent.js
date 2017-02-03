@@ -22,197 +22,98 @@
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
 
-var util = require('util');
-var inherits = require('util').inherits;
-var LightBase = require('./LightBase.js');
-var PinState = require('../../IO/PinState.js');
-var PinMode = require('../../IO/PinMode.js');
-var LightStateChangeEvent = require('./LightStateChangeEvent.js');
-var ArgumentNullException = require('../../ArgumentNullException.js');
-var InvalidOperationException = require('../../InvalidOperationException.js');
-var ObjectDisposedException = require('../../ObjectDisposedException.js');
+const util = require('util');
+const LightBase = require('./LightBase.js');
+const PinState = require('../../IO/PinState.js');
+const PinMode = require('../../IO/PinMode.js');
+const LightStateChangeEvent = require('./LightStateChangeEvent.js');
+const ArgumentNullException = require('../../ArgumentNullException.js');
+const InvalidOperationException = require('../../InvalidOperationException.js');
+const ObjectDisposedException = require('../../ObjectDisposedException.js');
 
-var ON_STATE = PinState.High;
-var OFF_STATE = PinState.Low;
+const ON_STATE = PinState.High;
+const OFF_STATE = PinState.Low;
 
 /**
  * @classdesc A component that is an abstraction of a light.
- * @param {Gpio} pin The output pin the light is wired to.
- * @throws {ArgumentNullException} if pin is null or undefined.
- * @constructor
  * @extends {LightBase}
  */
-function LightComponent(pin) {
-  LightBase.call(this);
+class LightComponent extends LightBase {
+  /**
+   * Initializes a new instance of the jsrpi.Components.Lights.LightComponent
+   * class with the pin that the light is attached to.
+   * @param {Gpio} pin The output pin the light is wired to.
+   * @throws {ArgumentNullException} if pin is null or undefined.
+   * @constructor
+   */
+  constructor(pin) {
+    super();
 
-  if (util.isNullOrUndefined(pin)) {
-    throw new ArgumentNullException("'pin' param cannot be null or undefined.");
+    if (util.isNullOrUndefined(pin)) {
+      throw new ArgumentNullException("'pin' param cannot be null or undefined.");
+    }
+
+    this._pin = pin;
+    this._pin.provision();
   }
-
-  var self = this;
-  var _base = new LightBase();
-  var _pin = pin;
-  _pin.provision();
-
-  /**
-   * Component name property.
-   * @property {String}
-   */
-  this.componentName = _base.componentName;
-
-  /**
-   * Tag property.
-   * @property {Object}
-   */
-  this.tag = _base.tag;
-
-  /**
-   * Gets the property collection.
-   * @return {Array} A custom property collection.
-   * @override
-   */
-  this.getPropertyCollection = function() {
-    return _base.getPropertyCollection();
-  };
-
-  /**
-   * Checks to see if the property collection contains the specified key.
-   * @param  {String} key The key name of the property to check for.
-   * @return {Boolean}    true if the property collection contains the key;
-   * Otherwise, false.
-   * @override
-   */
-  this.hasProperty = function(key) {
-    return _base.hasProperty(key);
-  };
-
-  /**
-   * Sets the value of the specified property. If the property does not already exist
-	 * in the property collection, it will be added.
-   * @param  {String} key   The property name (key).
-   * @param  {String} value The value to assign to the property.
-   */
-  this.setProperty = function(key, value) {
-    _base.setProperty(key, value);
-  };
-
-  /**
-   * Determines whether or not this instance has been disposed.
-   * @return {Boolean} true if disposed; Otherwise, false.
-   * @override
-   */
-  this.isDisposed = function() {
-    return _base.isDisposed();
-  };
 
   /**
    * Releases all resources used by the GpioBase object.
    * @override
    */
-  this.dispose = function() {
-    if (_base.isDisposed()) {
+  dispose() {
+    if (this.isDisposed) {
       return;
     }
 
-    if (!util.isNullOrUndefined(_pin)) {
-      _pin.dispose();
-      _pin = undefined;
+    if (!util.isNullOrUndefined(this._pin)) {
+      this._pin.dispose();
+      this._pin = undefined;
     }
 
-    _base.removeAllListeners();
-    _base.dispose();
-  };
-
-  /**
-   * Removes all event listeners.
-   * @override
-   */
-  this.removeAllListeners = function() {
-    if (!_base.isDisposed()) {
-      _base.removeAllListeners();
-    }
-  };
-
-  /**
-   * Attaches a listener (callback) for the specified event name.
-   * @param  {String}   evt      The name of the event.
-   * @param  {Function} callback The callback function to execute when the
-   * event is raised.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   */
-  this.on = function(evt, callback) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("LightComponent");
-    }
-    _base.on(evt, callback);
-  };
-
-  /**
-   * Emits the specified event.
-   * @param  {String} evt  The name of the event to emit.
-   * @param  {Object} args The object that provides arguments to the event.
-   * @throws {ObjectDisposedException} if this instance has been disposed.
-   * @override
-   */
-  this.emit = function(evt, args) {
-    if (_base.isDisposed()) {
-      throw new ObjectDisposedException("LightComponent");
-    }
-    _base.emit(evt, args);
-  };
-
-  /**
-   * Fires the light state change event.
-   * @param  {LightStateChangeEvent} lightChangeEvent The state change event
-   * object.
-   * @override
-   */
-  this.onLightStateChange = function(lightChangeEvent) {
-    _base.onLightStateChange(lightChangeEvent);
-  };
+    this.removeAllListeners();
+    super.dispose();
+  }
 
   /**
    * Gets a value indicating whether this light is on.
-   * @return {Boolean} true if the light is on; Otherwise, false.
+   * @property {Boolean} isOn - true if the light is on; Otherwise, false.
+   * @readonly
    * @override
    */
-  this.isOn = function() {
-    return (_pin.state() === ON_STATE);
-  };
+  get isOn() {
+    return (this._pin.state === ON_STATE);
+  }
 
   /**
    * Switches the light on.
    * @override
    */
-  this.turnOn = function() {
-    if (_pin.mode() !== PinMode.OUT) {
+  turnOn() {
+    if (this._pin.mode !== PinMode.OUT) {
       throw new InvalidOperationException("Pin is not configured as an output pin.");
     }
 
-    if (_pin.state() !== ON_STATE) {
-      _pin.write(PinState.High);
-      _base.onLightStateChange(new LightStateChangeEvent(true));
+    if (this._pin.state !== ON_STATE) {
+      this._pin.write(PinState.High);
+      this.onLightStateChange(new LightStateChangeEvent(true));
     }
-  };
+  }
 
   /**
    * Switches the light off.
    * @override
    */
-  this.turnOff = function() {
-    if (_pin.mode() !== PinMode.OUT) {
+  turnOff() {
+    if (this._pin.mode !== PinMode.OUT) {
       throw new InvalidOperationException("Pin is not configured as an output pin.");
     }
 
-    if (_pin.state() !== OFF_STATE) {
-      _pin.write(PinState.Low);
-      _base.onLightStateChange(new LightStateChangeEvent(false));
+    if (this._pin.state !== OFF_STATE) {
+      this._pin.write(PinState.Low);
+      this.onLightStateChange(new LightStateChangeEvent(false));
     }
-  };
- }
-
-LightComponent.prototype.constructor = LightComponent;
-inherits(LightComponent, LightBase);
+  }
+}
 
 module.exports = LightComponent;
