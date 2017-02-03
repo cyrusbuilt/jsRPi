@@ -19,7 +19,6 @@ addons:
     - g++-4.8
 
 script:
-  - ./install_deps.sh
   - npm run jshint
   - npm run test
 
