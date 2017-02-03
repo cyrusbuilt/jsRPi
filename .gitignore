@@ -46,7 +46,9 @@ obj/
 build/
 docs/
 
+# MacOS garbage
+.DS_Store
+._DS_Store
 
 .idea/vcs.xml
 
-.project
