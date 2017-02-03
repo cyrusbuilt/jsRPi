@@ -1,8 +1,6 @@
 #!/bin/sh
 
-pushd `dirname $0` > /dev/null
-HOME=`pwd`
-popd > /dev/null
-cd '$HOME'
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd)"
+cd "${SCRIPT_DIR}"
 npm run build
 exit
