@@ -5,7 +5,7 @@ jsRPi
 Raspberry Pi library framework for NodeJS
 ======
 jsRPi v0.2.2 ALPHA
-Copyright (c) CyrusBuilt 2015
+Copyright (c) CyrusBuilt 2017
 
 A Raspberry Pi GPIO and device/component library framework for NodeJS. This is a
 port of the the MonoPi Framework (https://github.com/cyrusbuilt/MonoPi), which
@@ -44,7 +44,7 @@ general goes against the non-blocking nature of NodeJS. Unfortunately, this
 could not be avoided in many cases but I do have plans try and refactor some of
 this code in an attempt to make it more asynchronous wherever possible.
 
-ES6 Comliance:
+ES6 Compliance:
 ======
 This framework has been ported from ES5-compliant code to ES6. It is recommended that if have implemented an previous
 versions of the framework (v0.1.x) that you review your code as the v0.2.x code is quite a bit different and will likely
