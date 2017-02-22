@@ -272,7 +272,7 @@ class GpioStandard extends GpioBase {
     super.write(ps);
     this._write(this.innerPin, ps);
     if (this._lastState !== this.state) {
-      this.onPinStateChange(new PinStateChangeEvent(this._lastState, this.state));
+      this.onPinStateChange(new PinStateChangeEvent(this._lastState, this.state, this.innerPin));
     }
   }
 
@@ -287,10 +287,10 @@ class GpioStandard extends GpioBase {
     }
 
     this._write(this.innerPin, PinState.High);
-    this.onPinStateChange(new PinStateChangeEvent(this.state, PinState.High));
+    this.onPinStateChange(new PinStateChangeEvent(this.state, PinState.High, this.innerPin));
     this.pulse(millis);
     this._write(super.innerPin, PinState.Low);
-    this.onPinStateChange(new PinStateChangeEvent(this.state, PinState.Low));
+    this.onPinStateChange(new PinStateChangeEvent(this.state, PinState.Low, this.innerPin));
   }
 
   /**
@@ -308,7 +308,7 @@ class GpioStandard extends GpioBase {
   read() {
     let val = this._read(super.innerPin);
     if (this._lastState !== val) {
-      this.onPinStateChange(new PinStateChangeEvent(this._lastState, val));
+      this.onPinStateChange(new PinStateChangeEvent(this._lastState, val, this.innerPin));
     }
     return val;
   }
