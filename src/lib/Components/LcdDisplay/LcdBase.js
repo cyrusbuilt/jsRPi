@@ -176,15 +176,6 @@ class LcdBase extends Lcd {
     this._validateColumnIndex(column);
   }
 
-  // TODO Implement setCursorPosition() in derived component.
-  // setCursorPosition(row, column) {
-  //  row = row || 0;
-  //  column = column || 0;
-  //  self._validateCoordinates(row, column);
-  //  ...
-  //  ...
-  // }
-
   /**
   * Sends the cursor to the home position which is in the top-level corner of
   * the screen (row 0, column 0).

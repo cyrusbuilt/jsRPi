@@ -297,12 +297,12 @@ class PiCameraDevice extends DeviceBase {
     // start reading the output. Every time we get something
     // back from the process, we notify the output listeners.
     this.onCaptureStarted(new CaptureStartEvent(this._processID));
-    this._captureProc.stdout.on('data', (code, sig) => {
-        this._onProcesStandardOutputData(code, sig);
+    this._captureProc.stdout.on('data', (data) => {
+        this._onProcesStandardOutputData(data);
     });
 
-    this._captureProc.on('close', (data) => {
-        this._onProcessClose(data);
+    this._captureProc.on('close', (code, sig) => {
+        this._onProcessClose(code, sig);
     });
   }
 
