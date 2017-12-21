@@ -4,7 +4,7 @@ jsRPi
 
 Raspberry Pi library framework for NodeJS
 ======
-jsRPi v0.2.2 ALPHA
+jsRPi v0.2.6 BETA
 Copyright (c) CyrusBuilt 2017
 
 A Raspberry Pi GPIO and device/component library framework for NodeJS. This is a
