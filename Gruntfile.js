@@ -1,9 +1,7 @@
 'use strict';
 
 module.exports = function(grunt) {
-    const APP_VER = JSON.stringify(require('./package.json').version).replace(/\"/g, "");
-    const webpack = require("webpack");
-    const path = require('path');
+    const webpackConfig = require('./webpack.config');
 
     //  Project configuration.
     grunt.initConfig({
@@ -59,29 +57,13 @@ module.exports = function(grunt) {
             }
         },
         webpack: {
-            // We currently need the force flag so that build will complete on non-native hosts, since the pi-spi module
-            // does not properly build the required module when installing on non-raspberry pi hosts. pi-spi is
-            // currently only being used by jsrpi.IO.PiFaceGpioDigital. By forcing the build we can still get that class
-            // into the final build output. The --force flag is specified in package.json for the 'npm run build'
-            // command. So when running a build, either use 'npm run build' or 'grunt default --force' or just
-            // 'grunt --force'.
-            jsrpi: {
-                entry: './src/jsrpi.js',
-                output: {
-                    path: path.resolve(__dirname, 'build'),
-                    filename: 'jsrpi-' + APP_VER + '-bundle.js'
-                },
-                stats: {
-                    colors: true,
-                    modules: true,
-                    reasons: true
-                },
-                target: 'node',
+            options: {
                 progress: true,
-                watch: false,
                 keepalive: false,
-                inline: false
-            }
+                stats: !process.env.NODE_ENV || process.env.NODE_ENV === 'development'
+            },
+            prod: webpackConfig,
+            dev: Object.assign({ watch: true }, webpackConfig)
         },
         watch: {
             files: [

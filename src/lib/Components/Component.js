@@ -27,6 +27,7 @@ const Disposable = require('../Disposable.js');
 /**
  * A hardware abstraction component interface.
  * @interface
+ * @extends {Disposable}
  */
 class Component extends Disposable {
   /**

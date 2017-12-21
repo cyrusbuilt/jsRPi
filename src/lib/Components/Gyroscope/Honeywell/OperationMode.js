@@ -1,7 +1,6 @@
 "use strict";
-
 //
-//  PowerUtils.js
+//  OperationMode.js
 //
 //  Author:
 //       Chris Brunner <cyrusbuilt at gmail dot com>
@@ -21,43 +20,32 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//
 
 /**
- * @fileOverview Provides utility methods for working with power components.
- *
- * @module PowerUtils
- * @requires PowerState
+ * Possible operation modes for the Honeywell gyro.
+ * @enum {Number}
  */
+const OperationMode = {
+    /**
+     * Continuous sample mode. Continuously takes measurements.
+     * @type {Number}
+     */
+    Continuous: 0,
 
-const PowerState = require('./PowerState.js');
+    /**
+     * Single sample mode. Default power-up mode. In this mode,
+     * the gyro will take a single sample and then switch to
+     * idle mode.
+     * @type {Number}
+     */
+    SingleSampe: 1,
 
-/**
- * Gets the name of the specified power state.
- * @param  {PowerState} state The state to get the name of.
- * @return {String}       The name of the state or an empty string if invalid or
- * not provided.
- */
-const getPowerStateName = function(state) {
-  if ((state === null) || (state === undefined)) {
-    return "";
-  }
-
-  let name = "";
-  switch (state) {
-    case PowerState.On:
-      name = "On";
-      break;
-    case PowerState.Off:
-      name = "Off";
-      break;
-    case PowerState.Unknown:
-      name = "Unknown";
-      break;
-    default:
-      break;
-  }
-  return name;
+    /**
+     * Idle mode (no sampling).
+     * @type {Number}
+     */
+    Idle: 2
 };
 
-module.exports.getPowerStateName = getPowerStateName;
+module.exports = OperationMode;
+

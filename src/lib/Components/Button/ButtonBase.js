@@ -34,6 +34,7 @@ const ObjectDisposedException = require('../../ObjectDisposedException.js');
 * Base class for button device abstraction components.
 * @implements {Button}
 * @extends {ComponentBase}
+ * * @extends {EventEmitter}
 */
 class ButtonBase extends Button {
   /**
@@ -180,7 +181,7 @@ class ButtonBase extends Button {
   */
   _onHoldTimerElapsed(btnEvent) {
     if (this.isPressed) {
-      this.onButtonHold(new ButtonEvent(this));
+      this.onButtonHold(btnEvent);
     }
   }
 
@@ -200,8 +201,8 @@ class ButtonBase extends Button {
   * @private
   */
   _startHoldTimer() {
-    this._holdTimer = setInterval((btnEvent) => {
-        this._onHoldTimerElapsed(btnEvent);
+    this._holdTimer = setInterval(() => {
+        this._onHoldTimerElapsed(new ButtonEvent(this));
     }, 2000);
   }
 
@@ -319,7 +320,7 @@ class ButtonBase extends Button {
   }
 
   /**
-  * Releases all resources used by the GpioBase object.
+  * Releases all resources used by the ButtonBase object.
   * @override
   */
   dispose() {

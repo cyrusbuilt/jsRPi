@@ -35,6 +35,7 @@ module.exports = {
   GpioBase : require('./GpioBase.js'),
   GpioPins : require('./GpioPins.js'),
   GpioStandard : require('./GpioStandard.js'),
+  I2C: require('./I2C/I2C.js'),
   InvalidPinModeException : require('./InvalidPinModeException.js'),
   IOException : require('./IOException.js'),
   PiFaceGpio : require('./PiFaceGPIO.js'),

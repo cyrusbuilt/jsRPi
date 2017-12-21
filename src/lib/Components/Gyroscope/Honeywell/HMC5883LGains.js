@@ -1,7 +1,6 @@
 "use strict";
-
 //
-//  PowerUtils.js
+//  HMC5883LGains.js
 //
 //  Author:
 //       Chris Brunner <cyrusbuilt at gmail dot com>
@@ -21,43 +20,60 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//
 
 /**
- * @fileOverview Provides utility methods for working with power components.
- *
- * @module PowerUtils
- * @requires PowerState
+ * Possible Gyro gains. Gyro gain is essentially how
+ * aggressively the gyro attempts to correct drift.
+ * @enum {Number}
  */
+const HMC5883LGains = {
+    /**
+     * 0.88% gain.
+     * @type {Number}
+     */
+    GAIN_0_88_GA: 0,
 
-const PowerState = require('./PowerState.js');
+    /**
+     * 1.3% gain.
+     * @type {Number}
+     */
+    GAIN_1_3_GA: 1,
 
-/**
- * Gets the name of the specified power state.
- * @param  {PowerState} state The state to get the name of.
- * @return {String}       The name of the state or an empty string if invalid or
- * not provided.
- */
-const getPowerStateName = function(state) {
-  if ((state === null) || (state === undefined)) {
-    return "";
-  }
+    /**
+     * 1.9% gain.
+     * @type {Number}
+     */
+    GAIN_1_9_GA: 2,
 
-  let name = "";
-  switch (state) {
-    case PowerState.On:
-      name = "On";
-      break;
-    case PowerState.Off:
-      name = "Off";
-      break;
-    case PowerState.Unknown:
-      name = "Unknown";
-      break;
-    default:
-      break;
-  }
-  return name;
+    /**
+     * 2.5% gain.
+     * @type {Number}
+     */
+    GAIN_2_5_GA: 3,
+
+    /**
+     * 4.0% gain.
+     * @type {Number}
+     */
+    GAIN_4_0_GA: 4,
+
+    /**
+     * 4.7% gain.
+     * @type {Number}
+     */
+    GAIN_4_7_GA: 5,
+
+    /**
+     * 5.6% gain.
+     * @type {Number}
+     */
+    GAIN_5_6_GA: 6,
+
+    /**
+     * 8.1% gain.
+     * @type {Number}
+     */
+    GAIN_8_1_GA: 7
 };
 
-module.exports.getPowerStateName = getPowerStateName;
+module.exports = HMC5883LGains;

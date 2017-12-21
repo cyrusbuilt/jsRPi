@@ -190,10 +190,7 @@ class OpenerDevice extends OpenerBase {
   */
   get state() {
     // TODO handle the case of isOpening and isClosing
-    if (this._sensor.state === this._openState) {
-      return OpenerState.Open;
-    }
-    return OpenerState.Closed;
+    return this._getOpenerState(this._sensor.state);
   }
 
   /**

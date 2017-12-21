@@ -12,7 +12,6 @@
   "unused": false,
   "boss": true,
   "eqnull": true,
-  "node": true,
   "es5": false,
   "esversion": 6,
   "strict": true,

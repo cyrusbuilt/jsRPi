@@ -57,10 +57,10 @@ let _cpuInfo = null;
  * @package
  */
 const getCpuInfo = function(target) {
-  if (_cpuInfo == null) {
+  if (_cpuInfo === null) {
     _cpuInfo = [];
     let result = ExecUtils.executeCommand("cat /proc/cpuinfo");
-    if (result != null) {
+    if (result !== null) {
       let line = StringUtils.EMPTY;
       let parts = [];
       for (let i = 0; i < result.length; i++) {
@@ -202,9 +202,9 @@ const getOsArch = function() {
 const getOsFirmwareBuild = function() {
   let results = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd version");
   let val = StringUtils.EMPTY;
-  if (results != null) {
-    var line = StringUtils.EMPTY;
-    for (var i = 0; i < results.length; i++) {
+  if (results !== null) {
+    let line = StringUtils.EMPTY;
+    for (let i = 0; i < results.length; i++) {
       line = results[i];
       if (StringUtils.startsWith(line, "version ")) {
         val = line;
@@ -228,9 +228,10 @@ const getOsFirmwareBuild = function() {
 const getOsFirmwareDate = function() {
   let results = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd version");
   let val = StringUtils.EMPTY;
-  if (results != null) {
+  if (results !== null) {
     let line = StringUtils.EMPTY;
     for (let i = 0; i < results.length; i++) {
+      // We are intentionally only getting the first line.
       line = results[i];
       val = line;
       break;
@@ -252,7 +253,7 @@ const getOsFirmwareDate = function() {
 const getMemory = function() {
   let values = [];
   let result = ExecUtils.executeCommand("free -b");
-  if (result != null) {
+  if (result !== null) {
     let parts = [];
     let part = StringUtils.EMPTY;
     let line = StringUtils.EMPTY;
@@ -281,7 +282,7 @@ const getMemory = function() {
  */
 const getMemoryTotal = function() {
   let values = getMemory();
-  if ((values != null) && (values.length > 0)) {
+  if ((values !== null) && (values.length > 0)) {
     return values[0];  // Total memory value is the first position.
   }
   return -1;
@@ -294,7 +295,7 @@ const getMemoryTotal = function() {
  */
 const getMemoryUsed = function() {
   let values = getMemory();
-  if ((values != null) && (values.length > 1)) {
+  if ((values !== null) && (values.length > 1)) {
     return values[1];  // Used memory value is the second position.
   }
   return -1;
@@ -306,7 +307,7 @@ const getMemoryUsed = function() {
  */
 const getMemoryFree = function() {
   let values = getMemory();
-  if ((values != null) && (values.length > 2)) {
+  if ((values !== null) && (values.length > 2)) {
     return values[2];  // Free memory value is the third position.
   }
   return -1;
@@ -318,7 +319,7 @@ const getMemoryFree = function() {
  */
 const getMemoryShared = function() {
   let values = getMemory();
-  if ((values != null) && (values.length > 3)) {
+  if ((values !== null) && (values.length > 3)) {
     return values[3];  // Shared memory value is the fourth position.
   }
   return -1;
@@ -330,7 +331,7 @@ const getMemoryShared = function() {
  */
 const getMemoryBuffers = function() {
   let values = getMemory();
-  if ((values != null) && (values.length > 4)) {
+  if ((values !== null) && (values.length > 4)) {
     return values[4];  // Buffer memory value is the fifth position.
   }
   return -1;
@@ -342,7 +343,7 @@ const getMemoryBuffers = function() {
  */
 const getMemoryCached = function() {
   let values = getMemory();
-  if ((values != null) && (values.length > 5)) {
+  if ((values !== null) && (values.length > 5)) {
     return values[5];  // Cache memory value is the sixth position.
   }
   return -1;
@@ -384,28 +385,28 @@ const getBoardType = function() {
  * response.
  */
 const getCpuTemperature = function() {
-  // CPU temperature is in the form
-	// pi@mypi$ /opt/vc/bin/vcgencmd measure_temp
-	// temp=42.3'C
-	// Support for this was added around firmware version 3357xx per info
-	// at http://www.raspberrypi.org/phpBB3/viewtopic.php?p=169909#p169909
-	let result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd measure_temp");
-  if (result != null) {
-    let parts = [];
-    let val = -1;
-    let line = StringUtils.EMPTY;
-    let separators = ["\\\[", "\\\=", "\\\]", "\\\'"];
-    for (let i = 0; i < result.length; i++) {
-      line = result[i];
-      parts = line.split(new RegExp(separators.join('|'), 'g'), 3);
-      val = parseFloat(parts[1]);
-      if (val === "NaN") {
-        val = -1;
-      }
+    // CPU temperature is in the form
+    // pi@mypi$ /opt/vc/bin/vcgencmd measure_temp
+    // temp=42.3'C
+    // Support for this was added around firmware version 3357xx per info
+    // at http://www.raspberrypi.org/phpBB3/viewtopic.php?p=169909#p169909
+    let result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd measure_temp");
+    if (result !== null) {
+        let parts = [];
+        let val = -1;
+        let line = StringUtils.EMPTY;
+        let separators = ["\\\[", "\\\=", "\\\]", "\\\'"];
+        for (let i = 0; i < result.length; i++) {
+            line = result[i];
+            parts = line.split(new RegExp(separators.join('|'), 'g'), 3);
+            val = parseFloat(parts[1]);
+            if (val === "NaN") {
+                val = -1;
+            }
+        }
+        return val;
     }
-    return val;
-  }
-  throw new InvalidOperationException("Invalid command or response.");
+    throw new InvalidOperationException("Invalid command or response.");
 };
 
 /**
@@ -418,7 +419,7 @@ const getCpuTemperature = function() {
  */
 const getVoltage = function(id) {
   let result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd measure_volts " + id);
-  if (result != null) {
+  if (result !== null) {
     let val = -1;
     let parts = [];
     let line = StringUtils.EMPTY;
@@ -487,7 +488,7 @@ const getMemoryVoltageSDRamP = function() {
 const getCodecEnabled = function(codec) {
   let enabled = false;
   let result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd codec_enabled " + codec);
-  if (result != null) {
+  if (result !== null) {
     let parts = [];
     let line = StringUtils.EMPTY;
     for (let i = 0; i < result.length; i++) {
@@ -532,14 +533,14 @@ const isCodecWVC1Enabled = function() {
  * @return {Number}        The clock frequency, if successful; Otherwise, -1.
  */
 const getClockFrequency = function(target) {
-  if (target == null) {
+  if (target === null) {
     return -1;
   }
 
   target = StringUtils.trim(target);
   let val = -1;
   let result = ExecUtils.executeCommand("/opt/vc/bin/vcgencmd measure_clock " + target);
-  if (result != null) {
+  if (result !== null) {
     let parts = [];
     let line = StringUtils.EMPTY;
     let temp = -1;
@@ -592,7 +593,7 @@ const getReadElfTag = function(tag) {
   let tagVal = StringUtils.EMPTY;
   try {
     let result = ExecUtils.executeCommand("/usr/bin/readelf -A /proc/self/exe");
-    if (result != null) {
+    if (result !== null) {
       let lineParts = [];
       let part = StringUtils.EMPTY;
       let line = StringUtils.EMPTY;

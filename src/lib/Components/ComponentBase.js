@@ -35,7 +35,7 @@ class ComponentBase extends Component {
    * @param {Array} props A collection of component properties (optional).
    * @constructor
    */
-  constructor(props) {
+  constructor(props = []) {
       super();
       
     this._props = props || [];

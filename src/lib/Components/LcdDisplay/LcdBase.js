@@ -288,7 +288,7 @@ class LcdBase extends Lcd {
     this.setCursorPosition(row, columnIndex);
 
     // Write out each character of the string.
-    var chars = str.split("");
+    let chars = str.split("");
     for (let i = 0; i < chars.length; i++) {
       this.writeSingleChar(chars[i]);
     }
@@ -339,7 +339,7 @@ class LcdBase extends Lcd {
     column = column || 0;
     length = length || this.columnCount;
 
-    for (var i = row; i < length; i++) {
+    for (let i = row; i < length; i++) {
       sb.append(StringUtils.EMPTY);
     }
 

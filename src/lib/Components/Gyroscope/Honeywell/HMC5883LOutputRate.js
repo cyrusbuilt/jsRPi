@@ -1,7 +1,6 @@
 "use strict";
-
 //
-//  PowerUtils.js
+//  HMC5883LOutputRate.js
 //
 //  Author:
 //       Chris Brunner <cyrusbuilt at gmail dot com>
@@ -21,43 +20,53 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//
 
 /**
- * @fileOverview Provides utility methods for working with power components.
- *
- * @module PowerUtils
- * @requires PowerState
+ * Possible output rates (resolution).
+ * @enum {Number}
  */
+const HMC5883LOutputRate = {
+    /**
+     * 0.75Hz
+     * @type {Number}
+     */
+    Rate_0_75_HZ: 0,
 
-const PowerState = require('./PowerState.js');
+    /**
+     * 1.5Hz
+     * @type {Number}
+     */
+    Rate_1_5_HZ: 1,
 
-/**
- * Gets the name of the specified power state.
- * @param  {PowerState} state The state to get the name of.
- * @return {String}       The name of the state or an empty string if invalid or
- * not provided.
- */
-const getPowerStateName = function(state) {
-  if ((state === null) || (state === undefined)) {
-    return "";
-  }
+    /**
+     * 3Hz
+     * @type {Number}
+     */
+    Rate_3_HZ: 2,
 
-  let name = "";
-  switch (state) {
-    case PowerState.On:
-      name = "On";
-      break;
-    case PowerState.Off:
-      name = "Off";
-      break;
-    case PowerState.Unknown:
-      name = "Unknown";
-      break;
-    default:
-      break;
-  }
-  return name;
+    /**
+     * 7.5Hz
+     * @type {Number}
+     */
+    Rate_7_5_HZ: 3,
+
+    /**
+     * 15Hz
+     * @type {Number}
+     */
+    Rate_15_HZ: 4,
+
+    /**
+     * 30Hz
+     * @type {Number}
+     */
+    Rate_30_HZ: 5,
+
+    /**
+     * 75Hz
+     * @type {Number}
+     */
+    Rate_75_HZ: 6
 };
 
-module.exports.getPowerStateName = getPowerStateName;
+module.exports = HMC5883LOutputRate;

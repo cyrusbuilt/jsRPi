@@ -1,7 +1,6 @@
 "use strict";
-
 //
-//  PowerUtils.js
+//  Samples.js
 //
 //  Author:
 //       Chris Brunner <cyrusbuilt at gmail dot com>
@@ -21,43 +20,35 @@
 //  You should have received a copy of the GNU General Public License
 //  along with this program; if not, write to the Free Software
 //  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-//
 
 /**
- * @fileOverview Provides utility methods for working with power components.
- *
- * @module PowerUtils
- * @requires PowerState
+ * Possible average samples.
+ * @enum {Number}
  */
+const Samples = {
+    /**
+     * Average of 1 sample.
+     * @type {Number}
+     */
+    Average_1: 0,
 
-const PowerState = require('./PowerState.js');
+    /**
+     * Average 2 samples.
+     * @type {Number}
+     */
+    Average_2: 1,
 
-/**
- * Gets the name of the specified power state.
- * @param  {PowerState} state The state to get the name of.
- * @return {String}       The name of the state or an empty string if invalid or
- * not provided.
- */
-const getPowerStateName = function(state) {
-  if ((state === null) || (state === undefined)) {
-    return "";
-  }
+    /**
+     * Average 4 samples.
+     * @type {Number}
+     */
+    Average_4: 2,
 
-  let name = "";
-  switch (state) {
-    case PowerState.On:
-      name = "On";
-      break;
-    case PowerState.Off:
-      name = "Off";
-      break;
-    case PowerState.Unknown:
-      name = "Unknown";
-      break;
-    default:
-      break;
-  }
-  return name;
+    /**
+     * Average 8 samples.
+     * @type {Number}
+     */
+    Average_8: 3
 };
 
-module.exports.getPowerStateName = getPowerStateName;
+module.exports = Samples;
